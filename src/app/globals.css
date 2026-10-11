@@ -123,6 +123,8 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-feature-settings: "lnum" 1;
+    font-variant-numeric: lining-nums;
   }
   html {
     @apply font-sans;

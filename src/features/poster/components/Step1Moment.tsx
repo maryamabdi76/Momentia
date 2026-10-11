@@ -1,261 +1,278 @@
 'use client';
 
 import { useState } from 'react';
-import { Sparkles, MapPin, Check, Clock, ArrowLeft, Moon } from 'lucide-react';
+import { useTranslations } from 'next-intl';
+import { useForm, Controller, type SubmitHandler } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Sparkles, Search, Check, MapPin, Clock, ArrowLeft, Moon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { searchCities, type City } from '@/features/poster/lib/cities';
+import { JALALI_DAYS, JALALI_MONTHS, JALALI_YEARS, DEFAULT_TIME } from '@/features/poster/lib/calendar';
+import { momentSchema, type MomentValues } from '@/features/poster/lib/schemas';
 import type { MomentData } from './CreateStepper';
 
-const OCCASIONS = [
-  { label: 'شب یلدا', day: '۳۰', month: 'آذر', year: '۱۴۰۲' },
-  { label: 'نوروز', day: '۱', month: 'فروردین', year: '۱۴۰۳' },
-  { label: 'تولد', day: '', month: '', year: '' },
-  { label: 'سالگرد', day: '', month: '', year: '' },
-];
-
-const CITIES = [
-  { name: 'تهران', country: 'ایران', tz: 'Asia/Tehran' },
-  { name: 'شیراز', country: 'ایران', tz: 'Asia/Tehran' },
-  { name: 'اصفهان', country: 'ایران', tz: 'Asia/Tehran' },
-  { name: 'مشهد', country: 'ایران', tz: 'Asia/Tehran' },
-  { name: 'تبریز', country: 'ایران', tz: 'Asia/Tehran' },
-  { name: 'کرج', country: 'ایران', tz: 'Asia/Tehran' },
-  { name: 'اهواز', country: 'ایران', tz: 'Asia/Tehran' },
-  { name: 'قم', country: 'ایران', tz: 'Asia/Tehran' },
-  { name: 'کرمانشاه', country: 'ایران', tz: 'Asia/Tehran' },
-  { name: 'رشت', country: 'ایران', tz: 'Asia/Tehran' },
-  { name: 'دوبی', country: 'امارات', tz: 'Asia/Dubai' },
-  { name: 'استانبول', country: 'ترکیه', tz: 'Europe/Istanbul' },
-  { name: 'لندن', country: 'بریتانیا', tz: 'Europe/London' },
-  { name: 'پاریس', country: 'فرانسه', tz: 'Europe/Paris' },
-  { name: 'تورنتو', country: 'کانادا', tz: 'America/Toronto' },
-  { name: 'لس‌آنجلس', country: 'آمریکا', tz: 'America/Los_Angeles' },
-];
-
-const MONTHS = [
-  'فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور',
-  'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند',
-];
-
-const DAYS = Array.from({ length: 31 }, (_, i) =>
-  (i + 1).toLocaleString('fa-IR'),
-);
-
-const YEARS = Array.from({ length: 20 }, (_, i) =>
-  (1395 + i).toLocaleString('fa-IR'),
-).reverse();
-
-export function Step1Moment({
-  data,
-  onChange,
-  onNext,
-}: {
+type Props = {
   data: MomentData;
   onChange: (d: MomentData) => void;
   onNext: () => void;
-}) {
+};
+
+export function Step1Moment({ data, onChange, onNext }: Props) {
+  const t = useTranslations('CreatePage.step1');
   const [citySearch, setCitySearch] = useState(data.city);
-  const [showCityList, setShowCityList] = useState(false);
 
-  const filtered = CITIES.filter(
-    (c) =>
-      c.name.includes(citySearch) || c.country.includes(citySearch),
-  );
+  const filteredCities = searchCities(citySearch);
 
-  function selectCity(c: (typeof CITIES)[0]) {
-    onChange({ ...data, city: c.name, timezone: c.tz });
+  const { control, handleSubmit, setValue, watch } = useForm<MomentValues>({
+    resolver: zodResolver(momentSchema),
+    defaultValues: {
+      city: data.city,
+      timezone: data.timezone,
+      day: data.day,
+      month: data.month as MomentValues['month'],
+      year: data.year,
+      time: data.time,
+      noExactTime: data.noExactTime,
+    },
+  });
+
+  const noExactTime = watch('noExactTime');
+  const selectedCity = watch('city');
+
+  function selectCity(c: City) {
+    setValue('city', c.name, { shouldValidate: true });
+    setValue('timezone', c.tz);
     setCitySearch(c.name);
-    setShowCityList(false);
+    onChange({ ...data, city: c.name, timezone: c.tz });
   }
 
-  function set<K extends keyof MomentData>(k: K, v: MomentData[K]) {
-    onChange({ ...data, [k]: v });
+  function applyOccasion(day: string, month: string, year: string) {
+    if (!day) return;
+    setValue('day', day);
+    setValue('month', month as MomentValues['month']);
+    setValue('year', year);
+    onChange({ ...data, day, month, year });
   }
+
+  const onSubmit: SubmitHandler<MomentValues> = (values) => {
+    onChange(values);
+    onNext();
+  };
+
+  const occasions = [0, 1].map((i) => ({
+    label: t(`occasions.${i}.label`),
+    day: t(`occasions.${i}.day`),
+    month: t(`occasions.${i}.month`),
+    year: t(`occasions.${i}.year`),
+  }));
 
   return (
-    <div className="space-y-7">
-      {/* Step label */}
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-7" noValidate>
+      {/* Step label + title */}
       <div>
-        <p className="text-xs text-white/45">قدم ۱ از ۳ · انتخاب لحظه</p>
-        <h1 className="mt-2 text-3xl font-semibold text-white">آن شب، کجا بودی؟</h1>
-        <p className="mt-2 text-sm leading-7 text-white/55">
-          یک شهر، یک تاریخ و اگر می‌دانی، یک ساعت. از همین‌جا شروع می‌کنیم.
-        </p>
+        <p className="text-xs text-[#ceb47b]">{t('stepLabel')}</p>
+        <h1 className="mt-2 text-3xl font-bold text-white">{t('title')}</h1>
+        <p className="mt-2 text-sm leading-7 text-white/55">{t('description')}</p>
       </div>
 
-      {/* Quick occasion chips */}
+      {/* Occasion chips */}
       <div>
-        <p className="mb-2.5 text-xs text-white/45">شروع با یک مناسبت</p>
+        <p className="mb-3 text-xs text-white/45">{t('occasionLabel')}</p>
         <div className="flex flex-wrap gap-2">
-          {OCCASIONS.map((o) => (
+          {occasions.map((o) => (
             <button
               key={o.label}
-              onClick={() => {
-                if (o.day) onChange({ ...data, day: o.day, month: o.month, year: o.year });
-              }}
-              className="flex items-center gap-1.5 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-xs text-white/70 hover:border-[#ceb47b]/50 hover:text-[#ceb47b] transition-colors"
+              type="button"
+              onClick={() => applyOccasion(o.day, o.month, o.year)}
+              className="flex items-center gap-1.5 rounded-full border border-white/15 bg-white/[0.06] px-4 py-2 text-xs text-white/70 transition-colors hover:border-[#ceb47b]/50 hover:text-[#ceb47b]"
             >
-              <Sparkles className="size-2.5" />
+              <Sparkles className="size-3" />
               {o.label}
             </button>
           ))}
         </div>
       </div>
 
-      {/* City search */}
+      {/* City field */}
       <div>
-        <p className="mb-2 text-xs text-white/45">شهر یا مکان</p>
+        <p className="mb-2.5 text-sm font-medium text-white/80">{t('cityLabel')}</p>
+        {/* search input */}
         <div className="relative">
-          <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
-            <MapPin className="size-3.5 text-white/35" />
+          <div className="pointer-events-none absolute inset-y-0 right-3.5 flex items-center">
+            <Search className="size-4 text-white/35" />
           </div>
-          <Input
+          <input
             value={citySearch}
-            onChange={(e) => {
-              setCitySearch(e.target.value);
-              setShowCityList(true);
-            }}
-            onFocus={() => setShowCityList(true)}
-            placeholder="تهران"
-            className="border-white/15 bg-white/5 pr-8 text-white placeholder:text-white/30 focus-visible:border-[#ceb47b]/50 focus-visible:ring-[#ceb47b]/20"
+            onChange={(e) => setCitySearch(e.target.value)}
+            placeholder={data.city}
+            className="h-12 w-full rounded-xl border border-white/15 bg-white/[0.06] pr-10 pl-4 text-sm text-white placeholder:text-white/40 outline-none focus:border-[#ceb47b]/50 focus:ring-2 focus:ring-[#ceb47b]/15 transition-colors"
           />
-          {showCityList && filtered.length > 0 && (
-            <ul className="absolute z-10 mt-1 w-full rounded-lg border border-white/15 bg-[#0c1a38] py-1 shadow-xl">
-              {filtered.slice(0, 6).map((c) => (
-                <li key={c.name}>
-                  <button
-                    onMouseDown={() => selectCity(c)}
-                    className="flex w-full items-center gap-3 px-4 py-2.5 text-right text-sm hover:bg-white/5"
-                  >
-                    {c.name === data.city ? (
-                      <Check className="size-3.5 text-[#ceb47b] shrink-0" />
-                    ) : (
-                      <MapPin className="size-3.5 text-white/30 shrink-0" />
-                    )}
-                    <span className="text-white">{c.name}</span>
-                    <span className="mr-auto text-xs text-white/35">{c.country}</span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
         </div>
-        <p className="mt-1.5 text-[11px] leading-5 text-white/30">
-          جست‌وجو در فهرست ثابت شهرهای ایران و جهان؛ بدون نقشه و بدون دسترسی به موقعیت دستگاه.
-        </p>
-        {data.timezone && (
-          <p className="mt-1 text-[11px] text-white/35">
-            منطقه‌ی زمانی شهر: {data.timezone}
-          </p>
-        )}
+        {/* city list */}
+        <ul className="mt-1.5 overflow-hidden rounded-xl border border-white/10 bg-[#0c1a38] divide-y divide-white/[0.06]">
+          {filteredCities.slice(0, 3).map((c) => {
+            const isSelected = c.name === selectedCity;
+            return (
+              <li key={c.name}>
+                <button
+                  type="button"
+                  onMouseDown={() => selectCity(c)}
+                  className={[
+                    'flex w-full items-center gap-3 px-4 py-3.5 text-right text-sm transition-colors hover:bg-white/5',
+                    isSelected ? 'bg-white/[0.06]' : '',
+                  ].join(' ')}
+                >
+                  {isSelected
+                    ? <Check className="size-4 shrink-0 text-[#ceb47b]" />
+                    : <MapPin className="size-4 shrink-0 text-white/25" />}
+                  <span className={isSelected ? 'font-semibold text-white' : 'text-white/80'}>
+                    {c.name}
+                  </span>
+        <span className="mr-auto text-xs text-white/35">{c.province} · {t('iran')}</span>
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+        <p className="mt-2 text-[11px] leading-5 text-white/30">{t('cityNote')}</p>
+        <Controller
+          control={control}
+          name="timezone"
+          render={({ field }) => (
+            <>
+              {field.value && (
+                <p className="mt-1 text-[11px] text-white/35">
+                  {t('timezoneNote')} {field.value}
+                </p>
+              )}
+            </>
+          )}
+        />
       </div>
 
       {/* Date pickers */}
       <div>
-        <p className="mb-2 text-xs text-white/45">تاریخ آن شب · تقویم شمسی</p>
-        <div className="grid grid-cols-3 gap-2">
+        <p className="mb-2.5 text-sm font-medium text-white/80">{t('dateLabel')}</p>
+        <div className="grid grid-cols-3 gap-3">
           {/* Day */}
           <div>
-            <p className="mb-1 text-[11px] text-white/35">روز</p>
-            <div className="relative">
-              <select
-                value={data.day}
-                onChange={(e) => set('day', e.target.value)}
-                className="w-full appearance-none rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-sm text-white focus:border-[#ceb47b]/50 focus:outline-none"
-              >
-                {DAYS.map((d) => (
-                  <option key={d} value={d} className="bg-[#0c1a38]">{d}</option>
-                ))}
-              </select>
-              <span className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-white/35 text-xs">▾</span>
-            </div>
+            <p className="mb-1.5 text-xs text-white/40">{t('day')}</p>
+            <Controller
+              control={control}
+              name="day"
+              render={({ field }) => (
+                <SelectField value={field.value} onChange={field.onChange} options={JALALI_DAYS} />
+              )}
+            />
           </div>
           {/* Month */}
           <div>
-            <p className="mb-1 text-[11px] text-white/35">ماه</p>
-            <div className="relative">
-              <select
-                value={data.month}
-                onChange={(e) => set('month', e.target.value)}
-                className="w-full appearance-none rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-sm text-white focus:border-[#ceb47b]/50 focus:outline-none"
-              >
-                {MONTHS.map((m) => (
-                  <option key={m} value={m} className="bg-[#0c1a38]">{m}</option>
-                ))}
-              </select>
-              <span className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-white/35 text-xs">▾</span>
-            </div>
+            <p className="mb-1.5 text-xs text-white/40">{t('month')}</p>
+            <Controller
+              control={control}
+              name="month"
+              render={({ field }) => (
+                <SelectField value={field.value} onChange={field.onChange} options={JALALI_MONTHS as unknown as string[]} />
+              )}
+            />
           </div>
           {/* Year */}
           <div>
-            <p className="mb-1 text-[11px] text-white/35">سال</p>
-            <div className="relative">
-              <select
-                value={data.year}
-                onChange={(e) => set('year', e.target.value)}
-                className="w-full appearance-none rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-sm text-white focus:border-[#ceb47b]/50 focus:outline-none"
-              >
-                {YEARS.map((y) => (
-                  <option key={y} value={y} className="bg-[#0c1a38]">{y}</option>
-                ))}
-              </select>
-              <span className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-white/35 text-xs">▾</span>
-            </div>
+            <p className="mb-1.5 text-xs text-white/40">{t('year')}</p>
+            <Controller
+              control={control}
+              name="year"
+              render={({ field }) => (
+                <SelectField value={field.value} onChange={field.onChange} options={JALALI_YEARS} />
+              )}
+            />
           </div>
         </div>
       </div>
 
       {/* Time */}
       <div>
-        <p className="mb-2 text-xs text-white/45">ساعت محلی · اختیاری</p>
-        <div className="relative">
-          <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
-            <Clock className="size-3.5 text-white/35" />
-          </div>
-          <Input
-            value={data.time}
-            onChange={(e) => set('time', e.target.value)}
-            disabled={data.noExactTime}
-            placeholder="۲۱:۰۰"
-            className="border-white/15 bg-white/5 pr-8 text-white placeholder:text-white/30 focus-visible:border-[#ceb47b]/50 focus-visible:ring-[#ceb47b]/20 disabled:opacity-40"
-          />
-        </div>
-        <p className="mt-1.5 text-[11px] leading-5 text-white/30">
-          اگر ساعت دقیق را نمی‌دانی، ۹ شب آغاز آرامی است.
-        </p>
-        {/* no exact time checkbox */}
-        <label className="mt-3 flex cursor-pointer items-start gap-2.5 text-xs text-white/55">
-          <input
-            type="checkbox"
-            checked={data.noExactTime}
-            onChange={(e) => set('noExactTime', e.target.checked)}
-            className="mt-0.5 size-3.5 accent-[#ceb47b]"
-          />
-          ساعت دقیق را نمی‌دانم؛ از ۹ شب استفاده کن
-        </label>
+        <p className="mb-2.5 text-sm font-medium text-white/80">{t('timeLabel')}</p>
+        <Controller
+          control={control}
+          name="time"
+          render={({ field }) => (
+            <div className="relative">
+              <div className="pointer-events-none absolute inset-y-0 right-3.5 flex items-center">
+                <Clock className="size-4 text-white/35" />
+              </div>
+              <input
+                {...field}
+                disabled={noExactTime}
+                placeholder={DEFAULT_TIME}
+                className="h-12 w-full rounded-xl border border-white/15 bg-white/[0.06] pr-10 pl-4 text-sm text-white placeholder:text-white/35 outline-none focus:border-[#ceb47b]/50 focus:ring-2 focus:ring-[#ceb47b]/15 transition-colors disabled:opacity-40"
+              />
+            </div>
+          )}
+        />
+        <p className="mt-2 text-[11px] leading-5 text-white/30">{t('timeNote')}</p>
+        <Controller
+          control={control}
+          name="noExactTime"
+          render={({ field }) => (
+            <label className="mt-3 flex cursor-pointer items-center gap-2.5 text-xs text-white/55">
+              <input
+                type="checkbox"
+                checked={field.value}
+                onChange={field.onChange}
+                className="size-3.5 accent-[#ceb47b]"
+              />
+              {t('noTimeLabel')}
+            </label>
+          )}
+        />
       </div>
 
       {/* Night note */}
-      <div className="flex gap-2.5 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3.5 text-xs leading-6 text-white/45">
-        <Moon className="mt-0.5 size-3.5 shrink-0 text-[#ceb47b]" />
-        <span>
-          این یادگار برای آسمان شب است. اگر خاطره‌ی روز همان تاریخ انتخاب کنی، شب همان شهر و همان تاریخ در نظر گرفته می‌شود.
-        </span>
+      <div className="flex gap-3 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-4 text-xs leading-6 text-white/45">
+        <Moon className="mt-0.5 size-4 shrink-0 text-[#ceb47b]" />
+        <span>{t('nightNote')}</span>
       </div>
 
       {/* CTA */}
       <Button
-        onClick={onNext}
-        size="lg"
-        className="h-auto w-full rounded-full bg-[#ceb47b] py-3.5 text-sm font-bold text-[#0c142b] hover:bg-[#d6c08a]"
+        type="submit"
+        className="h-14 w-full rounded-2xl bg-[#ceb47b] text-sm font-bold text-[#0c142b] hover:bg-[#d6c08a] gap-2"
       >
+        {t('cta')}
         <ArrowLeft className="size-4" />
-        ادامه و شخصی‌سازی پوستر
       </Button>
 
-      <p className="text-center text-xs text-white/30">
-        بدون حساب کاربری؛ بدون ذخیره‌سازی روی سرور.
-      </p>
+      <p className="text-center text-xs text-white/30">{t('noAccount')}</p>
+    </form>
+  );
+}
+
+function SelectField({
+  value,
+  onChange,
+  options,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  options: string[];
+}) {
+  return (
+    <div className="relative">
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="h-12 w-full appearance-none rounded-xl border border-white/15 bg-white/[0.06] px-4 text-sm text-white focus:border-[#ceb47b]/50 focus:outline-none focus:ring-2 focus:ring-[#ceb47b]/15 transition-colors"
+      >
+        {options.map((o) => (
+          <option key={o} value={o} className="bg-[#0c1a38] text-white">
+            {o}
+          </option>
+        ))}
+      </select>
+      <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-white/40 text-xs">
+        ▾
+      </span>
     </div>
   );
 }
