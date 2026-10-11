@@ -1,3 +1,4 @@
+import messages from "../../../messages/fa.json";
 import {
   ArrowLeft,
   Check,
@@ -9,41 +10,13 @@ import {
   UserRound,
 } from "lucide-react";
 
+const copy = messages.HomePage;
 const moments = [
-  [
-    "شبِ انار",
-    "گرمای یک شب طولانی، کنار پنجره‌ای رو به ستاره‌ها.",
-    "https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?auto=format&fit=crop&w=900&q=85",
-  ],
-  [
-    "شبی که به دنیا آمدی",
-    "لحظه‌ای برای به یاد آوردن آسمانی که با تو روشن شد.",
-    "https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=900&q=85",
-  ],
-  [
-    "اولین دیدار",
-    "اولین فصلِ قصه‌ای که هنوز ادامه دارد.",
-    "https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=900&q=85",
-  ],
+  [copy.stories.items[0].title, copy.stories.items[0].description, "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/%D8%AD%D8%A7%D9%84_%D9%88%D9%87%D9%88%D8%A7%DB%8C%20%D8%AE%D8%A7%D8%B7%D8%B1%D9%87-bfox3XkzFXxpn7jlQtU6SOE2VB0gNb.png"],
+  [copy.stories.items[1].title, copy.stories.items[1].description, "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/%D8%AD%D8%A7%D9%84_%D9%88%D9%87%D9%88%D8%A7%DB%8C%20%D8%AE%D8%A7%D8%B7%D8%B1%D9%87%20%282%29-ydHyddAaZ7B74p4NPxLbGuj4IG51Sp.png"],
+  [copy.stories.items[2].title, copy.stories.items[2].description, "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/%D8%AD%D8%A7%D9%84_%D9%88%D9%87%D9%88%D8%A7%DB%8C%20%D8%AE%D8%A7%D8%B7%D8%B1%D9%87%20%281%29-hqqD7cSOOGLZcuLXjKJb7ruDYVeNz8.png"],
 ];
-const faqs = [
-  [
-    "چطور سفارش خودم را ثبت کنم؟",
-    "آسمان و متن دلخواهت را انتخاب کن، تاریخ و نام‌ها را وارد کن و سفارش را به سبد اضافه کن.",
-  ],
-  [
-    "می‌توانم طرح را شخصی‌سازی کنم؟",
-    "بله، هر داستان با نام، تاریخ و پیامی که تو انتخاب می‌کنی ساخته می‌شود.",
-  ],
-  [
-    "چقدر زمان برای آماده‌سازی نیاز است؟",
-    "پوستر دیجیتال شما در کوتاه‌ترین زمان آماده و برایتان ارسال می‌شود.",
-  ],
-  [
-    "فایل پوستر چه فرمتی دارد؟",
-    "فایل نهایی با کیفیت بالا و مناسب چاپ در اختیار شما قرار می‌گیرد.",
-  ],
-];
+const faqs = copy.faq.items.map(({ question, answer }) => [question, answer]);
 
 export default function Home() {
   return (
@@ -51,7 +24,7 @@ export default function Home() {
       <header className="border-b border-white/10">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6 text-xs text-white/70">
           <a className="text-sm font-bold text-white" href="#top">
-            آسمان شب ما <span className="text-[#d9b86a]">✦</span>
+            {copy.brand} <span className="text-[#d9b86a]">✦</span>
           </a>
           <nav className="hidden gap-8 md:flex">
             <a href="#stories">داستان‌های شب</a>
@@ -129,7 +102,7 @@ export default function Home() {
               خاطره‌ای برای هر آسمان
             </p>
             <h2 className="text-2xl font-semibold md:text-3xl">
-              کدام شب را نگه می‌داری؟
+              {copy.stories.title}
             </h2>
           </div>
           <p className="hidden max-w-xs text-left text-xs leading-6 text-white/50 md:block">
@@ -292,7 +265,7 @@ export default function Home() {
             </span>
             <span>
               <Gift className="mx-auto mb-2 size-5 text-[#d9b86a]" />
-              هدیه‌پذیر
+              هدیه‌پذ��ر
             </span>
           </div>
         </div>
@@ -302,7 +275,7 @@ export default function Home() {
         className="mx-auto grid max-w-6xl gap-12 px-6 py-20 md:grid-cols-[0.7fr_1.3fr]"
       >
         <div>
-          <p className="text-xs text-[#d9b86a]">پاسخ پرسش‌ها</p>
+          <p className="text-xs text-[#d9b86a]">{copy.faq.eyebrow}</p>
           <h2 className="mt-4 text-3xl font-semibold leading-relaxed">
             چند سؤال،
             <br />
@@ -346,9 +319,9 @@ export default function Home() {
       <footer className="border-t border-white/10 px-6 py-8">
         <div className="mx-auto flex max-w-6xl flex-col gap-5 text-xs text-white/45 md:flex-row md:items-center md:justify-between">
           <span className="font-semibold text-white">
-            آسمان شب ما <span className="text-[#d9b86a]">✦</span>
+            {copy.brand} <span className="text-[#d9b86a]">✦</span>
           </span>
-          <span>یک شب، یک داستان، یک خاطره‌ی ماندگار</span>
+          <span>{copy.footer}</span>
           <span>© آسمان شب ما</span>
         </div>
       </footer>
