@@ -10,13 +10,29 @@ import {
 
 const copy = messages.HomePage;
 const moments = [
-  [copy.stories.items[0].title, copy.stories.items[0].description, "/images/pomegranate-memory.png"],
-  [copy.stories.items[1].title, copy.stories.items[1].description, "/images/baby-shoes-memory.png"],
-  [copy.stories.items[2].title, copy.stories.items[2].description, "/images/tea-table-memory.png"],
+  [
+    copy.stories.items[0].title,
+    copy.stories.items[0].description,
+    "/images/pomegranate-memory.png",
+  ],
+  [
+    copy.stories.items[1].title,
+    copy.stories.items[1].description,
+    "/images/baby-shoes-memory.png",
+  ],
+  [
+    copy.stories.items[2].title,
+    copy.stories.items[2].description,
+    "/images/tea-table-memory.png",
+  ],
 ];
 const faqs = copy.faq.items.map(({ question, answer }) => [question, answer]);
+const trustIcons = [UserRound, Clock3, Gift];
 
 export default function Home() {
+  const [heroTitleLine1, heroTitleLine2] = copy.hero.title.split("\n");
+  const [faqTitleLine1, faqTitleLine2] = copy.faq.title.split("\n");
+
   return (
     <main className="overflow-hidden bg-[#080f28] text-[#f7f3e8]" dir="rtl">
       <header className="border-b border-white/10">
@@ -25,15 +41,15 @@ export default function Home() {
             {copy.brand} <span className="text-[#d9b86a]">✦</span>
           </a>
           <nav className="hidden gap-8 md:flex">
-            <a href="#stories">داستان‌های شب</a>
-            <a href="#gifts">هدیه‌ای ماندگار</a>
-            <a href="#faq">سوالات متداول</a>
+            <a href="#stories">{copy.nav.stories}</a>
+            <a href="#gifts">{copy.nav.gifts}</a>
+            <a href="#faq">{copy.nav.faq}</a>
           </nav>
           <a
             href="#create"
             className="rounded-md bg-[#d9b86a] px-5 py-2 font-bold text-[#101a35]"
           >
-            ساختن شب من
+            {copy.cta}
           </a>
         </div>
       </header>
@@ -42,28 +58,23 @@ export default function Home() {
         className="mx-auto grid max-w-6xl items-center gap-14 px-6 py-20 md:grid-cols-[0.9fr_1.1fr] md:py-28"
       >
         <div className="order-2 md:order-1">
-          <p className="mb-5 text-xs text-[#d9b86a]">
-            یک داستان، یک آسمان، یک خاطره
-          </p>
+          <p className="mb-5 text-xs text-[#d9b86a]">{copy.hero.eyebrow}</p>
           <h1 className="max-w-xl text-4xl font-semibold leading-[1.45] tracking-tight text-white md:text-6xl">
-            بعضی شب‌ها،
+            {heroTitleLine1}
             <br />
-            تا همیشه با ما می‌مانند.
+            {heroTitleLine2}
           </h1>
           <p className="mt-7 max-w-lg text-sm leading-8 text-white/60">
-            آسمان شب ما، لحظه‌های عزیز زندگی‌ات را روی نقشه‌ای از ستاره‌ها ثبت
-            می‌کند؛ تا هر بار که به آن نگاه می‌کنی، دوباره به همان شب برگردی.
+            {copy.hero.description}
           </p>
           <div className="mt-8 flex items-center gap-5">
             <a
               href="#create"
               className="rounded-md bg-[#d9b86a] px-6 py-3 text-sm font-bold text-[#101a35]"
             >
-              ساختن شب من <ArrowLeft className="mr-2 inline-block size-4" />
+              {copy.cta} <ArrowLeft className="mr-2 inline-block size-4" />
             </a>
-            <span className="text-xs text-white/50">
-              هدیه‌ای شخصی و ماندگار
-            </span>
+            <span className="text-xs text-white/50">{copy.hero.note}</span>
           </div>
         </div>
         <div className="order-1 flex justify-center md:order-2">
@@ -77,21 +88,21 @@ export default function Home() {
               }}
             />
             <div className="relative aspect-[0.68] w-[78%] border border-[#c8a85f]/70 bg-[#132346] p-5 text-center shadow-2xl">
-              <p className="text-[8px] text-white/60">نقشه‌ی آسمان شب</p>
+              <p className="text-[8px] text-white/60">{copy.hero.posterMap}</p>
               <div className="mx-auto mt-3 aspect-square rounded-full border border-[#c8a85f]/50 p-4">
                 <div className="flex h-full items-center justify-center rounded-full border border-dashed border-white/20">
                   <img
                     src="/images/gold-constellation.png"
-                    alt="نقش طلایی آسمان شب"
+                    alt={copy.hero.posterAltGold}
                     className="size-full object-contain p-2"
                   />
                 </div>
               </div>
               <p className="mt-4 text-lg font-semibold text-[#f2e7be]">
-                بهترین شب، کنار تو
+                {copy.hero.poster}
               </p>
               <p className="mt-2 text-[8px] leading-5 text-white/60">
-                یک خاطره برای تمام شب‌های بعد
+                {copy.hero.posterCaption}
               </p>
             </div>
           </div>
@@ -100,15 +111,13 @@ export default function Home() {
       <section id="stories" className="mx-auto max-w-6xl px-6 py-20">
         <div className="mb-10 flex items-end justify-between">
           <div>
-            <p className="mb-3 text-xs text-[#d9b86a]">
-              خاطره‌ای برای هر آسمان
-            </p>
+            <p className="mb-3 text-xs text-[#d9b86a]">{copy.stories.eyebrow}</p>
             <h2 className="text-2xl font-semibold md:text-3xl">
               {copy.stories.title}
             </h2>
           </div>
           <p className="hidden max-w-xs text-left text-xs leading-6 text-white/50 md:block">
-            هر شب قصه‌ای دارد؛ قصه‌ای که ارزش ماندن و دوباره خوانده شدن را دارد.
+            {copy.stories.description}
           </p>
         </div>
         <div className="grid gap-5 md:grid-cols-3">
@@ -121,7 +130,7 @@ export default function Home() {
                   className="h-full w-full object-cover transition duration-500 hover:scale-105"
                 />
               </div>
-              <p className="mt-4 text-xs text-[#d9b86a]">داستان شب</p>
+              <p className="mt-4 text-xs text-[#d9b86a]">{copy.stories.label}</p>
               <h3 className="mt-2 text-lg font-semibold">{title}</h3>
               <p className="mt-2 text-xs leading-6 text-white/55">
                 {description}
@@ -133,26 +142,10 @@ export default function Home() {
       <section className="bg-[#152441] px-6 py-16">
         <div className="mx-auto max-w-6xl">
           <h2 className="text-center text-2xl font-semibold">
-            از یک خاطره تا یک پوستر در سه قدم
+            {copy.steps.title}
           </h2>
           <div className="mt-12 grid gap-10 text-center md:grid-cols-3">
-            {[
-              [
-                "۱",
-                "شب خودت را پیدا کن",
-                "تاریخ و مکان لحظه‌ای را که برایت مهم است انتخاب کن.",
-              ],
-              [
-                "۲",
-                "کلماتت را از دل بنویس",
-                "یک پیام کوتاه اضافه کن تا داستانت کامل شود.",
-              ],
-              [
-                "۳",
-                "خاطره‌ات را دریافت کن",
-                "پوستر شخصی تو آماده می‌شود؛ برای خودت یا یک عزیز.",
-              ],
-            ].map(([number, title, body]) => (
+            {copy.steps.items.map(({ number, title, body }) => (
               <div key={number}>
                 <span className="text-3xl text-[#d9b86a]">{number}</span>
                 <h3 className="mt-4 font-semibold">{title}</h3>
@@ -166,21 +159,12 @@ export default function Home() {
       </section>
       <section id="gifts" className="bg-[#f4f0e7] px-6 py-20 text-[#101a35]">
         <div className="mx-auto max-w-6xl">
-          <p className="text-xs text-[#9b7d35]">برای لحظه‌های مهم زندگی</p>
+          <p className="text-xs text-[#9b7d35]">{copy.gifts.eyebrow}</p>
           <h2 className="mt-3 text-2xl font-semibold md:text-3xl">
-            شبی که به سلیقه‌ی تو قاب می‌شود
+            {copy.gifts.title}
           </h2>
           <div className="mt-10 grid gap-5 md:grid-cols-2">
-            {[
-              [
-                "مینیمال سیاه‌وسفید",
-                "سادگی برای خاطره‌هایی که عمیق‌اند.",
-              ],
-              [
-                "اجوردی و طلایی",
-                "برای شب‌هایی که درخشان‌ترند.",
-              ],
-            ].map(([title, body], index) => (
+            {copy.gifts.items.map(({ title, body }, index) => (
               <div
                 key={title}
                 className="rounded-lg bg-[#e5e0d7] p-8 text-center"
@@ -198,14 +182,18 @@ export default function Home() {
                             ? "/images/gold-constellation.png"
                             : "/images/monochrome-constellation.png"
                         }
-                        alt={index ? "نقش طلایی آسمان شب" : "نقش آسمان سیاه‌وسفید"}
+                        alt={
+                          index
+                            ? copy.hero.posterAltGold
+                            : copy.hero.posterAltMono
+                        }
                         className="size-32 object-contain opacity-80"
                       />
                     </span>
                     <p
                       className={`mt-8 text-sm font-semibold ${index ? "text-[#f2e7be]" : ""}`}
                     >
-                      بهترین شب، کنار تو
+                      {copy.hero.poster}
                     </p>
                   </div>
                 </div>
@@ -220,61 +208,47 @@ export default function Home() {
         <div className="mx-auto grid max-w-6xl items-center gap-10 rounded-lg border border-white/15 bg-[#111d3a] p-8 md:grid-cols-[1fr_1.35fr] md:p-12">
           <div className="rounded-lg border border-white/15 p-8 text-center">
             <Sparkles className="mx-auto size-6 text-[#d9b86a]" />
-            <h3 className="mt-5 text-xl font-semibold">بهترین شب، کنار تو</h3>
-            <p className="mt-4 text-xs text-white/60">
-              هدیه‌ای که هر بار نگاهش کنی، لبخند می‌زند.
-            </p>
+            <h3 className="mt-5 text-xl font-semibold">
+              {copy.create.cardTitle}
+            </h3>
+            <p className="mt-4 text-xs text-white/60">{copy.create.cardBody}</p>
           </div>
           <div>
-            <p className="text-xs text-[#d9b86a]">هدیه‌ای که داستان دارد</p>
-            <h2 className="mt-3 text-3xl font-semibold">
-              آسمانِ ما از داستانِ تو
-            </h2>
+            <p className="text-xs text-[#d9b86a]">{copy.create.eyebrow}</p>
+            <h2 className="mt-3 text-3xl font-semibold">{copy.create.title}</h2>
             <p className="mt-5 max-w-lg text-sm leading-8 text-white/60">
-              لحظه‌های مهمت را روی نقشه‌ی واقعی آسمان ثبت کن؛ یک یادگاری شخصی
-              بساز که هیچ‌وقت تکراری نمی‌شود.
+              {copy.create.description}
             </p>
             <ul className="mt-5 space-y-3 text-xs text-white/70">
-              <li>
-                <Check className="ml-2 inline size-4 text-[#d9b86a]" />
-                ساخته شده برای یک نفر خاص
-              </li>
-              <li>
-                <Check className="ml-2 inline size-4 text-[#d9b86a]" />
-                طراحی مینیمال و ماندگار
-              </li>
-              <li>
-                <Check className="ml-2 inline size-4 text-[#d9b86a]" />
-                قابل سفارش در چند سبک
-              </li>
+              {copy.create.features.map((feature) => (
+                <li key={feature}>
+                  <Check className="ml-2 inline size-4 text-[#d9b86a]" />
+                  {feature}
+                </li>
+              ))}
             </ul>
             <a
               href="#top"
               className="mt-7 inline-block rounded-md bg-[#d9b86a] px-6 py-3 text-sm font-bold text-[#101a35]"
             >
-              ساختن شب من <ArrowLeft className="mr-2 inline size-4" />
+              {copy.cta} <ArrowLeft className="mr-2 inline size-4" />
             </a>
           </div>
         </div>
       </section>
       <section className="bg-[#152441] px-6 py-14">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-8">
-          <h2 className="max-w-sm text-2xl font-semibold">
-            خاطرات، پیشِ خودت می‌مانند
-          </h2>
+          <h2 className="max-w-sm text-2xl font-semibold">{copy.trust.title}</h2>
           <div className="flex gap-10 text-center text-xs text-white/60">
-            <span>
-              <UserRound className="mx-auto mb-2 size-5 text-[#d9b86a]" />
-              شخصی‌سازی
-            </span>
-            <span>
-              <Clock3 className="mx-auto mb-2 size-5 text-[#d9b86a]" />
-              ماندگار
-            </span>
-            <span>
-              <Gift className="mx-auto mb-2 size-5 text-[#d9b86a]" />
-              هدیه‌پذ��ر
-            </span>
+            {copy.trust.items.map((label, index) => {
+              const Icon = trustIcons[index];
+              return (
+                <span key={label}>
+                  <Icon className="mx-auto mb-2 size-5 text-[#d9b86a]" />
+                  {label}
+                </span>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -285,9 +259,9 @@ export default function Home() {
         <div>
           <p className="text-xs text-[#d9b86a]">{copy.faq.eyebrow}</p>
           <h2 className="mt-4 text-3xl font-semibold leading-relaxed">
-            چند سؤال،
+            {faqTitleLine1}
             <br />
-            چند جواب روشن
+            {faqTitleLine2}
           </h2>
         </div>
         <div>
@@ -311,17 +285,13 @@ export default function Home() {
       </section>
       <section className="bg-[#172d59] px-6 py-20 text-center">
         <Sparkles className="mx-auto size-5 text-[#d9b86a]" />
-        <h2 className="mt-5 text-3xl font-semibold">
-          یک شب را از گذر زمان جدا کن.
-        </h2>
-        <p className="mt-4 text-sm text-white/60">
-          امشب، یک خاطره را برای همیشه نگه دار.
-        </p>
+        <h2 className="mt-5 text-3xl font-semibold">{copy.finalCta.title}</h2>
+        <p className="mt-4 text-sm text-white/60">{copy.finalCta.body}</p>
         <a
           href="#create"
           className="mt-7 inline-block rounded-md bg-[#d9b86a] px-6 py-3 text-sm font-bold text-[#101a35]"
         >
-          ساختن شب من <ArrowLeft className="mr-2 inline size-4" />
+          {copy.cta} <ArrowLeft className="mr-2 inline size-4" />
         </a>
       </section>
       <footer className="border-t border-white/10 px-6 py-8">
@@ -330,7 +300,7 @@ export default function Home() {
             {copy.brand} <span className="text-[#d9b86a]">✦</span>
           </span>
           <span>{copy.footer}</span>
-          <span>© آسمان شب ما</span>
+          <span>{copy.copyright}</span>
         </div>
       </footer>
     </main>
