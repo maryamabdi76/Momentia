@@ -1,4 +1,4 @@
-import messages from "../../../messages/fa.json";
+import messages from "../../messages/fa.json";
 import {
   ArrowLeft,
   Check,
