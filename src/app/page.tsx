@@ -10,9 +10,9 @@ import {
 
 const copy = messages.HomePage;
 const moments = [
-  [copy.stories.items[0].title, copy.stories.items[0].description, "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/%D8%AD%D8%A7%D9%84_%D9%88%D9%87%D9%88%D8%A7%DB%8C%20%D8%AE%D8%A7%D8%B7%D8%B1%D9%87-bfox3XkzFXxpn7jlQtU6SOE2VB0gNb.png"],
-  [copy.stories.items[1].title, copy.stories.items[1].description, "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/%D8%AD%D8%A7%D9%84_%D9%88%D9%87%D9%88%D8%A7%DB%8C%20%D8%AE%D8%A7%D8%B7%D8%B1%D9%87%20%282%29-ydHyddAaZ7B74p4NPxLbGuj4IG51Sp.png"],
-  [copy.stories.items[2].title, copy.stories.items[2].description, "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/%D8%AD%D8%A7%D9%84_%D9%88%D9%87%D9%88%D8%A7%DB%8C%20%D8%AE%D8%A7%D8%B7%D8%B1%D9%87%20%281%29-hqqD7cSOOGLZcuLXjKJb7ruDYVeNz8.png"],
+  [copy.stories.items[0].title, copy.stories.items[0].description, "/images/pomegranate-memory.png"],
+  [copy.stories.items[1].title, copy.stories.items[1].description, "/images/baby-shoes-memory.png"],
+  [copy.stories.items[2].title, copy.stories.items[2].description, "/images/tea-table-memory.png"],
 ];
 const faqs = copy.faq.items.map(({ question, answer }) => [question, answer]);
 
@@ -81,7 +81,7 @@ export default function Home() {
               <div className="mx-auto mt-3 aspect-square rounded-full border border-[#c8a85f]/50 p-4">
                 <div className="flex h-full items-center justify-center rounded-full border border-dashed border-white/20">
                   <img
-                    src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/%D9%86%D9%82%D8%B4%20%D8%A2%D8%B3%D9%85%D8%A7%D9%86-Sw1BquusLVjG8iM06sRdrGMzPATwZb.png"
+                    src="/images/gold-constellation.png"
                     alt="نقش طلایی آسمان شب"
                     className="size-full object-contain p-2"
                   />
@@ -195,8 +195,8 @@ export default function Home() {
                       <img
                         src={
                           index
-                            ? "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/%D9%86%D9%82%D8%B4%20%D8%A2%D8%B3%D9%85%D8%A7%D9%86-Sw1BquusLVjG8iM06sRdrGMzPATwZb.png"
-                            : "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/%D9%86%D9%82%D8%B4%20%D8%A2%D8%B3%D9%85%D8%A7%D9%86%20%281%29-QF4WgMfZpi7moKy5ncjHMlIA4nTABk.png"
+                            ? "/images/gold-constellation.png"
+                            : "/images/monochrome-constellation.png"
                         }
                         alt={index ? "نقش طلایی آسمان شب" : "نقش آسمان سیاه‌وسفید"}
                         className="size-32 object-contain opacity-80"
