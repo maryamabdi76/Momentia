@@ -1,11 +1,21 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
-import { useForm, Controller, type SubmitHandler } from 'react-hook-form';
+import { useForm, Controller, type SubmitHandler, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Sparkles, Search, Check, MapPin, Clock, ArrowLeft, Moon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { searchCities, type City } from '@/features/poster/lib/cities';
 import { JALALI_DAYS, JALALI_MONTHS, JALALI_YEARS, DEFAULT_TIME } from '@/features/poster/lib/calendar';
 import { momentSchema, type MomentValues } from '@/features/poster/lib/schemas';
@@ -38,6 +48,13 @@ export function Step1Moment({ data, onChange, onNext }: Props) {
 
   const noExactTime = watch('noExactTime');
   const selectedCity = watch('city');
+
+  // Live-sync every field change to parent so the poster preview updates in real time
+  const watched = useWatch({ control });
+  useEffect(() => {
+    onChange(watched as MomentValues);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [watched.city, watched.day, watched.month, watched.year, watched.time, watched.noExactTime]);
 
   function selectCity(c: City) {
     setValue('city', c.name, { shouldValidate: true });
@@ -95,17 +112,16 @@ export function Step1Moment({ data, onChange, onNext }: Props) {
 
       {/* City field */}
       <div>
-        <p className="mb-2.5 text-sm font-medium text-white/80">{t('cityLabel')}</p>
-        {/* search input */}
-        <div className="relative">
-          <div className="pointer-events-none absolute inset-y-0 right-3.5 flex items-center">
+        <Label className="mb-2.5 text-sm font-medium text-white/80">{t('cityLabel')}</Label>
+        <div className="relative mt-1">
+          <div className="pointer-events-none absolute inset-y-0 right-3.5 flex items-center z-10">
             <Search className="size-4 text-white/35" />
           </div>
-          <input
+          <Input
             value={citySearch}
             onChange={(e) => setCitySearch(e.target.value)}
             placeholder={data.city}
-            className="h-12 w-full rounded-xl border border-white/15 bg-white/[0.06] pr-10 pl-4 text-sm text-white placeholder:text-white/40 outline-none focus:border-[#ceb47b]/50 focus:ring-2 focus:ring-[#ceb47b]/15 transition-colors"
+            className="h-12 rounded-xl border-white/15 bg-white/[0.06] pr-10 pl-4 text-sm text-white placeholder:text-white/40 focus-visible:border-[#ceb47b]/50 focus-visible:ring-[#ceb47b]/15"
           />
         </div>
         {/* city list */}
@@ -128,7 +144,7 @@ export function Step1Moment({ data, onChange, onNext }: Props) {
                   <span className={isSelected ? 'font-semibold text-white' : 'text-white/80'}>
                     {c.name}
                   </span>
-        <span className="mr-auto text-xs text-white/35">{c.province} · {t('iran')}</span>
+                  <span className="mr-auto text-xs text-white/35">{c.province} · {t('iran')}</span>
                 </button>
               </li>
             );
@@ -192,20 +208,20 @@ export function Step1Moment({ data, onChange, onNext }: Props) {
 
       {/* Time */}
       <div>
-        <p className="mb-2.5 text-sm font-medium text-white/80">{t('timeLabel')}</p>
+        <Label className="mb-2.5 text-sm font-medium text-white/80">{t('timeLabel')}</Label>
         <Controller
           control={control}
           name="time"
           render={({ field }) => (
-            <div className="relative">
-              <div className="pointer-events-none absolute inset-y-0 right-3.5 flex items-center">
+            <div className="relative mt-1">
+              <div className="pointer-events-none absolute inset-y-0 right-3.5 flex items-center z-10">
                 <Clock className="size-4 text-white/35" />
               </div>
-              <input
+              <Input
                 {...field}
                 disabled={noExactTime}
                 placeholder={DEFAULT_TIME}
-                className="h-12 w-full rounded-xl border border-white/15 bg-white/[0.06] pr-10 pl-4 text-sm text-white placeholder:text-white/35 outline-none focus:border-[#ceb47b]/50 focus:ring-2 focus:ring-[#ceb47b]/15 transition-colors disabled:opacity-40"
+                className="h-12 rounded-xl border-white/15 bg-white/[0.06] pr-10 pl-4 text-sm text-white placeholder:text-white/35 focus-visible:border-[#ceb47b]/50 focus-visible:ring-[#ceb47b]/15 disabled:opacity-40"
               />
             </div>
           )}
@@ -215,15 +231,17 @@ export function Step1Moment({ data, onChange, onNext }: Props) {
           control={control}
           name="noExactTime"
           render={({ field }) => (
-            <label className="mt-3 flex cursor-pointer items-center gap-2.5 text-xs text-white/55">
-              <input
-                type="checkbox"
+            <div className="mt-3 flex items-center gap-2.5">
+              <Checkbox
+                id="noExactTime"
                 checked={field.value}
-                onChange={field.onChange}
-                className="size-3.5 accent-[#ceb47b]"
+                onCheckedChange={field.onChange}
+                className="border-white/30 data-[state=checked]:bg-[#ceb47b] data-[state=checked]:border-[#ceb47b] data-[state=checked]:text-[#0c142b]"
               />
-              {t('noTimeLabel')}
-            </label>
+              <Label htmlFor="noExactTime" className="cursor-pointer text-xs text-white/55 font-normal">
+                {t('noTimeLabel')}
+              </Label>
+            </div>
           )}
         />
       </div>
@@ -258,21 +276,21 @@ function SelectField({
   options: string[];
 }) {
   return (
-    <div className="relative">
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="h-12 w-full appearance-none rounded-xl border border-white/15 bg-white/[0.06] px-4 text-sm text-white focus:border-[#ceb47b]/50 focus:outline-none focus:ring-2 focus:ring-[#ceb47b]/15 transition-colors"
-      >
+    <Select value={value} onValueChange={onChange}>
+      <SelectTrigger className="h-12 w-full rounded-xl border-white/15 bg-white/[0.06] text-sm text-white focus-visible:border-[#ceb47b]/50 focus-visible:ring-[#ceb47b]/15 [&>svg]:text-white/40">
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent className="bg-[#0c1a38] border-white/15 text-white max-h-64">
         {options.map((o) => (
-          <option key={o} value={o} className="bg-[#0c1a38] text-white">
+          <SelectItem
+            key={o}
+            value={o}
+            className="text-white/80 focus:bg-white/10 focus:text-white"
+          >
             {o}
-          </option>
+          </SelectItem>
         ))}
-      </select>
-      <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-white/40 text-xs">
-        ▾
-      </span>
-    </div>
+      </SelectContent>
+    </Select>
   );
 }

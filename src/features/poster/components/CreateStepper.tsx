@@ -143,6 +143,7 @@ function StepperInner() {
               onChange={setPersonal}
               onNext={() => goTo(3)}
               onBack={() => goTo(1)}
+              onEditMoment={() => goTo(1)}
             />
           )}
           {step === 3 && (
