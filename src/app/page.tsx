@@ -12,6 +12,19 @@ import {
   UserX,
 } from 'lucide-react';
 
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
+import { Button } from '@/components/ui/button';
+import {
+  NavigationMenu,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+} from '@/components/ui/navigation-menu';
 import { HomeMotion } from '@/features/home/components/HomeMotion';
 
 const copy = messages.HomePage;
@@ -35,9 +48,13 @@ const moments = [
     '/images/tea-table-memory.png',
   ],
 ];
-const faqs = copy.faq.items.map(({ question, answer }) => [question, answer]);
 const trustIcons = [ShieldCheck, Server, UserX];
 const stepIcons = [MoonStar, Type, Download];
+
+const ctaButtonClass =
+  'h-auto rounded-full bg-[#ceb47b] font-bold text-[#0c142b] hover:bg-[#d6c08a]';
+const navLinkClass =
+  'bg-transparent text-white hover:bg-white/10 hover:text-[#ceb47b] focus:bg-white/10 focus:text-[#ceb47b]';
 
 type PosterVariant = 'gold' | 'mono';
 type PosterSize = 'hero' | 'product' | 'compact';
@@ -118,23 +135,35 @@ export default function Home() {
             <Sparkles className="size-3 text-[#ceb47b]" />
             {copy.brand}
           </a>
-          <nav className="hidden items-center gap-8 md:flex">
-            <a className="transition hover:text-[#ceb47b]" href="#gifts">
-              {copy.nav.posters}
-            </a>
-            <a className="transition hover:text-[#ceb47b]" href="#steps">
-              {copy.nav.how}
-            </a>
-            <a className="transition hover:text-[#ceb47b]" href="#faq">
-              {copy.nav.faq}
-            </a>
-          </nav>
-          <a
-            href="#create"
-            className="rounded-full bg-[#ceb47b] px-5 py-2 text-xs font-bold text-[#0c142b]"
+          <NavigationMenu
+            viewport={false}
+            className="hidden max-w-none md:flex"
           >
-            {copy.cta}
-          </a>
+            <NavigationMenuList className="gap-6">
+              <NavigationMenuItem>
+                <NavigationMenuLink href="#gifts" className={navLinkClass}>
+                  {copy.nav.posters}
+                </NavigationMenuLink>
+              </NavigationMenuItem>
+              <NavigationMenuItem>
+                <NavigationMenuLink href="#steps" className={navLinkClass}>
+                  {copy.nav.how}
+                </NavigationMenuLink>
+              </NavigationMenuItem>
+              <NavigationMenuItem>
+                <NavigationMenuLink href="#faq" className={navLinkClass}>
+                  {copy.nav.faq}
+                </NavigationMenuLink>
+              </NavigationMenuItem>
+            </NavigationMenuList>
+          </NavigationMenu>
+          <Button
+            asChild
+            size="sm"
+            className={`${ctaButtonClass} px-5 py-2 text-xs`}
+          >
+            <a href="#create">{copy.cta}</a>
+          </Button>
         </div>
       </header>
       <section
@@ -165,13 +194,12 @@ export default function Home() {
             {copy.hero.description}
           </p>
           <div data-animate="hero" className="mt-8">
-            <a
-              href="#create"
-              className="inline-flex items-center rounded-full bg-[#ceb47b] px-6 py-3 text-sm font-bold text-[#0c142b]"
-            >
-              {copy.cta}
-              <ArrowLeft className="mr-2 size-4" />
-            </a>
+            <Button asChild size="lg" className={`${ctaButtonClass} px-6 py-3`}>
+              <a href="#create">
+                {copy.cta}
+                <ArrowLeft data-icon="inline-end" />
+              </a>
+            </Button>
             <p className="mt-3 text-xs text-white/50">{copy.hero.benefits}</p>
           </div>
           <p
@@ -237,7 +265,7 @@ export default function Home() {
         id="steps"
         className="border-y border-white/5 bg-[#0c142b] px-6 py-20"
       >
-        <div className="mx-auto max-w-6xl">
+        <div className="mx-auto max-w-7xl">
           <h2
             data-animate="reveal"
             className="text-center text-2xl font-semibold md:text-3xl"
@@ -271,7 +299,7 @@ export default function Home() {
         </div>
       </section>
       <section id="gifts" className="bg-[#f2f0e9] px-6 py-24 text-[#101a35]">
-        <div className="mx-auto max-w-6xl">
+        <div className="mx-auto max-w-7xl">
           <div data-animate="reveal">
             <p className="text-xs text-[#9b7d35]">{copy.gifts.eyebrow}</p>
             <h2 className="mt-3 text-2xl font-semibold md:text-3xl">
@@ -331,13 +359,16 @@ export default function Home() {
                   </li>
                 ))}
               </ul>
-              <a
-                href="#top"
-                className="mt-8 inline-flex items-center rounded-full bg-[#ceb47b] px-6 py-3 text-sm font-bold text-[#0c142b]"
+              <Button
+                asChild
+                size="lg"
+                className={`${ctaButtonClass} mt-8 px-6 py-3`}
               >
-                {copy.cta}
-                <ArrowLeft className="mr-2 size-4" />
-              </a>
+                <a href="#top">
+                  {copy.cta}
+                  <ArrowLeft data-icon="inline-end" />
+                </a>
+              </Button>
             </div>
           </div>
           <div
@@ -381,21 +412,28 @@ export default function Home() {
             {copy.faq.description}
           </p>
         </div>
-        <div data-animate="stagger" className="border-t border-white/15">
-          {faqs.map(([question, answer]) => (
-            <div
+        <Accordion
+          type="single"
+          collapsible
+          data-animate="stagger"
+          className="border-t border-white/15"
+        >
+          {copy.faq.items.map(({ question, answer }) => (
+            <AccordionItem
               key={question}
+              value={question}
               data-animate-item
-              className="flex items-start gap-4 border-b border-white/15 py-5"
+              className="border-white/15"
             >
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold text-white">{question}</p>
-                <p className="mt-3 text-xs leading-7 text-white/55">{answer}</p>
-              </div>
-              <span className="mt-2.5 h-px w-3.5 shrink-0 bg-[#ceb47b]" />
-            </div>
+              <AccordionTrigger className="py-5 text-sm font-semibold text-white hover:no-underline **:data-[slot=accordion-trigger-icon]:text-[#ceb47b]">
+                {question}
+              </AccordionTrigger>
+              <AccordionContent className="text-xs leading-7 text-white/55">
+                {answer}
+              </AccordionContent>
+            </AccordionItem>
           ))}
-        </div>
+        </Accordion>
       </section>
       <section
         data-animate="reveal"
@@ -406,16 +444,19 @@ export default function Home() {
           {copy.finalCta.title}
         </h2>
         <p className="mt-4 text-sm text-white/55">{copy.finalCta.body}</p>
-        <a
-          href="#create"
-          className="mt-7 inline-flex items-center rounded-full bg-[#ceb47b] px-6 py-3 text-sm font-bold text-[#0c142b]"
+        <Button
+          asChild
+          size="lg"
+          className={`${ctaButtonClass} mt-7 px-6 py-3`}
         >
-          {copy.cta}
-          <ArrowLeft className="mr-2 size-4" />
-        </a>
+          <a href="#create">
+            {copy.cta}
+            <ArrowLeft data-icon="inline-end" />
+          </a>
+        </Button>
       </section>
       <footer className="border-t border-white/10 px-6 py-10">
-        <div className="mx-auto flex max-w-6xl flex-col gap-8 md:flex-row md:items-start md:justify-between">
+        <div className="mx-auto flex max-w-7xl flex-col gap-8 md:flex-row md:items-start md:justify-between">
           <div className="max-w-md">
             <a
               href="#top"
@@ -428,19 +469,26 @@ export default function Home() {
               {copy.footer.description}
             </p>
           </div>
-          <nav className="flex flex-wrap items-center gap-x-3 gap-y-2 text-xs text-white/45">
-            <a className="transition hover:text-white" href="#privacy">
-              {copy.footer.links.privacy}
-            </a>
-            <span aria-hidden>·</span>
-            <a className="transition hover:text-white" href="#guide">
-              {copy.footer.links.guide}
-            </a>
-            <span aria-hidden>·</span>
-            <a className="transition hover:text-white" href="#faq">
-              {copy.footer.links.faq}
-            </a>
-          </nav>
+          <NavigationMenu viewport={false} className="max-w-none">
+            <NavigationMenuList className="flex-wrap justify-start gap-x-3 gap-y-2">
+              {(
+                [
+                  ['#privacy', copy.footer.links.privacy],
+                  ['#guide', copy.footer.links.guide],
+                  ['#faq', copy.footer.links.faq],
+                ] as const
+              ).map(([href, label]) => (
+                <NavigationMenuItem key={href}>
+                  <NavigationMenuLink
+                    href={href}
+                    className="h-auto bg-transparent p-0 text-xs text-white/45 hover:bg-transparent hover:text-white focus:bg-transparent"
+                  >
+                    {label}
+                  </NavigationMenuLink>
+                </NavigationMenuItem>
+              ))}
+            </NavigationMenuList>
+          </NavigationMenu>
         </div>
       </footer>
     </HomeMotion>
