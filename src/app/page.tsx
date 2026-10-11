@@ -4,7 +4,6 @@ import {
   Check,
   Clock3,
   Gift,
-  Moon,
   Sparkles,
   UserRound,
 } from "lucide-react";
@@ -81,7 +80,11 @@ export default function Home() {
               <p className="text-[8px] text-white/60">نقشه‌ی آسمان شب</p>
               <div className="mx-auto mt-3 aspect-square rounded-full border border-[#c8a85f]/50 p-4">
                 <div className="flex h-full items-center justify-center rounded-full border border-dashed border-white/20">
-                  <Moon className="size-8 fill-[#f2e7be] text-[#f2e7be]" />
+                  <img
+                    src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/%D9%86%D9%82%D8%B4%20%D8%A2%D8%B3%D9%85%D8%A7%D9%86-Sw1BquusLVjG8iM06sRdrGMzPATwZb.png"
+                    alt="نقش طلایی آسمان شب"
+                    className="size-full object-contain p-2"
+                  />
                 </div>
               </div>
               <p className="mt-4 text-lg font-semibold text-[#f2e7be]">
@@ -190,8 +193,12 @@ export default function Home() {
                   >
                     <span className="mt-6 flex justify-center">
                       <img
-                        src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/%D9%86%D9%82%D8%B4%20%D8%A2%D8%B3%D9%85%D8%A7%D9%86%20%281%29-QF4WgMfZpi7moKy5ncjHMlIA4nTABk.png"
-                        alt="نقش آسمان سیاه‌وسفید"
+                        src={
+                          index
+                            ? "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/%D9%86%D9%82%D8%B4%20%D8%A2%D8%B3%D9%85%D8%A7%D9%86-Sw1BquusLVjG8iM06sRdrGMzPATwZb.png"
+                            : "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/%D9%86%D9%82%D8%B4%20%D8%A2%D8%B3%D9%85%D8%A7%D9%86%20%281%29-QF4WgMfZpi7moKy5ncjHMlIA4nTABk.png"
+                        }
+                        alt={index ? "نقش طلایی آسمان شب" : "نقش آسمان سیاه‌وسفید"}
                         className="size-32 object-contain opacity-80"
                       />
                     </span>
