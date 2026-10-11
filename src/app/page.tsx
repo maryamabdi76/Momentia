@@ -6,7 +6,6 @@ import {
   Gift,
   Moon,
   Sparkles,
-  Star,
   UserRound,
 } from "lucide-react";
 
@@ -173,14 +172,12 @@ export default function Home() {
               [
                 "مینیمال سیاه‌وسفید",
                 "سادگی برای خاطره‌هایی که عمیق‌اند.",
-                "text-[#9d9b91]",
               ],
               [
                 "اجوردی و طلایی",
                 "برای شب‌هایی که درخشان‌ترند.",
-                "text-[#f2e7be]",
               ],
-            ].map(([title, body, color], index) => (
+            ].map(([title, body], index) => (
               <div
                 key={title}
                 className="rounded-lg bg-[#e5e0d7] p-8 text-center"
@@ -191,8 +188,12 @@ export default function Home() {
                   <div
                     className={`aspect-[0.68] w-[78%] border ${index ? "border-[#c8a85f]" : "border-[#b9b5aa]"} p-4`}
                   >
-                    <span className="mt-10 flex justify-center">
-                      <Star className={`size-14 ${color}`} />
+                    <span className="mt-6 flex justify-center">
+                      <img
+                        src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/%D9%86%D9%82%D8%B4%20%D8%A2%D8%B3%D9%85%D8%A7%D9%86%20%281%29-QF4WgMfZpi7moKy5ncjHMlIA4nTABk.png"
+                        alt="نقش آسمان سیاه‌وسفید"
+                        className="size-32 object-contain opacity-80"
+                      />
                     </span>
                     <p
                       className={`mt-8 text-sm font-semibold ${index ? "text-[#f2e7be]" : ""}`}
