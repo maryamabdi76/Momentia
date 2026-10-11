@@ -128,3 +128,11 @@
     @apply font-sans;
   }
 }
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-animate="header"],
+  [data-animate="hero"],
+  [data-animate="hero-poster"] {
+    opacity: 0;
+  }
+}

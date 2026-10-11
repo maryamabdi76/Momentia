@@ -12,6 +12,8 @@ import {
   UserX,
 } from 'lucide-react';
 
+import { HomeMotion } from '@/features/home/components/HomeMotion';
+
 const copy = messages.HomePage;
 const moments = [
   [
@@ -103,8 +105,11 @@ export default function Home() {
   const [faqTitleLine1, faqTitleLine2] = copy.faq.title.split('\n');
 
   return (
-    <main className="overflow-hidden bg-[#080f28] text-[#f7f3e8]" dir="rtl">
-      <header className="border-b border-white/10">
+    <HomeMotion
+      className="overflow-hidden bg-[#080f28] text-[#f7f3e8]"
+      dir="rtl"
+    >
+      <header data-animate="header" className="border-b border-white/10">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6 text-sm text-white">
           <a
             className="flex gap-1 items-center font-bold text-white"
@@ -137,20 +142,29 @@ export default function Home() {
         className="mx-auto grid max-w-7xl items-center gap-12 px-6 py-16 md:grid-cols-2 md:gap-16 md:py-24"
       >
         <div className="order-2 md:order-1">
-          <p className="mb-5 flex items-center gap-2 text-xs  text-[#ceb47b]">
+          <p
+            data-animate="hero"
+            className="mb-5 flex items-center gap-2 text-xs  text-[#ceb47b]"
+          >
             <Sparkles className="size-3" />
             {copy.hero.eyebrow}
           </p>
-          <h1 className="max-w-2xl text-3xl font-semibold leading-[1.45] tracking-tight text-white md:text-5xl lg:text-6xl">
+          <h1
+            data-animate="hero"
+            className="max-w-2xl text-3xl font-semibold leading-[1.45] tracking-tight text-white md:text-5xl lg:text-6xl"
+          >
             {heroTitleLine1}
             <br />
             {heroTitleLine2}
           </h1>
-          <div className="mt-6 h-px w-16 bg-[#ceb47b]" />
-          <p className="mt-6 max-w-lg text-sm leading-8 text-white/85">
+          <div data-animate="hero" className="mt-6 h-px w-16 bg-[#ceb47b]" />
+          <p
+            data-animate="hero"
+            className="mt-6 max-w-lg text-sm leading-8 text-white/85"
+          >
             {copy.hero.description}
           </p>
-          <div className="mt-8">
+          <div data-animate="hero" className="mt-8">
             <a
               href="#create"
               className="inline-flex items-center rounded-full bg-[#ceb47b] px-6 py-3 text-sm font-bold text-[#0c142b]"
@@ -160,22 +174,31 @@ export default function Home() {
             </a>
             <p className="mt-3 text-xs text-white/50">{copy.hero.benefits}</p>
           </div>
-          <p className="mt-10 flex items-start gap-2 text-[11px] leading-6 text-white/40">
+          <p
+            data-animate="hero"
+            className="mt-10 flex items-start gap-2 text-[11px] leading-6 text-white/40"
+          >
             <Orbit className="mt-0.5 size-3.5 shrink-0 text-[#ceb47b]" />
             {copy.hero.disclaimer}
           </p>
         </div>
         <div className="order-1 flex flex-col items-center md:order-2">
-          <div className="w-full max-w-[420px]">
+          <div data-animate="hero-poster" className="w-full max-w-[420px]">
             <PosterPreview variant="gold" size="hero" />
           </div>
-          <p className="mt-4 text-center text-xs text-white/45">
+          <p
+            data-animate="hero"
+            className="mt-4 text-center text-xs text-white/45"
+          >
             {copy.hero.posterCaption}
           </p>
         </div>
       </section>
       <section id="stories" className="mx-auto max-w-7xl px-6 py-20">
-        <div className="mb-10 flex items-end justify-between">
+        <div
+          data-animate="reveal"
+          className="mb-10 flex items-end justify-between"
+        >
           <div>
             <p className="mb-3 text-xs text-[#d9b86a]">
               {copy.stories.eyebrow}
@@ -191,9 +214,9 @@ export default function Home() {
             {copy.stories.description}
           </p>
         </div>
-        <div className="grid gap-5 md:grid-cols-3">
+        <div data-animate="stagger" className="grid gap-5 md:grid-cols-3">
           {moments.map(([label, title, description, image]) => (
-            <article key={title}>
+            <article key={title} data-animate-item>
               <div className="aspect-[1.45] overflow-hidden rounded-lg">
                 <img
                   src={image}
@@ -215,14 +238,20 @@ export default function Home() {
         className="border-y border-white/5 bg-[#0c142b] px-6 py-20"
       >
         <div className="mx-auto max-w-6xl">
-          <h2 className="text-center text-2xl font-semibold md:text-3xl">
+          <h2
+            data-animate="reveal"
+            className="text-center text-2xl font-semibold md:text-3xl"
+          >
             {copy.steps.title}
           </h2>
-          <div className="mt-14 grid gap-12 md:grid-cols-3 md:gap-10">
+          <div
+            data-animate="stagger"
+            className="mt-14 grid gap-12 md:grid-cols-3 md:gap-10"
+          >
             {copy.steps.items.map(({ number, title, body }, index) => {
               const Icon = stepIcons[index];
               return (
-                <div key={number} className="text-start">
+                <div key={number} data-animate-item className="text-start">
                   <div className=" flex items-center gap-2">
                     <span className="text-4xl flex-1 font-medium leading-none text-[#ceb47b]">
                       {number}
@@ -243,14 +272,20 @@ export default function Home() {
       </section>
       <section id="gifts" className="bg-[#f2f0e9] px-6 py-24 text-[#101a35]">
         <div className="mx-auto max-w-6xl">
-          <p className="text-xs text-[#9b7d35]">{copy.gifts.eyebrow}</p>
-          <h2 className="mt-3 text-2xl font-semibold md:text-3xl">
-            {copy.gifts.title}
-          </h2>
-          <div className="mt-14 grid gap-6 md:grid-cols-2 md:gap-8">
+          <div data-animate="reveal">
+            <p className="text-xs text-[#9b7d35]">{copy.gifts.eyebrow}</p>
+            <h2 className="mt-3 text-2xl font-semibold md:text-3xl">
+              {copy.gifts.title}
+            </h2>
+          </div>
+          <div
+            data-animate="stagger"
+            className="mt-14 grid gap-6 md:grid-cols-2 md:gap-8"
+          >
             {copy.gifts.items.map(({ title, body }, index) => (
               <div
                 key={title}
+                data-animate-item
                 className="rounded-2xl bg-[#e0ddd2] px-8 py-10 text-center"
               >
                 <div className="mx-auto flex justify-center">
@@ -266,12 +301,17 @@ export default function Home() {
               </div>
             ))}
           </div>
-          <p className="mt-10 text-xs text-black/45">{copy.gifts.note}</p>
+          <p data-animate="reveal" className="mt-10 text-xs text-black/45">
+            {copy.gifts.note}
+          </p>
         </div>
       </section>
       <section id="create" className="px-6 py-24">
         <div className="mx-auto max-w-7xl space-y-16">
-          <div className="grid items-center gap-12 md:grid-cols-[0.9fr_1.1fr]">
+          <div
+            data-animate="reveal"
+            className="grid items-center gap-12 md:grid-cols-[0.9fr_1.1fr]"
+          >
             <div className="flex justify-center md:justify-start">
               <PosterPreview variant="gold" size="product" />
             </div>
@@ -300,7 +340,10 @@ export default function Home() {
               </a>
             </div>
           </div>
-          <div className="flex flex-col items-start justify-between gap-10 border-t border-white/10 pt-12 md:flex-row md:items-center">
+          <div
+            data-animate="reveal"
+            className="flex flex-col items-start justify-between gap-10 border-t border-white/10 pt-12 md:flex-row md:items-center"
+          >
             <div className="max-w-md">
               <h2 className="text-2xl font-semibold text-white">
                 {copy.trust.title}
@@ -325,9 +368,9 @@ export default function Home() {
       </section>
       <section
         id="faq"
-        className="mx-auto grid max-w-7xl gap-12 py-20 md:grid-cols-[0.75fr_1.25fr] md:gap-16"
+        className="mx-auto grid max-w-7xl gap-12 px-6 py-20 md:grid-cols-[0.75fr_1.25fr] md:gap-16"
       >
-        <div>
+        <div data-animate="reveal">
           <p className="text-xs text-[#ceb47b]">{copy.faq.eyebrow}</p>
           <h2 className="mt-4 text-3xl font-semibold leading-relaxed text-white">
             {faqTitleLine1}
@@ -338,10 +381,11 @@ export default function Home() {
             {copy.faq.description}
           </p>
         </div>
-        <div className="border-t border-white/15">
+        <div data-animate="stagger" className="border-t border-white/15">
           {faqs.map(([question, answer]) => (
             <div
               key={question}
+              data-animate-item
               className="flex items-start gap-4 border-b border-white/15 py-5"
             >
               <div className="min-w-0 flex-1">
@@ -353,7 +397,10 @@ export default function Home() {
           ))}
         </div>
       </section>
-      <section className="bg-[#0c142b] px-6 py-20 text-center">
+      <section
+        data-animate="reveal"
+        className="bg-[#0c142b] px-6 py-20 text-center"
+      >
         <Sparkles className="mx-auto block size-6 text-[#ceb47b]" />
         <h2 className="mt-5 text-3xl font-semibold text-white">
           {copy.finalCta.title}
@@ -396,6 +443,6 @@ export default function Home() {
           </nav>
         </div>
       </footer>
-    </main>
+    </HomeMotion>
   );
 }
