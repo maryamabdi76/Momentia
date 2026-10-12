@@ -1,23 +1,16 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import {
-  ArrowRight,
-  ArrowLeft,
-  Share2,
-  Check,
-  ShieldCheck,
-} from 'lucide-react';
+import { ArrowLeft, Check, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import type { PersonalizeData, MomentData } from './CreateStepper';
+import type { PersonalizeData } from './CreateStepper';
 
 type Props = {
   personal: PersonalizeData;
-  moment: MomentData;
-  onBack: () => void;
 };
 
-export function Step3Receive({ personal, moment, onBack }: Props) {
+// Back / share actions live under the poster preview (see CreatePreview).
+export function Step3Receive({ personal }: Props) {
   const t = useTranslations('CreatePage.step3');
 
   return (
@@ -82,26 +75,6 @@ export function Step3Receive({ personal, moment, onBack }: Props) {
         <p className="text-center text-[11px] text-white/30">
           {t('printRequestNote')}
         </p>
-      </div>
-
-      {/* Action buttons */}
-      <div className="flex gap-3">
-        <Button
-          type="button"
-          variant="outline"
-          className="h-12 flex-1 rounded-2xl border-white/20 bg-transparent text-white/60 hover:bg-white/5 gap-2"
-          onClick={onBack}
-        >
-          <ArrowRight className="size-4" />
-          {t('ctaBack')}
-        </Button>
-        <Button
-          type="button"
-          className="h-12 flex-[2] rounded-2xl bg-[#CEB47B] text-sm font-bold text-[#0c142b] hover:bg-[#e0c180] gap-2"
-        >
-          {t('ctaShare')}
-          <Share2 className="size-4" />
-        </Button>
       </div>
 
       {/* No account note */}
