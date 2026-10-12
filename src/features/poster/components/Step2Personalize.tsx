@@ -1,6 +1,11 @@
 'use client';
 
-import { useForm, Controller, type SubmitHandler, useWatch } from 'react-hook-form';
+import {
+  useForm,
+  Controller,
+  type SubmitHandler,
+  useWatch,
+} from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect } from 'react';
 import { useTranslations } from 'next-intl';
@@ -9,7 +14,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import { personalizeSchema, type PersonalizeValues } from '@/features/poster/lib/schemas';
+import {
+  personalizeSchema,
+  type PersonalizeValues,
+} from '@/features/poster/lib/schemas';
 import type { PersonalizeData, MomentData } from './CreateStepper';
 
 type Props = {
@@ -21,7 +29,14 @@ type Props = {
   onEditMoment?: () => void;
 };
 
-export function Step2Personalize({ data, moment, onChange, onNext, onBack, onEditMoment }: Props) {
+export function Step2Personalize({
+  data,
+  moment,
+  onChange,
+  onNext,
+  onBack,
+  onEditMoment,
+}: Props) {
   const t = useTranslations('CreatePage.step2');
   const tStep1 = useTranslations('CreatePage.step1');
 
@@ -45,13 +60,22 @@ export function Step2Personalize({ data, moment, onChange, onNext, onBack, onEdi
   useEffect(() => {
     onChange(watched as PersonalizeValues);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [watched.title, watched.names, watched.quote, watched.style, watched.showDate, watched.showCity]);
+  }, [
+    watched.title,
+    watched.names,
+    watched.quote,
+    watched.style,
+    watched.showDate,
+    watched.showCity,
+  ]);
 
   const momentSummary = [
     moment.city,
     `${moment.day} ${moment.month} ${moment.year}`,
     !moment.noExactTime && moment.time ? `ساعت ${moment.time}` : '',
-  ].filter(Boolean).join(' · ');
+  ]
+    .filter(Boolean)
+    .join(' · ');
 
   const onSubmit: SubmitHandler<PersonalizeValues> = (values) => {
     onChange(values);
@@ -62,7 +86,7 @@ export function Step2Personalize({ data, moment, onChange, onNext, onBack, onEdi
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" noValidate>
       {/* Step label + title */}
       <div>
-        <p className="text-xs text-[#ceb47b]">{t('stepLabel')}</p>
+        <p className="text-xs text-[#CEB47B]">{t('stepLabel')}</p>
         <h1 className="mt-2 text-3xl font-bold text-white">{t('title')}</h1>
         <p className="mt-2 text-sm leading-7 text-white/55">
           {t('description', { city: moment.city })}
@@ -74,7 +98,7 @@ export function Step2Personalize({ data, moment, onChange, onNext, onBack, onEdi
         <button
           type="button"
           onClick={onEditMoment ?? onBack}
-          className="text-xs text-[#ceb47b] hover:text-[#d6c08a] transition-colors"
+          className="text-xs text-[#CEB47B] hover:text-[#e0c180] transition-colors"
         >
           {t('editLabel')}
         </button>
@@ -83,13 +107,15 @@ export function Step2Personalize({ data, moment, onChange, onNext, onBack, onEdi
 
       {/* Title field */}
       <div className="space-y-1.5">
-        <Label className="text-sm font-medium text-white/80">{t('titleLabel')}</Label>
+        <Label className="text-sm font-medium text-white/80">
+          {t('titleLabel')}
+        </Label>
         <Controller
           control={control}
           name="title"
           render={({ field, fieldState }) => (
             <>
-              <div className="flex items-center rounded-xl border border-white/12 bg-white/[0.04] px-4 gap-3 focus-within:border-[#ceb47b]/50 focus-within:ring-2 focus-within:ring-[#ceb47b]/10 transition-colors">
+              <div className="flex items-center rounded-xl border border-white/12 bg-white/[0.04] px-4 gap-3 focus-within:border-[#CEB47B]/50 focus-within:ring-2 focus-within:ring-[#CEB47B]/10 transition-colors">
                 <Pencil className="size-4 shrink-0 text-white/25" />
                 <Input
                   {...field}
@@ -98,7 +124,9 @@ export function Step2Personalize({ data, moment, onChange, onNext, onBack, onEdi
                 />
               </div>
               {fieldState.error && (
-                <p className="text-[11px] text-red-400">{fieldState.error.message}</p>
+                <p className="text-[11px] text-red-400">
+                  {fieldState.error.message}
+                </p>
               )}
             </>
           )}
@@ -107,13 +135,15 @@ export function Step2Personalize({ data, moment, onChange, onNext, onBack, onEdi
 
       {/* Names field */}
       <div className="space-y-1.5">
-        <Label className="text-sm font-medium text-white/80">{t('namesLabel')}</Label>
+        <Label className="text-sm font-medium text-white/80">
+          {t('namesLabel')}
+        </Label>
         <Controller
           control={control}
           name="names"
           render={({ field, fieldState }) => (
             <>
-              <div className="flex items-center rounded-xl border border-white/12 bg-white/[0.04] px-4 gap-3 focus-within:border-[#ceb47b]/50 focus-within:ring-2 focus-within:ring-[#ceb47b]/10 transition-colors">
+              <div className="flex items-center rounded-xl border border-white/12 bg-white/[0.04] px-4 gap-3 focus-within:border-[#CEB47B]/50 focus-within:ring-2 focus-within:ring-[#CEB47B]/10 transition-colors">
                 <Pencil className="size-4 shrink-0 text-white/25" />
                 <Input
                   {...field}
@@ -122,7 +152,9 @@ export function Step2Personalize({ data, moment, onChange, onNext, onBack, onEdi
                 />
               </div>
               {fieldState.error && (
-                <p className="text-[11px] text-red-400">{fieldState.error.message}</p>
+                <p className="text-[11px] text-red-400">
+                  {fieldState.error.message}
+                </p>
               )}
             </>
           )}
@@ -131,13 +163,15 @@ export function Step2Personalize({ data, moment, onChange, onNext, onBack, onEdi
 
       {/* Quote field */}
       <div className="space-y-1.5">
-        <Label className="text-sm font-medium text-white/80">{t('quoteLabel')}</Label>
+        <Label className="text-sm font-medium text-white/80">
+          {t('quoteLabel')}
+        </Label>
         <Controller
           control={control}
           name="quote"
           render={({ field, fieldState }) => (
             <>
-              <div className="flex items-center rounded-xl border border-white/12 bg-white/[0.04] px-4 gap-3 focus-within:border-[#ceb47b]/50 focus-within:ring-2 focus-within:ring-[#ceb47b]/10 transition-colors">
+              <div className="flex items-center rounded-xl border border-white/12 bg-white/[0.04] px-4 gap-3 focus-within:border-[#CEB47B]/50 focus-within:ring-2 focus-within:ring-[#CEB47B]/10 transition-colors">
                 <Pencil className="size-4 shrink-0 text-white/25" />
                 <Input
                   {...field}
@@ -147,7 +181,9 @@ export function Step2Personalize({ data, moment, onChange, onNext, onBack, onEdi
               </div>
               <p className="text-[11px] text-white/35">{t('quoteHint')}</p>
               {fieldState.error && (
-                <p className="text-[11px] text-red-400">{fieldState.error.message}</p>
+                <p className="text-[11px] text-red-400">
+                  {fieldState.error.message}
+                </p>
               )}
             </>
           )}
@@ -173,50 +209,97 @@ export function Step2Personalize({ data, moment, onChange, onNext, onBack, onEdi
                     className={[
                       'relative flex flex-col items-center gap-3 rounded-xl border p-3 pb-4 transition-colors',
                       isSelected
-                        ? 'border-[#ceb47b]/70 bg-[#ceb47b]/8'
+                        ? 'border-[#CEB47B]/70 bg-[#CEB47B]/8'
                         : 'border-white/12 bg-white/[0.03] hover:border-white/25',
                     ].join(' ')}
                   >
                     {/* Mini poster card — mirrors HomePosterPreview "compact" */}
-                    <div className={[
-                      'w-full rounded-sm border p-2',
-                      isGold ? 'border-[#c8a85f]/60 bg-[#0e1e3d]' : 'border-[#b9b5aa] bg-[#f8f6f0]',
-                    ].join(' ')}>
-                      <p className={['mb-1 text-center text-[7px]', isGold ? 'text-white/50' : 'text-[#101a35]/45'].join(' ')}>
+                    <div
+                      className={[
+                        'w-full rounded-sm border p-2',
+                        isGold
+                          ? 'border-[#c8a85f]/60 bg-[#0e1e3d]'
+                          : 'border-[#b9b5aa] bg-[#f8f6f0]',
+                      ].join(' ')}
+                    >
+                      <p
+                        className={[
+                          'mb-1 text-center text-[7px]',
+                          isGold ? 'text-white/50' : 'text-[#101a35]/45',
+                        ].join(' ')}
+                      >
                         نقشه‌ی آسمان شب
                       </p>
-                      <div className={[
-                        'mx-auto flex aspect-square items-center justify-center rounded-full border p-2',
-                        isGold ? 'border-[#c8a85f]/40' : 'border-[#101a35]/15',
-                      ].join(' ')}>
+                      <div
+                        className={[
+                          'mx-auto flex aspect-square items-center justify-center rounded-full border p-2',
+                          isGold
+                            ? 'border-[#c8a85f]/40'
+                            : 'border-[#101a35]/15',
+                        ].join(' ')}
+                      >
                         <img
-                          src={isGold ? '/images/gold-constellation.png' : '/images/monochrome-constellation.png'}
+                          src={
+                            isGold
+                              ? '/images/gold-constellation.png'
+                              : '/images/monochrome-constellation.png'
+                          }
                           alt={t(`styles.${i}.label`)}
-                          className={['size-full object-contain', !isGold ? 'opacity-85' : ''].join(' ')}
+                          className={[
+                            'size-full object-contain',
+                            !isGold ? 'opacity-85' : '',
+                          ].join(' ')}
                         />
                       </div>
-                      <p className={[
-                        'mt-2 text-center text-[8px] font-semibold leading-tight',
-                        isGold ? 'text-[#f2e7be]' : 'text-[#101a35]',
-                      ].join(' ')}>
+                      <p
+                        className={[
+                          'mt-2 text-center text-[8px] font-semibold leading-tight',
+                          isGold ? 'text-[#f2e7be]' : 'text-[#101a35]',
+                        ].join(' ')}
+                      >
                         {data.title || 'بلندترین شب، کنار تو'}
                       </p>
-                      <p className={['mt-0.5 text-center text-[7px]', isGold ? 'text-white/50' : 'text-[#101a35]/50'].join(' ')}>
-                        {data.names || 'رها و آرمان'}
+                      <p
+                        className={[
+                          'mt-0.5 text-center text-[7px]',
+                          isGold ? 'text-white/50' : 'text-[#101a35]/50',
+                        ].join(' ')}
+                      >
+                        {data.names || 'مریم و جلال'}
                       </p>
                     </div>
                     {/* Label + selection indicator */}
                     <div className="flex w-full items-center justify-between px-1">
-                      <span className={isSelected ? 'text-sm font-medium text-white' : 'text-sm text-white/55'}>
+                      <span
+                        className={
+                          isSelected
+                            ? 'text-sm font-medium text-white'
+                            : 'text-sm text-white/55'
+                        }
+                      >
                         {t(`styles.${i}.label`)}
                       </span>
-                      <span className={[
-                        'flex size-5 items-center justify-center rounded-full border-2 transition-colors',
-                        isSelected ? 'border-[#ceb47b] bg-[#ceb47b]' : 'border-white/20',
-                      ].join(' ')}>
+                      <span
+                        className={[
+                          'flex size-5 items-center justify-center rounded-full border-2 transition-colors',
+                          isSelected
+                            ? 'border-[#CEB47B] bg-[#CEB47B]'
+                            : 'border-white/20',
+                        ].join(' ')}
+                      >
                         {isSelected && (
-                          <svg viewBox="0 0 10 8" className="size-3 fill-[#0c142b]">
-                            <path d="M1 4l3 3 5-6" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+                          <svg
+                            viewBox="0 0 10 8"
+                            className="size-3 fill-[#0c142b]"
+                          >
+                            <path
+                              d="M1 4l3 3 5-6"
+                              stroke="currentColor"
+                              strokeWidth="1.5"
+                              fill="none"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
                           </svg>
                         )}
                       </span>
@@ -241,7 +324,10 @@ export function Step2Personalize({ data, moment, onChange, onNext, onBack, onEdi
                 <p className="text-sm text-white/80">{t('showDate')}</p>
                 {showDate && (
                   <p className="mt-0.5 text-[11px] text-white/35">
-                    {moment.day} {moment.month} {moment.year}{moment.time && !moment.noExactTime ? ` · ساعت ${moment.time}` : ''}
+                    {moment.day} {moment.month} {moment.year}
+                    {moment.time && !moment.noExactTime
+                      ? ` · ساعت ${moment.time}`
+                      : ''}
                   </p>
                 )}
               </div>
@@ -249,7 +335,7 @@ export function Step2Personalize({ data, moment, onChange, onNext, onBack, onEdi
                 id="showDate"
                 checked={field.value}
                 onCheckedChange={field.onChange}
-                className="border-white/30 data-[state=checked]:bg-[#ceb47b] data-[state=checked]:border-[#ceb47b] data-[state=checked]:text-[#0c142b]"
+                className="border-white/30 data-[state=checked]:bg-[#CEB47B] data-[state=checked]:border-[#CEB47B] data-[state=checked]:text-[#0c142b]"
               />
             </div>
           )}
@@ -271,7 +357,7 @@ export function Step2Personalize({ data, moment, onChange, onNext, onBack, onEdi
                 id="showCity"
                 checked={field.value}
                 onCheckedChange={field.onChange}
-                className="border-white/30 data-[state=checked]:bg-[#ceb47b] data-[state=checked]:border-[#ceb47b] data-[state=checked]:text-[#0c142b]"
+                className="border-white/30 data-[state=checked]:bg-[#CEB47B] data-[state=checked]:border-[#CEB47B] data-[state=checked]:text-[#0c142b]"
               />
             </div>
           )}
@@ -297,7 +383,7 @@ export function Step2Personalize({ data, moment, onChange, onNext, onBack, onEdi
         </Button>
         <Button
           type="submit"
-          className="h-13 flex-[2] rounded-2xl bg-[#ceb47b] text-sm font-bold text-[#0c142b] hover:bg-[#d6c08a] gap-2"
+          className="h-13 flex-[2] rounded-2xl bg-[#CEB47B] text-sm font-bold text-[#0c142b] hover:bg-[#e0c180] gap-2"
         >
           {t('ctaNext')}
           <ArrowLeft className="size-4" />

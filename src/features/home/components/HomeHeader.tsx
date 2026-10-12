@@ -9,18 +9,19 @@ import {
 } from '@/components/ui/navigation-menu';
 
 const navLinkClass =
-  'bg-transparent text-white hover:bg-white/10 hover:text-[#ceb47b] focus:bg-white/10 focus:text-[#ceb47b]';
-const ctaButtonClass =
-  'h-auto rounded-full bg-[#ceb47b] font-bold text-[#0c142b] hover:bg-[#d6c08a]';
+  'bg-transparent text-white hover:bg-white/10 hover:text-[#CEB47B] focus:bg-white/10 focus:text-[#CEB47B]';
 
 export async function HomeHeader() {
   const t = await getTranslations('HomePage');
 
   return (
-    <header data-animate="header" className="border-b border-white/10">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6 text-sm text-white">
-        <a className="flex items-center gap-1 font-bold text-white" href="#top">
-          <Sparkles className="size-3 text-[#ceb47b]" />
+    <header data-animate="header" className="border-b border-[#33415B]">
+      <div className="mx-auto flex h-16 items-center justify-between px-6 text-sm text-white md:px-20">
+        <a
+          className="flex items-center gap-4 font-bold text-white text-2xl"
+          href="#top"
+        >
+          <Sparkles className="size-4 text-[#CEB47B]" />
           {t('brand')}
         </a>
         <NavigationMenu viewport={false} className="hidden max-w-none md:flex">
@@ -42,7 +43,7 @@ export async function HomeHeader() {
             </NavigationMenuItem>
           </NavigationMenuList>
         </NavigationMenu>
-        <Button asChild size="sm" className={`${ctaButtonClass} px-5 py-2 text-xs`}>
+        <Button className="bg-[#CEB47B] p-5! font-bold text-[#0c142b] hover:bg-[#e0c180] px-5 py-2 text-sm">
           <a href="/create">{t('cta')}</a>
         </Button>
       </div>

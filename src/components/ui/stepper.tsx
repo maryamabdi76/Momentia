@@ -19,7 +19,10 @@ export function Stepper({
   ariaLabel?: string;
 }) {
   return (
-    <nav aria-label={ariaLabel} className={cn('flex items-center justify-center gap-1', className)}>
+    <nav
+      aria-label={ariaLabel}
+      className={cn('flex items-center justify-center gap-1', className)}
+    >
       {steps.map((step, i) => {
         const isDone = step.status === 'done';
         const isActive = step.status === 'active';
@@ -42,7 +45,7 @@ export function Stepper({
             <span
               className={cn(
                 'inline-flex size-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold leading-none transition-colors',
-                isActive && 'bg-[#ceb47b] text-[#0c142b]',
+                isActive && 'bg-[#CEB47B] text-[#0c142b]',
                 isDone && 'bg-white/20 text-white/70',
                 step.status === 'upcoming' && 'bg-white/10 text-white/30',
               )}

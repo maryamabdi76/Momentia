@@ -2,9 +2,22 @@
 
 import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
-import { useForm, Controller, type SubmitHandler, useWatch } from 'react-hook-form';
+import {
+  useForm,
+  Controller,
+  type SubmitHandler,
+  useWatch,
+} from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Sparkles, Search, Check, MapPin, Clock, ArrowLeft, Moon } from 'lucide-react';
+import {
+  Sparkles,
+  Search,
+  Check,
+  MapPin,
+  Clock,
+  ArrowLeft,
+  Moon,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -17,7 +30,12 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { searchCities, type City } from '@/features/poster/lib/cities';
-import { JALALI_DAYS, JALALI_MONTHS, JALALI_YEARS, DEFAULT_TIME } from '@/features/poster/lib/calendar';
+import {
+  JALALI_DAYS,
+  JALALI_MONTHS,
+  JALALI_YEARS,
+  DEFAULT_TIME,
+} from '@/features/poster/lib/calendar';
 import { momentSchema, type MomentValues } from '@/features/poster/lib/schemas';
 import type { MomentData } from './CreateStepper';
 
@@ -54,7 +72,14 @@ export function Step1Moment({ data, onChange, onNext }: Props) {
   useEffect(() => {
     onChange(watched as MomentValues);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [watched.city, watched.day, watched.month, watched.year, watched.time, watched.noExactTime]);
+  }, [
+    watched.city,
+    watched.day,
+    watched.month,
+    watched.year,
+    watched.time,
+    watched.noExactTime,
+  ]);
 
   function selectCity(c: City) {
     setValue('city', c.name, { shouldValidate: true });
@@ -87,9 +112,11 @@ export function Step1Moment({ data, onChange, onNext }: Props) {
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-7" noValidate>
       {/* Step label + title */}
       <div>
-        <p className="text-xs text-[#ceb47b]">{t('stepLabel')}</p>
+        <p className="text-xs text-[#CEB47B]">{t('stepLabel')}</p>
         <h1 className="mt-2 text-3xl font-bold text-white">{t('title')}</h1>
-        <p className="mt-2 text-sm leading-7 text-white/55">{t('description')}</p>
+        <p className="mt-2 text-sm leading-7 text-white/55">
+          {t('description')}
+        </p>
       </div>
 
       {/* Occasion chips */}
@@ -101,7 +128,7 @@ export function Step1Moment({ data, onChange, onNext }: Props) {
               key={o.label}
               type="button"
               onClick={() => applyOccasion(o.day, o.month, o.year)}
-              className="flex items-center gap-1.5 rounded-full border border-white/15 bg-white/[0.06] px-4 py-2 text-xs text-white/70 transition-colors hover:border-[#ceb47b]/50 hover:text-[#ceb47b]"
+              className="flex items-center gap-1.5 rounded-full border border-white/15 bg-white/[0.06] px-4 py-2 text-xs text-white/70 transition-colors hover:border-[#CEB47B]/50 hover:text-[#CEB47B]"
             >
               <Sparkles className="size-3" />
               {o.label}
@@ -112,7 +139,9 @@ export function Step1Moment({ data, onChange, onNext }: Props) {
 
       {/* City field */}
       <div>
-        <Label className="mb-2.5 text-sm font-medium text-white/80">{t('cityLabel')}</Label>
+        <Label className="mb-2.5 text-sm font-medium text-white/80">
+          {t('cityLabel')}
+        </Label>
         <div className="relative mt-1">
           <div className="pointer-events-none absolute inset-y-0 right-3.5 flex items-center z-10">
             <Search className="size-4 text-white/35" />
@@ -121,7 +150,7 @@ export function Step1Moment({ data, onChange, onNext }: Props) {
             value={citySearch}
             onChange={(e) => setCitySearch(e.target.value)}
             placeholder={data.city}
-            className="h-12 rounded-xl border-white/15 bg-white/[0.06] pr-10 pl-4 text-sm text-white placeholder:text-white/40 focus-visible:border-[#ceb47b]/50 focus-visible:ring-[#ceb47b]/15"
+            className="h-12 rounded-xl border-white/15 bg-white/[0.06] pr-10 pl-4 text-sm text-white placeholder:text-white/40 focus-visible:border-[#CEB47B]/50 focus-visible:ring-[#CEB47B]/15"
           />
         </div>
         {/* city list */}
@@ -138,19 +167,29 @@ export function Step1Moment({ data, onChange, onNext }: Props) {
                     isSelected ? 'bg-white/[0.06]' : '',
                   ].join(' ')}
                 >
-                  {isSelected
-                    ? <Check className="size-4 shrink-0 text-[#ceb47b]" />
-                    : <MapPin className="size-4 shrink-0 text-white/25" />}
-                  <span className={isSelected ? 'font-semibold text-white' : 'text-white/80'}>
+                  {isSelected ? (
+                    <Check className="size-4 shrink-0 text-[#CEB47B]" />
+                  ) : (
+                    <MapPin className="size-4 shrink-0 text-white/25" />
+                  )}
+                  <span
+                    className={
+                      isSelected ? 'font-semibold text-white' : 'text-white/80'
+                    }
+                  >
                     {c.name}
                   </span>
-                  <span className="mr-auto text-xs text-white/35">{c.province} · {t('iran')}</span>
+                  <span className="mr-auto text-xs text-white/35">
+                    {c.province} · {t('iran')}
+                  </span>
                 </button>
               </li>
             );
           })}
         </ul>
-        <p className="mt-2 text-[11px] leading-5 text-white/30">{t('cityNote')}</p>
+        <p className="mt-2 text-[11px] leading-5 text-white/30">
+          {t('cityNote')}
+        </p>
         <Controller
           control={control}
           name="timezone"
@@ -168,7 +207,9 @@ export function Step1Moment({ data, onChange, onNext }: Props) {
 
       {/* Date pickers */}
       <div>
-        <p className="mb-2.5 text-sm font-medium text-white/80">{t('dateLabel')}</p>
+        <p className="mb-2.5 text-sm font-medium text-white/80">
+          {t('dateLabel')}
+        </p>
         <div className="grid grid-cols-3 gap-3">
           {/* Day */}
           <div>
@@ -177,7 +218,11 @@ export function Step1Moment({ data, onChange, onNext }: Props) {
               control={control}
               name="day"
               render={({ field }) => (
-                <SelectField value={field.value} onChange={field.onChange} options={JALALI_DAYS} />
+                <SelectField
+                  value={field.value}
+                  onChange={field.onChange}
+                  options={JALALI_DAYS}
+                />
               )}
             />
           </div>
@@ -188,7 +233,11 @@ export function Step1Moment({ data, onChange, onNext }: Props) {
               control={control}
               name="month"
               render={({ field }) => (
-                <SelectField value={field.value} onChange={field.onChange} options={JALALI_MONTHS as unknown as string[]} />
+                <SelectField
+                  value={field.value}
+                  onChange={field.onChange}
+                  options={JALALI_MONTHS as unknown as string[]}
+                />
               )}
             />
           </div>
@@ -199,7 +248,11 @@ export function Step1Moment({ data, onChange, onNext }: Props) {
               control={control}
               name="year"
               render={({ field }) => (
-                <SelectField value={field.value} onChange={field.onChange} options={JALALI_YEARS} />
+                <SelectField
+                  value={field.value}
+                  onChange={field.onChange}
+                  options={JALALI_YEARS}
+                />
               )}
             />
           </div>
@@ -208,7 +261,9 @@ export function Step1Moment({ data, onChange, onNext }: Props) {
 
       {/* Time */}
       <div>
-        <Label className="mb-2.5 text-sm font-medium text-white/80">{t('timeLabel')}</Label>
+        <Label className="mb-2.5 text-sm font-medium text-white/80">
+          {t('timeLabel')}
+        </Label>
         <Controller
           control={control}
           name="time"
@@ -221,12 +276,14 @@ export function Step1Moment({ data, onChange, onNext }: Props) {
                 {...field}
                 disabled={noExactTime}
                 placeholder={DEFAULT_TIME}
-                className="h-12 rounded-xl border-white/15 bg-white/[0.06] pr-10 pl-4 text-sm text-white placeholder:text-white/35 focus-visible:border-[#ceb47b]/50 focus-visible:ring-[#ceb47b]/15 disabled:opacity-40"
+                className="h-12 rounded-xl border-white/15 bg-white/[0.06] pr-10 pl-4 text-sm text-white placeholder:text-white/35 focus-visible:border-[#CEB47B]/50 focus-visible:ring-[#CEB47B]/15 disabled:opacity-40"
               />
             </div>
           )}
         />
-        <p className="mt-2 text-[11px] leading-5 text-white/30">{t('timeNote')}</p>
+        <p className="mt-2 text-[11px] leading-5 text-white/30">
+          {t('timeNote')}
+        </p>
         <Controller
           control={control}
           name="noExactTime"
@@ -236,9 +293,12 @@ export function Step1Moment({ data, onChange, onNext }: Props) {
                 id="noExactTime"
                 checked={field.value}
                 onCheckedChange={field.onChange}
-                className="border-white/30 data-[state=checked]:bg-[#ceb47b] data-[state=checked]:border-[#ceb47b] data-[state=checked]:text-[#0c142b]"
+                className="border-white/30 data-[state=checked]:bg-[#CEB47B] data-[state=checked]:border-[#CEB47B] data-[state=checked]:text-[#0c142b]"
               />
-              <Label htmlFor="noExactTime" className="cursor-pointer text-xs text-white/55 font-normal">
+              <Label
+                htmlFor="noExactTime"
+                className="cursor-pointer text-xs text-white/55 font-normal"
+              >
                 {t('noTimeLabel')}
               </Label>
             </div>
@@ -248,14 +308,14 @@ export function Step1Moment({ data, onChange, onNext }: Props) {
 
       {/* Night note */}
       <div className="flex gap-3 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-4 text-xs leading-6 text-white/45">
-        <Moon className="mt-0.5 size-4 shrink-0 text-[#ceb47b]" />
+        <Moon className="mt-0.5 size-4 shrink-0 text-[#CEB47B]" />
         <span>{t('nightNote')}</span>
       </div>
 
       {/* CTA */}
       <Button
         type="submit"
-        className="h-14 w-full rounded-2xl bg-[#ceb47b] text-sm font-bold text-[#0c142b] hover:bg-[#d6c08a] gap-2"
+        className="h-14 w-full rounded-2xl bg-[#CEB47B] text-sm font-bold text-[#0c142b] hover:bg-[#e0c180] gap-2"
       >
         {t('cta')}
         <ArrowLeft className="size-4" />
@@ -277,7 +337,7 @@ function SelectField({
 }) {
   return (
     <Select value={value} onValueChange={onChange}>
-      <SelectTrigger className="h-12 w-full rounded-xl border-white/15 bg-white/[0.06] text-sm text-white focus-visible:border-[#ceb47b]/50 focus-visible:ring-[#ceb47b]/15 [&>svg]:text-white/40">
+      <SelectTrigger className="h-12 w-full rounded-xl border-white/15 bg-white/[0.06] text-sm text-white focus-visible:border-[#CEB47B]/50 focus-visible:ring-[#CEB47B]/15 [&>svg]:text-white/40">
         <SelectValue />
       </SelectTrigger>
       <SelectContent className="bg-[#0c1a38] border-white/15 text-white max-h-64">

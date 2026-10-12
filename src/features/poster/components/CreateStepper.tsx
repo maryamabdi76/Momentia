@@ -6,7 +6,11 @@ import { useTranslations } from 'next-intl';
 import { Sparkles } from 'lucide-react';
 import { Stepper } from '@/components/ui/stepper';
 import { Button } from '@/components/ui/button';
-import { PosterPreview, type PosterData, type PosterStyle } from './PosterPreview';
+import {
+  PosterPreview,
+  type PosterData,
+  type PosterStyle,
+} from './PosterPreview';
 import { Step1Moment } from './Step1Moment';
 import { Step2Personalize } from './Step2Personalize';
 import { Step3Receive } from './Step3Receive';
@@ -42,7 +46,7 @@ const DEFAULT_MOMENT: MomentData = {
 
 const DEFAULT_PERSONALIZE: PersonalizeData = {
   title: 'بلندترین شب، کنار تو',
-  names: 'رها و آرمان',
+  names: 'مریم و جلال',
   quote: 'از آن شب، هر ستاره نشانی از توست.',
   style: 'gold',
   showDate: true,
@@ -59,7 +63,8 @@ function StepperInner() {
   const step = stepParam >= 1 && stepParam <= 3 ? stepParam : 1;
 
   const [moment, setMoment] = useState<MomentData>(DEFAULT_MOMENT);
-  const [personal, setPersonal] = useState<PersonalizeData>(DEFAULT_PERSONALIZE);
+  const [personal, setPersonal] =
+    useState<PersonalizeData>(DEFAULT_PERSONALIZE);
 
   function goTo(n: number) {
     const params = new URLSearchParams(searchParams.toString());
@@ -87,29 +92,47 @@ function StepperInner() {
 
   const stepItems = steps.map(({ n, label }) => ({
     label,
-    status: (step === n ? 'active' : step > n ? 'done' : 'upcoming') as 'active' | 'done' | 'upcoming',
+    status: (step === n ? 'active' : step > n ? 'done' : 'upcoming') as
+      | 'active'
+      | 'done'
+      | 'upcoming',
   }));
 
   return (
-    <div className="min-h-screen bg-[#080f28] text-[#f7f3e8]" dir="rtl">
+    <div className="min-h-screen bg-[#142039] text-[#f7f3e8]" dir="rtl">
       {/* Header */}
       <header className="border-b border-white/10">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6 text-sm">
-        <a href="/" className="flex items-center gap-1.5 font-bold text-white text-sm">
-            <Sparkles className="size-3 text-[#ceb47b]" />
+        <div className="mx-auto flex h-16 md:px-20 items-center justify-between px-6 text-sm">
+          <a
+            href="/"
+            className="flex items-center gap-1.5 font-bold text-[#CEB47B] text-sm"
+          >
+            <Sparkles className="size-3 text-[#CEB47B]" />
             {t('brand')}
-          </a>  
+          </a>
 
-          <nav className="hidden gap-6 text-xs text-white/55 md:flex">
-            <a href="/#gifts" className="hover:text-white/80 transition-colors">{t('nav.posters')}</a>
-            <a href="/#steps" className="hover:text-white/80 transition-colors">{t('nav.how')}</a>
-            <a href="/#faq" className="hover:text-white/80 transition-colors">{t('nav.faq')}</a>
+          <nav className="hidden gap-6 text-xs text-[#AAB6CD] md:flex">
+            <a
+              href="/#gifts"
+              className="hover:text-[#AAB6CD] transition-colors"
+            >
+              {t('nav.posters')}
+            </a>
+            <a
+              href="/#steps"
+              className="hover:text-[#AAB6CD] transition-colors"
+            >
+              {t('nav.how')}
+            </a>
+            <a href="/#faq" className="hover:text-[#AAB6CD] transition-colors">
+              {t('nav.faq')}
+            </a>
           </nav>
 
           <Button
             variant="outline"
             size="sm"
-            className="border-white/20 bg-transparent text-[#ceb47b] hover:bg-white/10 hover:text-[#ceb47b] px-4"
+            className="border-[#AAB6CD] bg-transparent text-[#CEB47B] hover:bg-[#AAB6CD] hover:text-[#CEB47B] px-4"
             onClick={() => router.push('/')}
           >
             {t('back')}
@@ -118,8 +141,8 @@ function StepperInner() {
       </header>
 
       {/* Step indicator */}
-      <div className="border-b border-white/10">
-        <div className="mx-auto flex h-14 max-w-7xl items-center justify-center px-6">
+      <div className="border-b border-[#AAB6CD]">
+        <div className="mx-auto flex h-14 md:px-20 items-center justify-center px-6">
           <Stepper
             steps={stepItems}
             onStepClick={(i) => goTo(i + 1)}
@@ -129,12 +152,15 @@ function StepperInner() {
       </div>
 
       {/* Main layout: poster LEFT (large), form RIGHT */}
-      <div className="mx-auto grid max-w-7xl gap-10 px-6 py-10 md:grid-cols-[540px_1fr] md:items-start md:py-14">
-
+      <div className="mx-auto grid md:px-20 gap-10 px-6 py-10 md:grid-cols-[540px_1fr] md:items-start md:py-14">
         {/* Right column: step form */}
         <div>
           {step === 1 && (
-            <Step1Moment data={moment} onChange={setMoment} onNext={() => goTo(2)} />
+            <Step1Moment
+              data={moment}
+              onChange={setMoment}
+              onNext={() => goTo(2)}
+            />
           )}
           {step === 2 && (
             <Step2Personalize
@@ -147,18 +173,22 @@ function StepperInner() {
             />
           )}
           {step === 3 && (
-            <Step3Receive personal={personal} moment={moment} onBack={() => goTo(2)} />
+            <Step3Receive
+              personal={personal}
+              moment={moment}
+              onBack={() => goTo(2)}
+            />
           )}
         </div>
 
         {/* Left column: poster + info card */}
         <div className="flex flex-col gap-4">
-          <div className="flex items-center justify-between text-xs text-white/40">
+          <div className="flex items-center justify-between text-xs text-[#AAB6CD]">
             <span>{t('preview.label')}</span>
             <span>{t('preview.title')}</span>
           </div>
           {/* outer light wrapper matching the design */}
-          <div className="rounded-2xl bg-[#f5f0e8] flex justify-center p-4 shadow-2xl">
+          <div className="rounded-2xl bg-[#DDD8CD] flex justify-center p-4 shadow-2xl">
             <PosterPreview
               data={posterData}
               labels={{
@@ -175,21 +205,28 @@ function StepperInner() {
             />
           </div>
           {/* Info card below poster */}
-          <div className="rounded-xl border border-white/10 bg-white/[0.03] px-5 py-4">
-            <p className="text-xs font-semibold text-white/80">{t('infoCard.title')}</p>
-            <p className="mt-1.5 text-[11px] leading-6 text-white/45">{t('infoCard.body')}</p>
+          <div className="rounded-xl border border-[#AAB6CD] bg-[#1A2943] px-5 py-4">
+            <p className="text-xs font-semibold text-[#CEB47B]">
+              {t('infoCard.title')}
+            </p>
+            <p className="mt-1.5 text-[11px] leading-6 text-[#AAB6CD]">
+              {t('infoCard.body')}
+            </p>
           </div>
         </div>
       </div>
 
       {/* Footer */}
       <footer className="border-t border-white/10 px-6 py-8">
-        <div className="mx-auto flex max-w-7xl items-center justify-between">
-          <a href="/" className="flex items-center gap-1 text-xs text-white/40 hover:text-white/70 transition-colors">
-            <Sparkles className="size-2.5 text-[#ceb47b]" />
+        <div className="mx-auto flex md:px-20 items-center justify-between">
+          <a
+            href="/"
+            className="flex items-center gap-1 text-xs text-[#AAB6CD] hover:text-[#CEB47B] transition-colors"
+          >
+            <Sparkles className="size-2.5 text-[#CEB47B]" />
             {t('brand')}
           </a>
-          <p className="text-xs text-white/30">{t('footerNote')}</p>
+          <p className="text-xs text-[#AAB6CD]">{t('footerNote')}</p>
         </div>
       </footer>
     </div>

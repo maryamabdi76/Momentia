@@ -1,4 +1,7 @@
 import { cn } from 'cn';
+import { Sparkles } from 'lucide-react';
+import { vazirmatnVariable } from 'next-persian-fonts/vazirmatn-variable';
+import Image from 'next/image';
 
 export type PosterStyle = 'gold' | 'mono';
 
@@ -33,17 +36,17 @@ const DEFAULT_LABELS: PosterLabels = {
   east: 'شرق',
   west: 'غرب',
   mapAlt: 'نقشه‌ی آسمان شب',
-  watermark: 'آسمان شب ما ✦',
+  watermark: 'آسمان شب ما',
   disclaimer: 'نقش آسمان و ماه، تصویرسازی مفهومی است؛ نه نقشه‌ی علمی تأییدشده.',
   timeAt: 'ساعت',
 };
 
 const DEFAULT_DATA: PosterData = {
   title: 'بلندترین شب، کنار تو',
-  names: 'رها و آرمان',
+  names: 'مریم و جلال',
   quote: 'از آن شب، هر ستاره نشانی از توست.',
   city: 'تهران',
-  dateLabel: '30 آذر 1402',
+  dateLabel: '30 آذر 1405',
   timeLabel: '21:00',
   showDate: true,
   showCity: true,
@@ -54,77 +57,122 @@ export function PosterPreview({
   data,
   labels,
   className,
+  size = 'default',
+  showDisclaimer = true,
 }: {
   data?: Partial<PosterData>;
   labels?: Partial<PosterLabels>;
   className?: string;
+  size?: 'default' | 'hero';
+  showDisclaimer?: boolean;
 }) {
   const p = { ...DEFAULT_DATA, ...data };
   const l = { ...DEFAULT_LABELS, ...labels };
   const isGold = p.style === 'gold';
 
   const bg = isGold ? 'bg-[#0e1e3d]' : 'bg-[#f8f6f0]';
-  const border = isGold ? 'border-[#c8a85f]/60' : 'border-[#b9b5aa]';
-  const textPrimary = isGold ? 'text-[#f2e7be]' : 'text-[#101a35]';
-  const textMuted = isGold ? 'text-white/45' : 'text-[#101a35]/45';
-  const textFaint = isGold ? 'text-white/25' : 'text-[#101a35]/20';
-  const circleBorder = isGold ? 'border-[#c8a85f]/40' : 'border-[#101a35]/12';
+  const border = isGold ? 'border-[#CEB47B]' : 'border-[#b9b5aa]';
+  const textPrimary = isGold ? 'text-[#E8D9B8]' : 'text-[#222222]';
+
+  const isHero = size === 'hero';
 
   return (
-    <div className={cn('max-w-md rounded-lg overflow-hidden shadow-2xl', className)}>
-      <div className={cn('border-2 p-5', border, bg)}>
-
+    <div
+      className={cn(
+        'overflow-hidden rounded-lg shadow-2xl',
+        isHero ? 'max-w-none' : 'max-w-md',
+        className,
+      )}
+    >
+      <div className={cn('border p-5', border, bg)}>
         {/* header line */}
-        <p className={cn('mb-1 text-center text-[9px] tracking-widest uppercase', textMuted)}>
+        <p
+          className={cn(
+            'mb-1 text-center tracking-widest text-[9px] uppercase',
+            textPrimary,
+          )}
+        >
           {l.headerLine}
         </p>
 
         {/* North label */}
-        <p className={cn('text-center text-[8px]', textFaint)}>{l.north}</p>
+        <p className={cn('text-center top-4 relative text-[8px]', textPrimary)}>
+          {l.north}
+        </p>
 
         {/* star map */}
-        <div className={cn(
-          'relative mx-auto mt-1 flex aspect-square w-full max-w-[280px] items-center justify-center rounded-full border-2',
-          circleBorder,
-        )}>
+        <div
+          className={cn(
+            'relative mx-auto mt-1 flex aspect-square w-full items-center justify-center',
+          )}
+        >
           {/* compass labels */}
-          <span className={cn('absolute right-2 top-1/2 -translate-y-1/2 text-[8px]', textFaint)}>{l.east}</span>
-          <span className={cn('absolute left-2 top-1/2 -translate-y-1/2 text-[8px]', textFaint)}>{l.west}</span>
-          {/* moon */}
-          <span className="absolute top-4 left-1/2 -translate-x-1/2 text-[10px] text-[#f2e7be]/80">🌙</span>
-          <img
-            src={isGold ? '/images/gold-constellation.png' : '/images/monochrome-constellation.png'}
+          <span
+            className={cn(
+              'absolute -right-2 top-1/2 -translate-y-1/2 text-[8px]',
+              textPrimary,
+            )}
+          >
+            {l.east}
+          </span>
+          <span
+            className={cn(
+              'absolute -left-2 top-1/2 -translate-y-1/2 text-[8px]',
+              textPrimary,
+            )}
+          >
+            {l.west}
+          </span>
+
+          <Image
+            src={
+              isGold
+                ? '/images/gold-constellation.png'
+                : '/images/monochrome-constellation.png'
+            }
             alt={l.mapAlt}
-            className={cn('size-[88%] object-contain', !isGold && 'opacity-85')}
+            className={cn('size-[92%] object-contain', !isGold && 'opacity-85')}
+            width={360}
+            height={360}
           />
         </div>
 
         {/* South label */}
-        <p className={cn('mt-1 text-center text-[8px]', textFaint)}>{l.south}</p>
-
-        {/* divider */}
-        <div className={cn('mx-auto mt-4 h-px w-12', isGold ? 'bg-[#c8a85f]/40' : 'bg-[#101a35]/20')} />
+        <p
+          className={cn('text-center -top-2 relative text-[8px]', textPrimary)}
+        >
+          {l.south}
+        </p>
 
         {/* title */}
-        <p className={cn('mt-4 text-center text-base font-bold leading-7', textPrimary)}>
+        <p
+          className={cn(
+            'mt-4 text-center font-bold leading-7',
+            isHero ? 'text-2xl' : 'text-base',
+            textPrimary,
+          )}
+        >
           {p.title}
         </p>
 
         {/* names */}
-        <p className={cn('mt-1 text-center text-xs', textMuted)}>{p.names}</p>
+        <p className={cn('mt-1 text-center text-xs', textPrimary)}>{p.names}</p>
 
         {/* quote */}
-        <p className={cn('mt-2 text-center text-[10px] leading-5', textMuted)}>
+        <p className={cn('mt-2 text-center leading-5 text-[9px]', textPrimary)}>
           {p.quote}
         </p>
 
         {/* meta */}
         {(p.showDate || p.showCity) && (
-          <p className={cn('mt-3 text-center text-[9px]', textFaint)}>
+          <p className={cn('mt-3 text-center text-[9px]', textPrimary)}>
             {[
               p.showCity ? p.city : null,
               p.showDate
-                ? [p.dateLabel, p.timeLabel ? `${l.timeAt} ${p.timeLabel}` : null]
+                ? [
+                    p.dateLabel,
+                    p.timeLabel ? `${l.timeAt} ${p.timeLabel}` : null,
+                  ]
                     .filter(Boolean)
                     .join(' · ')
                 : null,
@@ -135,14 +183,24 @@ export function PosterPreview({
         )}
 
         {/* watermark */}
-        <p className={cn('mt-4 text-center text-[7px] tracking-wider', textFaint)}>
+        <p
+          className={cn(
+            'flex gap-1 items-center justify-center mt-4 text-center tracking-wider text-[7px]',
+            textPrimary,
+          )}
+        >
+          <Sparkles className="size-2" />
           {l.watermark}
         </p>
 
         {/* disclaimer */}
-        <p className={cn('mt-2 text-center text-[7px] leading-4', textFaint)}>
-          {l.disclaimer}
-        </p>
+        {showDisclaimer && (
+          <p
+            className={cn('mt-2 text-center text-[7px] leading-4', textPrimary)}
+          >
+            {l.disclaimer}
+          </p>
+        )}
       </div>
     </div>
   );

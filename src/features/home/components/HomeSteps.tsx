@@ -13,8 +13,8 @@ export async function HomeSteps() {
   }));
 
   return (
-    <section id="steps" className="border-y border-white/5 bg-[#0c142b] px-6 py-20">
-      <div className="mx-auto max-w-7xl">
+    <section id="steps" className="bg-[#142039] px-6 py-20">
+      <div className="mx-auto md:px-20">
         <h2
           data-animate="reveal"
           className="text-center text-2xl font-semibold md:text-3xl"
@@ -28,15 +28,12 @@ export async function HomeSteps() {
           {items.map(({ number, title, body }, index) => {
             const Icon = STEP_ICONS[index];
             return (
-              <div key={number} data-animate-item className="text-start">
-                <div className="flex items-center gap-2">
-                  <span className="flex-1 text-4xl font-medium leading-none text-[#ceb47b]">
-                    {number}
-                  </span>
-                  <Icon className="size-6 text-[#ceb47b]" />
-                </div>
-                <h3 className="mt-6 text-lg font-semibold text-white">{title}</h3>
-                <p className="mt-3 max-w-xs text-xs leading-7 text-white/55">{body}</p>
+              <div key={number} data-animate-item className="text-center">
+                <Icon className="mx-auto size-10 text-[#CEB47B]" />
+                <h3 className="mt-6 flex items-center justify-center gap-2 text-xl font-semibold text-[#CEB47B]">
+                  <div>{title}</div>
+                </h3>
+                <p className="mt-3 text-xs leading-7 text-[#AAB6CD]">{body}</p>
               </div>
             );
           })}

@@ -1,92 +1,21 @@
-/* IRanYekanXFaNum local font */
 @font-face {
-  font-family: 'IRanYekanXFaNum';
-  src: url('/fonts/IRanYekanXFaNum/IRANYekanXFaNum-Thin.woff2') format('woff2');
-  font-weight: 100;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'IRanYekanXFaNum';
-  src: url('/fonts/IRanYekanXFaNum/IRANYekanXFaNum-UltraLight.woff2') format('woff2');
-  font-weight: 200;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'IRanYekanXFaNum';
-  src: url('/fonts/IRanYekanXFaNum/IRANYekanXFaNum-Light.woff2') format('woff2');
-  font-weight: 300;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'IRanYekanXFaNum';
-  src: url('/fonts/IRanYekanXFaNum/IRANYekanXFaNum-Regular.woff2') format('woff2');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'IRanYekanXFaNum';
-  src: url('/fonts/IRanYekanXFaNum/IRANYekanXFaNum-Medium.woff2') format('woff2');
-  font-weight: 500;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'IRanYekanXFaNum';
-  src: url('/fonts/IRanYekanXFaNum/IRANYekanXFaNum-DemiBold.woff2') format('woff2');
-  font-weight: 600;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'IRanYekanXFaNum';
-  src: url('/fonts/IRanYekanXFaNum/IRANYekanXFaNum-Bold.woff2') format('woff2');
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'IRanYekanXFaNum';
-  src: url('/fonts/IRanYekanXFaNum/IRANYekanXFaNum-ExtraBold.woff2') format('woff2');
-  font-weight: 800;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'IRanYekanXFaNum';
-  src: url('/fonts/IRanYekanXFaNum/IRANYekanXFaNum-Black.woff2') format('woff2');
-  font-weight: 900;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'IRanYekanXFaNum';
-  src: url('/fonts/IRanYekanXFaNum/IRANYekanXFaNum-Heavy.woff2') format('woff2');
-  font-weight: 950;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'IRanYekanXFaNum';
-  src: url('/fonts/IRanYekanXFaNum/IRANYekanXFaNum-ExtraBlack.woff2') format('woff2');
+  font-family: 'PersianBadKhat';
+  src: url('/fonts/persian-badkh@t2.ttf') format('ttf');
   font-weight: 1000;
   font-style: normal;
   font-display: swap;
 }
 
-@import "tailwindcss";
-@import "tw-animate-css";
-@import "shadcn/tailwind.css";
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
 
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: 'IRanYekanXFaNum', sans-serif;
+  --font-sans: 'PersianBadKhat', sans-serif;
   --font-mono: var(--font-geist-mono);
   --font-heading: var(--font-sans);
   --color-sidebar-ring: var(--sidebar-ring);
@@ -200,20 +129,15 @@
   * {
     @apply border-border outline-ring/50;
   }
-  body {
-    @apply bg-background text-foreground;
-    font-feature-settings: "lnum" 1;
-    font-variant-numeric: lining-nums;
-  }
   html {
     @apply font-sans;
   }
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  [data-animate="header"],
-  [data-animate="hero"],
-  [data-animate="hero-poster"] {
+  [data-animate='header'],
+  [data-animate='hero'],
+  [data-animate='hero-poster'] {
     opacity: 0;
   }
 }

@@ -17,16 +17,19 @@ export async function HomeStories() {
   }));
 
   return (
-    <section id="stories" className="mx-auto max-w-7xl px-6 py-20">
-      <div data-animate="reveal" className="mb-10 flex items-end justify-between">
+    <section id="stories" className="mx-auto px-6 py-20 md:px-20">
+      <div
+        data-animate="reveal"
+        className="mb-10 flex items-end justify-between"
+      >
         <div>
           <p className="mb-3 text-xs text-[#d9b86a]">{t('eyebrow')}</p>
           <h2 className="text-2xl font-semibold md:text-3xl">{t('title')}</h2>
-          <p className="mt-4 max-w-xl text-xs leading-6 text-white/50 md:hidden">
+          <p className="mt-4 max-w-xl text-xs leading-6 text-[#AAB6CD] md:hidden">
             {t('description')}
           </p>
         </div>
-        <p className="hidden max-w-xs text-left text-xs leading-6 text-white/50 md:block">
+        <p className="hidden max-w-xs text-left text-xs leading-6 text-[#AAB6CD] md:block">
           {t('description')}
         </p>
       </div>
@@ -42,7 +45,9 @@ export async function HomeStories() {
             </div>
             <p className="mt-4 text-xs text-[#d9b86a]">{label}</p>
             <h3 className="mt-2 text-lg font-semibold">{title}</h3>
-            <p className="mt-2 text-xs leading-6 text-white/55">{description}</p>
+            <p className="mt-2 text-xs leading-6 text-[#AAB6CD]">
+              {description}
+            </p>
           </article>
         ))}
       </div>

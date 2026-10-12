@@ -8,7 +8,10 @@ import { localeDirection, type Locale } from '@/i18n/config';
 import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 
+import { vazirMatn } from 'next-persian-fonts/vazirmatn';
+
 import './globals.css';
+import { clsx } from 'cn';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('Metadata');
@@ -25,12 +28,13 @@ export default async function RootLayout({ children }: LayoutProps<'/'>) {
   const dir = localeDirection[locale];
 
   return (
-    <html
-      lang={locale}
-      dir={dir}
-      className={`h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col font-sans">
+    <html lang={locale} dir={dir} className={`h-full antialiased`}>
+      <body
+        className={clsx(
+          'min-h-full flex flex-col font-sans',
+          vazirMatn.className,
+        )}
+      >
         <Analytics />
         <SpeedInsights />
 

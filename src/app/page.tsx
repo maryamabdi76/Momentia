@@ -8,18 +8,24 @@ import { HomeCreate } from '@/features/home/components/HomeCreate';
 import { HomeFaq } from '@/features/home/components/HomeFaq';
 import { HomeFinalCta } from '@/features/home/components/HomeFinalCta';
 import { HomeFooter } from '@/features/home/components/HomeFooter';
+import { Separator } from '@/components/ui/separator';
 
 export default function Home() {
   return (
-    <HomeMotion className="overflow-hidden bg-[#080f28] text-[#f7f3e8]" dir="rtl">
+    <HomeMotion
+      className="overflow-hidden bg-[#080f28] text-[#f7f3e8]"
+      dir="rtl"
+    >
       <HomeHeader />
       <HomeHero />
+      <Separator />
       <HomeStories />
       <HomeSteps />
       <HomeGifts />
       <HomeCreate />
       <HomeFaq />
       <HomeFinalCta />
+      <Separator />
       <HomeFooter />
     </HomeMotion>
   );
