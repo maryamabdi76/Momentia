@@ -40,7 +40,7 @@ export async function HomeHeader({ variant = 'home' }: HomeHeaderProps) {
     >
       <div
         className={`mx-auto flex items-center justify-between px-6 text-sm text-white md:px-20 ${
-          isCreate ? 'h-16 md:h-20' : 'h-16'
+          isCreate ? 'h-16' : 'h-16'
         }`}
       >
         <Link
@@ -70,14 +70,14 @@ export async function HomeHeader({ variant = 'home' }: HomeHeaderProps) {
           <Button
             asChild
             variant="outline"
-            className="h-11 rounded-xl border-[#33415B] bg-transparent px-5 text-sm font-bold text-[#E8D9B8] hover:bg-white/5 hover:text-[#CEB47B]"
+            className="border-[#33415B] bg-transparent p-5! text-sm font-bold text-[#E8D9B8] hover:bg-white/5 hover:text-[#CEB47B]"
           >
             <Link href="/">{tCreate('back')}</Link>
           </Button>
         ) : (
           <Button
             asChild
-            className="bg-[#CEB47B] p-5! px-5 py-2 text-sm font-bold text-[#0c142b] hover:bg-[#e0c180]"
+            className="bg-[#CEB47B] p-5! text-sm font-bold text-[#0c142b] hover:bg-[#e0c180]"
           >
             <Link href="/create">{t('cta')}</Link>
           </Button>

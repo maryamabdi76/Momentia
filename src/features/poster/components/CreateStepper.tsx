@@ -40,7 +40,7 @@ const DEFAULT_MOMENT: MomentData = {
   timezone: 'Asia/Tehran',
   day: '30',
   month: 'آذر',
-  year: '1402',
+  year: '1405',
   time: '21:00',
   noExactTime: false,
 };
@@ -93,7 +93,7 @@ function StepperInner() {
     <main className="flex-1">
       {/* Step indicator */}
       <div className="border-b border-[#33415B]">
-        <div className="mx-auto flex h-20 items-center px-6 md:px-20">
+        <div className="mx-auto flex items-center px-6 py-2 md:px-20">
           <Stepper
             steps={stepItems}
             onStepClick={(i) => goTo(i + 1)}

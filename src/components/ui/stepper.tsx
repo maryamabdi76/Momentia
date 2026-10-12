@@ -45,7 +45,7 @@ export function Stepper({
               >
                 <span
                   className={cn(
-                    'inline-flex size-10 shrink-0 items-center justify-center rounded-full text-sm font-bold leading-none transition-colors',
+                    'inline-flex size-6 shrink-0 items-center justify-center rounded-full text-xs font-bold leading-none transition-colors',
                     isActive
                       ? 'bg-[#CEB47B] text-[#0c142b]'
                       : 'bg-[#1A2943] text-[#AAB6CD]',
@@ -59,9 +59,7 @@ export function Stepper({
                     'text-base transition-colors',
                     // On small screens only the current step shows its label.
                     !isActive && 'hidden sm:inline',
-                    isActive
-                      ? 'font-bold text-[#E8D9B8]'
-                      : 'text-[#AAB6CD]',
+                    isActive ? 'font-bold text-[#E8D9B8]' : 'text-[#AAB6CD]',
                     clickable && 'group-hover:text-white',
                   )}
                 >
