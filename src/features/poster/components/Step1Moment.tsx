@@ -120,15 +120,15 @@ export function Step1Moment({ data, onChange, onNext }: Props) {
       </div>
 
       {/* Occasion chips */}
-      <div>
-        <p className="mb-3 text-xs text-white/45">{t('occasionLabel')}</p>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <p className="text-sm text-[#AAB6CD]">{t('occasionLabel')}</p>
         <div className="flex flex-wrap gap-2">
           {occasions.map((o) => (
             <button
               key={o.label}
               type="button"
               onClick={() => applyOccasion(o.day, o.month, o.year)}
-              className="flex items-center gap-1.5 rounded-full border border-white/15 bg-white/[0.06] px-4 py-2 text-xs text-white/70 transition-colors hover:border-[#CEB47B]/50 hover:text-[#CEB47B]"
+              className="flex items-center gap-2 rounded-full border border-[#CEB47B]/60 px-4 py-2 text-sm text-[#CEB47B] transition-colors hover:bg-[#CEB47B]/10"
             >
               <Sparkles className="size-3" />
               {o.label}
@@ -143,14 +143,14 @@ export function Step1Moment({ data, onChange, onNext }: Props) {
           {t('cityLabel')}
         </Label>
         <div className="relative mt-1">
-          <div className="pointer-events-none absolute inset-y-0 right-3.5 flex items-center z-10">
-            <Search className="size-4 text-white/35" />
+          <div className="pointer-events-none absolute inset-y-0 end-4 z-10 flex items-center">
+            <Search className="size-4 text-white/50" />
           </div>
           <Input
             value={citySearch}
             onChange={(e) => setCitySearch(e.target.value)}
             placeholder={data.city}
-            className="h-12 rounded-xl border-white/15 bg-white/[0.06] pr-10 pl-4 text-sm text-white placeholder:text-white/40 focus-visible:border-[#CEB47B]/50 focus-visible:ring-[#CEB47B]/15"
+            className="h-14 rounded-xl border-[#33415B] bg-transparent ps-4 pe-11 text-base text-white placeholder:text-white/40 focus-visible:border-[#CEB47B]/50 focus-visible:ring-[#CEB47B]/15"
           />
         </div>
         {/* city list */}
@@ -269,14 +269,14 @@ export function Step1Moment({ data, onChange, onNext }: Props) {
           name="time"
           render={({ field }) => (
             <div className="relative mt-1">
-              <div className="pointer-events-none absolute inset-y-0 right-3.5 flex items-center z-10">
-                <Clock className="size-4 text-white/35" />
+              <div className="pointer-events-none absolute inset-y-0 end-4 z-10 flex items-center">
+                <Clock className="size-4 text-white/50" />
               </div>
               <Input
                 {...field}
                 disabled={noExactTime}
                 placeholder={DEFAULT_TIME}
-                className="h-12 rounded-xl border-white/15 bg-white/[0.06] pr-10 pl-4 text-sm text-white placeholder:text-white/35 focus-visible:border-[#CEB47B]/50 focus-visible:ring-[#CEB47B]/15 disabled:opacity-40"
+                className="h-14 rounded-xl border-[#33415B] bg-transparent ps-4 pe-11 text-base text-white placeholder:text-white/35 focus-visible:border-[#CEB47B]/50 focus-visible:ring-[#CEB47B]/15 disabled:opacity-40"
               />
             </div>
           )}

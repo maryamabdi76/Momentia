@@ -7,55 +7,71 @@ export type StepItem = {
   status: StepStatus;
 };
 
+type StepperProps = {
+  steps: StepItem[];
+  /** Called with the zero-based index. Only completed steps are clickable. */
+  onStepClick?: (index: number) => void;
+  className?: string;
+  ariaLabel?: string;
+};
+
 export function Stepper({
   steps,
   onStepClick,
   className,
   ariaLabel = 'مراحل',
-}: {
-  steps: StepItem[];
-  onStepClick?: (index: number) => void;
-  className?: string;
-  ariaLabel?: string;
-}) {
+}: StepperProps) {
   return (
-    <nav
-      aria-label={ariaLabel}
-      className={cn('flex items-center justify-center gap-1', className)}
-    >
-      {steps.map((step, i) => {
-        const isDone = step.status === 'done';
-        const isActive = step.status === 'active';
-        const clickable = isDone && !!onStepClick;
+    <nav aria-label={ariaLabel} className={cn('w-full', className)}>
+      <ol className="mx-auto flex w-full max-w-4xl items-center justify-between gap-3">
+        {steps.map((step, i) => {
+          const isActive = step.status === 'active';
+          const isDone = step.status === 'done';
+          const clickable = isDone && !!onStepClick;
 
-        return (
-          <button
-            key={i}
-            type="button"
-            aria-current={isActive ? 'step' : undefined}
-            disabled={!clickable && !isActive}
-            onClick={() => clickable && onStepClick(i)}
-            className={cn(
-              'flex items-center gap-2 rounded-full px-4 py-2 text-xs font-medium transition-colors',
-              isActive && 'bg-[#0d1b3e] text-white font-semibold',
-              isDone && 'text-white/50 hover:text-white/80 cursor-pointer',
-              step.status === 'upcoming' && 'cursor-default text-white/35',
-            )}
-          >
-            <span
-              className={cn(
-                'inline-flex size-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold leading-none transition-colors',
-                isActive && 'bg-[#CEB47B] text-[#0c142b]',
-                isDone && 'bg-white/20 text-white/70',
-                step.status === 'upcoming' && 'bg-white/10 text-white/30',
-              )}
-            >
-              {i + 1}
-            </span>
-            {step.label}
-          </button>
-        );
-      })}
+          return (
+            <li key={step.label} className="flex">
+              <button
+                type="button"
+                aria-current={isActive ? 'step' : undefined}
+                disabled={!clickable}
+                onClick={() => onStepClick?.(i)}
+                className={cn(
+                  'group flex items-center gap-3 rounded-full py-1 outline-none',
+                  'focus-visible:ring-2 focus-visible:ring-[#CEB47B]/60',
+                  'disabled:cursor-default',
+                  clickable && 'cursor-pointer',
+                )}
+              >
+                <span
+                  className={cn(
+                    'inline-flex size-10 shrink-0 items-center justify-center rounded-full text-sm font-bold leading-none transition-colors',
+                    isActive
+                      ? 'bg-[#CEB47B] text-[#0c142b]'
+                      : 'bg-[#1A2943] text-[#AAB6CD]',
+                    clickable && 'group-hover:bg-[#26385a]',
+                  )}
+                >
+                  {i + 1}
+                </span>
+                <span
+                  className={cn(
+                    'text-base transition-colors',
+                    // On small screens only the current step shows its label.
+                    !isActive && 'hidden sm:inline',
+                    isActive
+                      ? 'font-bold text-[#E8D9B8]'
+                      : 'text-[#AAB6CD]',
+                    clickable && 'group-hover:text-white',
+                  )}
+                >
+                  {step.label}
+                </span>
+              </button>
+            </li>
+          );
+        })}
+      </ol>
     </nav>
   );
 }

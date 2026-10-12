@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
 import { Sparkles } from 'lucide-react';
 import {
@@ -7,8 +8,35 @@ import {
   NavigationMenuList,
 } from '@/components/ui/navigation-menu';
 
-export async function HomeFooter() {
+type HomeFooterProps = {
+  /**
+   * `home`   – brand + description with legal/help links.
+   * `create` – compact bar: brand on one side, the "stays in your browser" note on the other.
+   */
+  variant?: 'home' | 'create';
+};
+
+export async function HomeFooter({ variant = 'home' }: HomeFooterProps) {
   const t = await getTranslations('HomePage');
+
+  if (variant === 'create') {
+    const tCreate = await getTranslations('CreatePage');
+
+    return (
+      <footer className="border-t border-[#33415B] px-6 py-10">
+        <div className="mx-auto flex flex-col gap-4 md:flex-row md:items-center md:justify-between md:px-20">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-4 text-2xl font-bold text-white"
+          >
+            <Sparkles className="size-4 text-[#CEB47B]" />
+            {t('brand')}
+          </Link>
+          <p className="text-sm text-[#AAB6CD]">{tCreate('footerNote')}</p>
+        </div>
+      </footer>
+    );
+  }
 
   const footerLinks = [
     ['#privacy', t('footer.links.privacy')],
@@ -18,7 +46,7 @@ export async function HomeFooter() {
 
   return (
     <footer className="px-6 py-10">
-      <div className="mx-auto flex md:px-20 flex-col gap-8 md:flex-row md:justify-between">
+      <div className="mx-auto flex flex-col gap-8 md:flex-row md:justify-between md:px-20">
         <div className="max-w-md">
           <a
             href="#top"

@@ -1,16 +1,15 @@
 'use client';
 
+import { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useState, Suspense } from 'react';
 import { useTranslations } from 'next-intl';
-import { Sparkles } from 'lucide-react';
-import { Stepper } from '@/components/ui/stepper';
-import { Button } from '@/components/ui/button';
 import {
-  PosterPreview,
-  type PosterData,
-  type PosterStyle,
-} from './PosterPreview';
+  Stepper,
+  type StepItem,
+  type StepStatus,
+} from '@/components/ui/stepper';
+import { CreatePreview } from './CreatePreview';
+import type { PosterData, PosterStyle } from './PosterPreview';
 import { Step1Moment } from './Step1Moment';
 import { Step2Personalize } from './Step2Personalize';
 import { Step3Receive } from './Step3Receive';
@@ -34,6 +33,8 @@ export type PersonalizeData = {
   showCity: boolean;
 };
 
+const STEP_COUNT = 3;
+
 const DEFAULT_MOMENT: MomentData = {
   city: 'تهران',
   timezone: 'Asia/Tehran',
@@ -53,14 +54,17 @@ const DEFAULT_PERSONALIZE: PersonalizeData = {
   showCity: true,
 };
 
+function parseStep(value: string | null): number {
+  const n = Number(value ?? '1');
+  return Number.isInteger(n) && n >= 1 && n <= STEP_COUNT ? n : 1;
+}
+
 function StepperInner() {
   const t = useTranslations('CreatePage');
-  const tPoster = useTranslations('Poster');
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  const stepParam = Number(searchParams.get('step') ?? '1');
-  const step = stepParam >= 1 && stepParam <= 3 ? stepParam : 1;
+  const step = parseStep(searchParams.get('step'));
 
   const [moment, setMoment] = useState<MomentData>(DEFAULT_MOMENT);
   const [personal, setPersonal] =
@@ -73,76 +77,23 @@ function StepperInner() {
   }
 
   const posterData: Partial<PosterData> = {
-    title: personal.title,
-    names: personal.names,
-    quote: personal.quote,
+    ...personal,
     city: moment.city,
     dateLabel: `${moment.day} ${moment.month} ${moment.year}`,
     timeLabel: moment.noExactTime ? '' : moment.time,
-    showDate: personal.showDate,
-    showCity: personal.showCity,
-    style: personal.style,
   };
 
-  const steps = [
-    { n: 1, label: t('steps.1') },
-    { n: 2, label: t('steps.2') },
-    { n: 3, label: t('steps.3') },
-  ];
-
-  const stepItems = steps.map(({ n, label }) => ({
-    label,
-    status: (step === n ? 'active' : step > n ? 'done' : 'upcoming') as
-      | 'active'
-      | 'done'
-      | 'upcoming',
-  }));
+  const stepItems: StepItem[] = [1, 2, 3].map((n) => {
+    const status: StepStatus =
+      step === n ? 'active' : step > n ? 'done' : 'upcoming';
+    return { label: t(`steps.${n}`), status };
+  });
 
   return (
-    <div className="min-h-screen bg-[#142039] text-[#f7f3e8]" dir="rtl">
-      {/* Header */}
-      <header className="border-b border-white/10">
-        <div className="mx-auto flex h-16 md:px-20 items-center justify-between px-6 text-sm">
-          <a
-            href="/"
-            className="flex items-center gap-1.5 font-bold text-[#CEB47B] text-sm"
-          >
-            <Sparkles className="size-3 text-[#CEB47B]" />
-            {t('brand')}
-          </a>
-
-          <nav className="hidden gap-6 text-xs text-[#AAB6CD] md:flex">
-            <a
-              href="/#gifts"
-              className="hover:text-[#AAB6CD] transition-colors"
-            >
-              {t('nav.posters')}
-            </a>
-            <a
-              href="/#steps"
-              className="hover:text-[#AAB6CD] transition-colors"
-            >
-              {t('nav.how')}
-            </a>
-            <a href="/#faq" className="hover:text-[#AAB6CD] transition-colors">
-              {t('nav.faq')}
-            </a>
-          </nav>
-
-          <Button
-            variant="outline"
-            size="sm"
-            className="border-[#AAB6CD] bg-transparent text-[#CEB47B] hover:bg-[#AAB6CD] hover:text-[#CEB47B] px-4"
-            onClick={() => router.push('/')}
-          >
-            {t('back')}
-          </Button>
-        </div>
-      </header>
-
+    <main className="flex-1">
       {/* Step indicator */}
-      <div className="border-b border-[#AAB6CD]">
-        <div className="mx-auto flex h-14 md:px-20 items-center justify-center px-6">
+      <div className="border-b border-[#33415B]">
+        <div className="mx-auto flex h-20 items-center px-6 md:px-20">
           <Stepper
             steps={stepItems}
             onStepClick={(i) => goTo(i + 1)}
@@ -151,10 +102,9 @@ function StepperInner() {
         </div>
       </div>
 
-      {/* Main layout: poster LEFT (large), form RIGHT */}
-      <div className="mx-auto grid md:px-20 gap-10 px-6 py-10 md:grid-cols-[540px_1fr] md:items-start md:py-14">
-        {/* Right column: step form */}
-        <div>
+      {/* Form on the start side (right in RTL), live preview on the other */}
+      <div className="mx-auto grid gap-10 px-6 py-10 md:grid-cols-2 md:items-start md:gap-16 md:px-20 md:py-16">
+        <section>
           {step === 1 && (
             <Step1Moment
               data={moment}
@@ -172,64 +122,17 @@ function StepperInner() {
               onEditMoment={() => goTo(1)}
             />
           )}
-          {step === 3 && (
-            <Step3Receive
-              personal={personal}
-              moment={moment}
-              onBack={() => goTo(2)}
-            />
-          )}
-        </div>
+          {step === 3 && <Step3Receive personal={personal} />}
+        </section>
 
-        {/* Left column: poster + info card */}
-        <div className="flex flex-col gap-4">
-          <div className="flex items-center justify-between text-xs text-[#AAB6CD]">
-            <span>{t('preview.label')}</span>
-            <span>{t('preview.title')}</span>
-          </div>
-          {/* outer light wrapper matching the design */}
-          <div className="rounded-2xl bg-[#DDD8CD] flex justify-center p-4 shadow-2xl">
-            <PosterPreview
-              data={posterData}
-              labels={{
-                headerLine: tPoster('headerLine'),
-                north: tPoster('north'),
-                south: tPoster('south'),
-                east: tPoster('east'),
-                west: tPoster('west'),
-                mapAlt: tPoster('mapAlt'),
-                watermark: tPoster('watermark'),
-                disclaimer: tPoster('disclaimer'),
-                timeAt: tPoster('timeAt'),
-              }}
-            />
-          </div>
-          {/* Info card below poster */}
-          <div className="rounded-xl border border-[#AAB6CD] bg-[#1A2943] px-5 py-4">
-            <p className="text-xs font-semibold text-[#CEB47B]">
-              {t('infoCard.title')}
-            </p>
-            <p className="mt-1.5 text-[11px] leading-6 text-[#AAB6CD]">
-              {t('infoCard.body')}
-            </p>
-          </div>
-        </div>
+        <CreatePreview
+          step={step}
+          poster={posterData}
+          moment={moment}
+          onBack={() => goTo(2)}
+        />
       </div>
-
-      {/* Footer */}
-      <footer className="border-t border-white/10 px-6 py-8">
-        <div className="mx-auto flex md:px-20 items-center justify-between">
-          <a
-            href="/"
-            className="flex items-center gap-1 text-xs text-[#AAB6CD] hover:text-[#CEB47B] transition-colors"
-          >
-            <Sparkles className="size-2.5 text-[#CEB47B]" />
-            {t('brand')}
-          </a>
-          <p className="text-xs text-[#AAB6CD]">{t('footerNote')}</p>
-        </div>
-      </footer>
-    </div>
+    </main>
   );
 }
 

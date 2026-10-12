@@ -9,7 +9,7 @@ import {
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect } from 'react';
 import { useTranslations } from 'next-intl';
-import { ArrowLeft, ArrowRight, Pencil, Info, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Pencil, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -362,12 +362,6 @@ export function Step2Personalize({
             </div>
           )}
         />
-      </div>
-
-      {/* Free copy note */}
-      <div className="flex items-start gap-2.5 rounded-xl border border-white/10 bg-white/[0.02] px-4 py-3">
-        <Info className="mt-0.5 size-4 shrink-0 text-white/30" />
-        <p className="text-[11px] leading-5 text-white/40">{t('freeCopy')}</p>
       </div>
 
       {/* CTA buttons */}
