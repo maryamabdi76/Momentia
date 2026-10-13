@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useState } from 'react';
+import { Suspense, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import {
@@ -8,6 +8,7 @@ import {
   type StepItem,
   type StepStatus,
 } from '@/components/ui/stepper';
+import { skyForMoment } from '../lib/sky-for-moment';
 import { CreatePreview } from './CreatePreview';
 import type { PosterData, PosterStyle } from './PosterPreview';
 import { Step1Moment } from './Step1Moment';
@@ -76,6 +77,14 @@ function StepperInner() {
     router.push(`/create?${params.toString()}`);
   }
 
+  // The real sky for the chosen city, date and time. Recomputed (a few ms) only
+  // when one of those fields changes, not when the title or names are edited.
+  const { city, day, month, year, time, noExactTime } = moment;
+  const moonSky = useMemo(
+    () => skyForMoment({ city, day, month, year, time, noExactTime }),
+    [city, day, month, year, time, noExactTime],
+  );
+
   const posterData: Partial<PosterData> = {
     ...personal,
     city: moment.city,
@@ -128,6 +137,7 @@ function StepperInner() {
         <CreatePreview
           step={step}
           poster={posterData}
+          sky={moonSky?.sky ?? null}
           moment={moment}
           onBack={() => goTo(2)}
         />

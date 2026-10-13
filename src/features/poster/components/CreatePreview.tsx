@@ -4,17 +4,20 @@ import { useTranslations } from 'next-intl';
 import { ArrowRight, Info, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { PosterPreview, type PosterData } from './PosterPreview';
+import type { SkySnapshot } from '@/features/sky/lib/types';
 import type { MomentData } from './CreateStepper';
 
 type Props = {
   step: number;
   poster: Partial<PosterData>;
+  /** Real sky for the chosen moment; null falls back to the static illustration. */
+  sky: SkySnapshot | null;
   moment: MomentData;
   onBack: () => void;
 };
 
 /** Cream preview card + the per-step content shown beneath it. */
-export function CreatePreview({ step, poster, moment, onBack }: Props) {
+export function CreatePreview({ step, poster, sky, moment, onBack }: Props) {
   const t = useTranslations('CreatePage');
   const tPoster = useTranslations('Poster');
   const tMoment = useTranslations('CreatePage.step1');
@@ -49,6 +52,7 @@ export function CreatePreview({ step, poster, moment, onBack }: Props) {
         <div className="mt-6 flex justify-center">
           <PosterPreview
             data={poster}
+            sky={sky}
             showDisclaimer={false}
             labels={{
               headerLine: tPoster('headerLine'),
