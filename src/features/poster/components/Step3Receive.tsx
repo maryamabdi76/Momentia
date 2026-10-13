@@ -2,13 +2,15 @@
 
 import { useMemo } from 'react';
 import { useTranslations } from 'next-intl';
-import { Check, Download, ShieldCheck } from 'lucide-react';
+import { Check, Download, Loader2, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import type { PosterExport } from '../hooks/use-poster-export';
 import type { MomentData, PersonalizeData } from './CreateStepper';
 
 type Props = {
   personal: PersonalizeData;
   moment: MomentData;
+  exporter: PosterExport;
 };
 
 function occasionKeepsakeLabel(
@@ -27,7 +29,7 @@ function occasionKeepsakeLabel(
 }
 
 // Back / share actions live under the poster preview (see CreatePreview).
-export function Step3Receive({ personal, moment }: Props) {
+export function Step3Receive({ personal, moment, exporter }: Props) {
   const t = useTranslations('CreatePage.step3');
   const tMoment = useTranslations('CreatePage.step1');
 
@@ -35,6 +37,13 @@ export function Step3Receive({ personal, moment }: Props) {
     () => occasionKeepsakeLabel(moment, tMoment),
     [moment, tMoment],
   );
+
+  const icon = (action: PosterExport['busy'], cls = 'size-4') =>
+    exporter.busy === action ? (
+      <Loader2 className={`${cls} animate-spin`} />
+    ) : (
+      <Download className={cls} />
+    );
 
   const description = occasionKeepsake
     ? t('descriptionOccasion', {
@@ -65,15 +74,23 @@ export function Step3Receive({ personal, moment }: Props) {
         </div>
         <p className="text-[12px] leading-6 text-white/45">{t('digitalDesc')}</p>
         <div className="flex flex-col gap-2.5">
-          <Button className="h-11 w-full rounded-xl bg-[#CEB47B] text-sm font-bold text-[#0c142b] hover:bg-[#e0c180] gap-2">
-            <Download className="size-4" />
+          <Button
+            type="button"
+            onClick={exporter.downloadPng}
+            disabled={exporter.busy !== null}
+            className="h-11 w-full rounded-xl bg-[#CEB47B] text-sm font-bold text-[#0c142b] hover:bg-[#e0c180] gap-2"
+          >
+            {icon('png')}
             {t('downloadPng')}
           </Button>
           <Button
+            type="button"
             variant="outline"
+            onClick={exporter.downloadSvg}
+            disabled={exporter.busy !== null}
             className="h-11 w-full rounded-xl border-[#33415B] bg-transparent text-sm text-white/70 hover:bg-white/5 gap-2"
           >
-            <Download className="size-4 opacity-70" />
+            {icon('svg', 'size-4 opacity-70')}
             {t('downloadSvg')}
           </Button>
         </div>
@@ -101,14 +118,32 @@ export function Step3Receive({ personal, moment }: Props) {
           ))}
         </ul>
 
-        <Button className="h-11 w-full rounded-xl bg-[#CEB47B] text-sm font-bold text-[#0c142b] hover:bg-[#e0c180] gap-2">
-          <Download className="size-4" />
+        <Button
+          type="button"
+          onClick={exporter.downloadPremium}
+          disabled={exporter.busy !== null}
+          className="h-11 w-full rounded-xl bg-[#CEB47B] text-sm font-bold text-[#0c142b] hover:bg-[#e0c180] gap-2"
+        >
+          {icon('premium')}
           {t('premiumDownloadBtn')}
         </Button>
         <p className="text-center text-[11px] leading-5 text-white/30">
           {t('premiumNote')}
         </p>
       </div>
+
+      {exporter.notice && (
+        <p
+          role="status"
+          className={
+            exporter.notice === 'error'
+              ? 'text-center text-xs text-red-300'
+              : 'text-center text-xs text-[#CEB47B]'
+          }
+        >
+          {exporter.notice === 'error' ? t('exportError') : t('shareCopied')}
+        </p>
+      )}
 
       {/* No account note */}
       <p className="flex items-center justify-center gap-1.5 text-center text-xs text-white/30">

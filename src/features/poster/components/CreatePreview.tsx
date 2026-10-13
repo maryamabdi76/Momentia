@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { PosterPreview, type PosterData } from './PosterPreview';
 import { toPersianDigits } from '../lib/digits';
 import type { SkySnapshot } from '@/features/sky/lib/types';
+import type { PosterExport } from '../hooks/use-poster-export';
 import type { MomentData } from './CreateStepper';
 
 type Props = {
@@ -15,10 +16,11 @@ type Props = {
   sky: SkySnapshot | null;
   moment: MomentData;
   onBack: () => void;
+  exporter: PosterExport;
 };
 
 /** Cream preview card + the per-step content shown beneath it. */
-export function CreatePreview({ step, poster, sky, moment, onBack }: Props) {
+export function CreatePreview({ step, poster, sky, moment, onBack, exporter }: Props) {
   const t = useTranslations('CreatePage');
   const tPoster = useTranslations('Poster');
   const tMoment = useTranslations('CreatePage.step1');
@@ -112,9 +114,13 @@ export function CreatePreview({ step, poster, sky, moment, onBack }: Props) {
             <Button
               type="button"
               variant="outline"
+              onClick={exporter.share}
+              disabled={exporter.busy !== null}
               className="cursor-pointer p-7! gap-2 rounded-xl border-[#33415B] bg-transparent text-sm font-bold text-[#E8D9B8] hover:text-[#E8D9B8] hover:bg-white/5"
             >
-              {tReceive('ctaShare')}
+              {exporter.busy === 'share'
+                ? tReceive('preparing')
+                : tReceive('ctaShare')}
               <Share2 className="size-4" />
             </Button>
           </div>
