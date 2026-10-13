@@ -9,6 +9,7 @@ import {
   type StepStatus,
 } from '@/components/ui/stepper';
 import { toPersianDigits } from '../lib/digits';
+import { usePosterExport } from '../hooks/use-poster-export';
 import { skyForMoment } from '../lib/sky-for-moment';
 import { CreatePreview } from './CreatePreview';
 import type { PosterData, PosterStyle } from './PosterPreview';
@@ -86,12 +87,14 @@ function StepperInner() {
     [city, day, month, year, time, noExactTime],
   );
 
-  const posterData: Partial<PosterData> = {
+  const posterData: PosterData = {
     ...personal,
     city: moment.city,
     dateLabel: toPersianDigits(`${moment.day} ${moment.month} ${moment.year}`),
     timeLabel: moment.noExactTime ? '' : toPersianDigits(moment.time),
   };
+
+  const exporter = usePosterExport(posterData, moonSky?.sky ?? null);
 
   const stepItems: StepItem[] = [1, 2, 3].map((n) => {
     const status: StepStatus =
@@ -133,7 +136,13 @@ function StepperInner() {
                 onEditMoment={() => goTo(1)}
               />
             )}
-            {step === 3 && <Step3Receive personal={personal} moment={moment} />}
+            {step === 3 && (
+              <Step3Receive
+                personal={personal}
+                moment={moment}
+                exporter={exporter}
+              />
+            )}
           </section>
 
           <CreatePreview
@@ -142,6 +151,7 @@ function StepperInner() {
             sky={moonSky?.sky ?? null}
             moment={moment}
             onBack={() => goTo(2)}
+            exporter={exporter}
           />
         </div>
 
