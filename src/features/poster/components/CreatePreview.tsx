@@ -78,8 +78,8 @@ export function CreatePreview({ step, poster, sky, moment, onBack }: Props) {
       </div>
 
       {step === 1 && (
-        <div className="rounded-2xl border border-[#33415B] px-6 py-5">
-          <p className="text-sm font-semibold text-white">
+        <div className="rounded-2xl border border-[#33415B] p-5">
+          <p className="text-sm font-semibold text-[#E8D9B8]">
             {t('infoCard.title')}
           </p>
           <p className="mt-2 text-sm leading-7 text-[#AAB6CD]">
@@ -89,7 +89,7 @@ export function CreatePreview({ step, poster, sky, moment, onBack }: Props) {
       )}
 
       {step === 2 && (
-        <div className="flex items-center gap-3 rounded-2xl border border-[#33415B] px-5 py-4">
+        <div className="flex items-center gap-3 rounded-2xl border border-[#33415B] p-5">
           <Info className="size-5 shrink-0 text-[#CEB47B]" />
           <p className="text-sm leading-7 text-[#AAB6CD]">
             {t('preview.freeCopyNote')}
@@ -104,7 +104,7 @@ export function CreatePreview({ step, poster, sky, moment, onBack }: Props) {
               type="button"
               variant="outline"
               onClick={onBack}
-              className="h-14 gap-2 rounded-xl border-[#33415B] bg-transparent text-sm font-bold text-white hover:bg-white/5"
+              className="cursor-pointer p-7! gap-2 rounded-xl border-[#33415B] bg-transparent text-sm font-bold text-[#E8D9B8] hover:text-[#E8D9B8] hover:bg-white/5"
             >
               <ArrowRight className="size-4" />
               {tReceive('ctaBack')}
@@ -112,13 +112,13 @@ export function CreatePreview({ step, poster, sky, moment, onBack }: Props) {
             <Button
               type="button"
               variant="outline"
-              className="h-14 gap-2 rounded-xl border-[#33415B] bg-transparent text-sm font-bold text-white hover:bg-white/5"
+              className="cursor-pointer p-7! gap-2 rounded-xl border-[#33415B] bg-transparent text-sm font-bold text-[#E8D9B8] hover:text-[#E8D9B8] hover:bg-white/5"
             >
               {tReceive('ctaShare')}
               <Share2 className="size-4" />
             </Button>
           </div>
-          <p className="text-xs leading-6 text-[#AAB6CD]">
+          <p className="text-xs pb-8 leading-6 text-[#AAB6CD]">
             {t('preview.shareNote')}
           </p>
         </>
