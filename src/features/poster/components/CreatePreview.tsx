@@ -45,8 +45,8 @@ export function CreatePreview({ step, poster, sky, moment, onBack }: Props) {
   );
 
   return (
-    <aside className="flex flex-col gap-5 md:sticky md:top-8">
-      <div className="rounded-3xl bg-[#F4EFE6] p-6 text-[#1c2540] shadow-2xl md:p-8">
+    <aside className="flex flex-col  gap-5 md:sticky md:top-8 w-full">
+      <div className="rounded-xl m-auto w-full bg-[#F4EFE6] p-6 text-[#1c2540]">
         <div className="flex items-center justify-between text-sm">
           <span className="font-medium">{t('preview.title')}</span>
           <span className="text-[#1c2540]/70">{t('preview.label')}</span>

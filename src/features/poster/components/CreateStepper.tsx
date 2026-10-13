@@ -14,7 +14,7 @@ import { CreatePreview } from './CreatePreview';
 import type { PosterData, PosterStyle } from './PosterPreview';
 import { Step1Moment } from './Step1Moment';
 import { Step2Personalize } from './Step2Personalize';
-import { Step3Receive } from './Step3Receive';
+import { Step3Receive, Step3ReceiveInfo } from './Step3Receive';
 
 export type MomentData = {
   city: string;
@@ -113,35 +113,39 @@ function StepperInner() {
       </div>
 
       {/* Form on the start side (right in RTL), live preview on the other */}
-      <div className="mx-auto grid gap-10 px-6 py-10 md:grid-cols-2 md:items-start md:gap-16 md:px-20 md:py-16">
-        <section>
-          {step === 1 && (
-            <Step1Moment
-              data={moment}
-              onChange={setMoment}
-              onNext={() => goTo(2)}
-            />
-          )}
-          {step === 2 && (
-            <Step2Personalize
-              data={personal}
-              moment={moment}
-              onChange={setPersonal}
-              onNext={() => goTo(3)}
-              onBack={() => goTo(1)}
-              onEditMoment={() => goTo(1)}
-            />
-          )}
-          {step === 3 && <Step3Receive personal={personal} />}
-        </section>
+      <div className="mx-auto px-6 py-10 md:px-20 md:py-16">
+        <div className="grid gap-10 md:grid-cols-2 md:items-start md:gap-16">
+          <section className="col-span-1">
+            {step === 1 && (
+              <Step1Moment
+                data={moment}
+                onChange={setMoment}
+                onNext={() => goTo(2)}
+              />
+            )}
+            {step === 2 && (
+              <Step2Personalize
+                data={personal}
+                moment={moment}
+                onChange={setPersonal}
+                onNext={() => goTo(3)}
+                onBack={() => goTo(1)}
+                onEditMoment={() => goTo(1)}
+              />
+            )}
+            {step === 3 && <Step3Receive personal={personal} moment={moment} />}
+          </section>
 
-        <CreatePreview
-          step={step}
-          poster={posterData}
-          sky={moonSky?.sky ?? null}
-          moment={moment}
-          onBack={() => goTo(2)}
-        />
+          <CreatePreview
+            step={step}
+            poster={posterData}
+            sky={moonSky?.sky ?? null}
+            moment={moment}
+            onBack={() => goTo(2)}
+          />
+        </div>
+
+        {step === 3 && <Step3ReceiveInfo />}
       </div>
     </main>
   );

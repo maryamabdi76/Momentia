@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import {
   useForm,
@@ -9,17 +9,8 @@ import {
   useWatch,
 } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import {
-  Sparkles,
-  Search,
-  Check,
-  MapPin,
-  Clock,
-  ArrowLeft,
-  Moon,
-} from 'lucide-react';
+import { Sparkles, ArrowLeft, Moon, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -29,13 +20,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { searchCities, type City } from '@/features/poster/lib/cities';
+import { TimePicker } from '@/components/ui/time-picker';
+import { cn } from '@/lib/utils';
+import { CityCombobox } from './CityCombobox';
 import {
   JALALI_DAYS,
   JALALI_MONTHS,
   JALALI_YEARS,
   DEFAULT_TIME,
 } from '@/features/poster/lib/calendar';
+import { toPersianDigits } from '@/features/poster/lib/digits';
 import { momentSchema, type MomentValues } from '@/features/poster/lib/schemas';
 import type { MomentData } from './CreateStepper';
 
@@ -45,13 +39,18 @@ type Props = {
   onNext: () => void;
 };
 
+function occasionIsActive(
+  day: string,
+  month: string,
+  occasion: { day: string; month: string },
+): boolean {
+  return day === occasion.day && month === occasion.month;
+}
+
 export function Step1Moment({ data, onChange, onNext }: Props) {
   const t = useTranslations('CreatePage.step1');
-  const [citySearch, setCitySearch] = useState(data.city);
 
-  const filteredCities = searchCities(citySearch);
-
-  const { control, handleSubmit, setValue, watch } = useForm<MomentValues>({
+  const { control, handleSubmit, setValue } = useForm<MomentValues>({
     resolver: zodResolver(momentSchema),
     defaultValues: {
       city: data.city,
@@ -64,8 +63,7 @@ export function Step1Moment({ data, onChange, onNext }: Props) {
     },
   });
 
-  const noExactTime = watch('noExactTime');
-  const selectedCity = watch('city');
+  const noExactTime = useWatch({ control, name: 'noExactTime' });
 
   // Live-sync every field change to parent so the poster preview updates in real time
   const watched = useWatch({ control });
@@ -74,19 +72,13 @@ export function Step1Moment({ data, onChange, onNext }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     watched.city,
+    watched.timezone,
     watched.day,
     watched.month,
     watched.year,
     watched.time,
     watched.noExactTime,
   ]);
-
-  function selectCity(c: City) {
-    setValue('city', c.name, { shouldValidate: true });
-    setValue('timezone', c.tz);
-    setCitySearch(c.name);
-    onChange({ ...data, city: c.name, timezone: c.tz });
-  }
 
   function applyOccasion(day: string, month: string, year: string) {
     if (!day) return;
@@ -112,91 +104,74 @@ export function Step1Moment({ data, onChange, onNext }: Props) {
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-7" noValidate>
       {/* Step label + title */}
       <div>
-        <p className="text-xs text-[#CEB47B]">{t('stepLabel')}</p>
+        <p className="text-sm text-[#CEB47B]">{t('stepLabel')}</p>
         <h1 className="mt-2 text-3xl font-bold text-white">{t('title')}</h1>
-        <p className="mt-2 text-sm leading-7 text-white/55">
+        <p className="mt-2 text-base leading-7 text-[#AAB6CD]">
           {t('description')}
         </p>
       </div>
 
       {/* Occasion chips */}
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-sm text-[#AAB6CD]">{t('occasionLabel')}</p>
+        <p className="text-base text-[#AAB6CD]">{t('occasionLabel')}</p>
         <div className="flex flex-wrap gap-2">
-          {occasions.map((o) => (
-            <button
-              key={o.label}
-              type="button"
-              onClick={() => applyOccasion(o.day, o.month, o.year)}
-              className="flex items-center gap-2 rounded-full border border-[#CEB47B]/60 px-4 py-2 text-sm text-[#CEB47B] transition-colors hover:bg-[#CEB47B]/10"
-            >
-              <Sparkles className="size-3" />
-              {o.label}
-            </button>
-          ))}
+          {occasions.map((o) => {
+            const selected = occasionIsActive(
+              watched.day ?? data.day,
+              watched.month ?? data.month,
+              o,
+            );
+            return (
+              <button
+                key={o.label}
+                type="button"
+                aria-pressed={selected}
+                onClick={() => applyOccasion(o.day, o.month, o.year)}
+                className={cn(
+                  'flex items-center cursor-pointer gap-2 rounded-full border px-4 py-2 text-base font-medium transition-colors',
+                  selected
+                    ? 'border-[#CEB47B] bg-[#CEB47B] text-[#0c142b] shadow-sm hover:bg-[#e0c180]'
+                    : 'border-[#CEB47B]/60 text-[#CEB47B] hover:bg-[#CEB47B]/10',
+                )}
+              >
+                <Sparkles className="size-3 shrink-0" />
+                {o.label}
+              </button>
+            );
+          })}
         </div>
       </div>
 
-      {/* City field */}
+      {/* City */}
       <div>
-        <Label className="mb-2.5 text-sm font-medium text-white/80">
+        <Label className="mb-2.5 text-base font-medium text-[#E8D9B8]">
           {t('cityLabel')}
         </Label>
-        <div className="relative mt-1">
-          <div className="pointer-events-none absolute inset-y-0 end-4 z-10 flex items-center">
-            <Search className="size-4 text-white/50" />
-          </div>
-          <Input
-            value={citySearch}
-            onChange={(e) => setCitySearch(e.target.value)}
-            placeholder={data.city}
-            className="h-14 rounded-xl border-[#33415B] bg-transparent ps-4 pe-11 text-base text-white placeholder:text-white/40 focus-visible:border-[#CEB47B]/50 focus-visible:ring-[#CEB47B]/15"
-          />
-        </div>
-        {/* city list */}
-        <ul className="mt-1.5 overflow-hidden rounded-xl border border-white/10 bg-[#0c1a38] divide-y divide-white/[0.06]">
-          {filteredCities.slice(0, 3).map((c) => {
-            const isSelected = c.name === selectedCity;
-            return (
-              <li key={c.name}>
-                <button
-                  type="button"
-                  onMouseDown={() => selectCity(c)}
-                  className={[
-                    'flex w-full items-center gap-3 px-4 py-3.5 text-right text-sm transition-colors hover:bg-white/5',
-                    isSelected ? 'bg-white/[0.06]' : '',
-                  ].join(' ')}
-                >
-                  {isSelected ? (
-                    <Check className="size-4 shrink-0 text-[#CEB47B]" />
-                  ) : (
-                    <MapPin className="size-4 shrink-0 text-white/25" />
-                  )}
-                  <span
-                    className={
-                      isSelected ? 'font-semibold text-white' : 'text-white/80'
-                    }
-                  >
-                    {c.name}
-                  </span>
-                  <span className="mr-auto text-xs text-white/35">
-                    {c.province} · {t('iran')}
-                  </span>
-                </button>
-              </li>
-            );
-          })}
-        </ul>
-        <p className="mt-2 text-[11px] leading-5 text-white/30">
-          {t('cityNote')}
-        </p>
+        <Controller
+          control={control}
+          name="city"
+          render={({ field }) => (
+            <CityCombobox
+              id="moment-city"
+              value={field.value}
+              placeholder={t('cityPlaceholder')}
+              emptyLabel={t('cityEmpty')}
+              provinceSuffix={t('iran')}
+              onValueChange={(name, tz) => {
+                field.onChange(name);
+                setValue('timezone', tz, { shouldValidate: true });
+              }}
+            />
+          )}
+        />
+        <p className="mt-2 text-sm leading-5 text-[#AAB6CD]">{t('cityNote')}</p>
         <Controller
           control={control}
           name="timezone"
           render={({ field }) => (
             <>
               {field.value && (
-                <p className="mt-1 text-[11px] text-white/35">
+                <p className="mt-1 text-sm text-[#AAB6CD]">
                   {t('timezoneNote')} {field.value}
                 </p>
               )}
@@ -207,13 +182,12 @@ export function Step1Moment({ data, onChange, onNext }: Props) {
 
       {/* Date pickers */}
       <div>
-        <p className="mb-2.5 text-sm font-medium text-white/80">
+        <p className="mb-2.5 text-base font-medium text-[#E8D9B8]">
           {t('dateLabel')}
         </p>
         <div className="grid grid-cols-3 gap-3">
-          {/* Day */}
           <div>
-            <p className="mb-1.5 text-xs text-white/40">{t('day')}</p>
+            <p className="mb-1.5 text-sm text-[#E8D9B8]">{t('day')}</p>
             <Controller
               control={control}
               name="day"
@@ -226,9 +200,8 @@ export function Step1Moment({ data, onChange, onNext }: Props) {
               )}
             />
           </div>
-          {/* Month */}
           <div>
-            <p className="mb-1.5 text-xs text-white/40">{t('month')}</p>
+            <p className="mb-1.5 text-sm text-[#E8D9B8]">{t('month')}</p>
             <Controller
               control={control}
               name="month"
@@ -241,9 +214,8 @@ export function Step1Moment({ data, onChange, onNext }: Props) {
               )}
             />
           </div>
-          {/* Year */}
           <div>
-            <p className="mb-1.5 text-xs text-white/40">{t('year')}</p>
+            <p className="mb-1.5 text-sm text-[#E8D9B8]">{t('year')}</p>
             <Controller
               control={control}
               name="year"
@@ -261,29 +233,28 @@ export function Step1Moment({ data, onChange, onNext }: Props) {
 
       {/* Time */}
       <div>
-        <Label className="mb-2.5 text-sm font-medium text-white/80">
+        <Label
+          htmlFor="moment-time"
+          className="mb-2.5 text-base font-medium text-[#E8D9B8]"
+        >
           {t('timeLabel')}
         </Label>
         <Controller
           control={control}
           name="time"
           render={({ field }) => (
-            <div className="relative mt-1">
-              <div className="pointer-events-none absolute inset-y-0 end-4 z-10 flex items-center">
-                <Clock className="size-4 text-white/50" />
-              </div>
-              <Input
-                {...field}
-                disabled={noExactTime}
-                placeholder={DEFAULT_TIME}
-                className="h-14 rounded-xl border-[#33415B] bg-transparent ps-4 pe-11 text-base text-white placeholder:text-white/35 focus-visible:border-[#CEB47B]/50 focus-visible:ring-[#CEB47B]/15 disabled:opacity-40"
-              />
-            </div>
+            <TimePicker
+              id="moment-time"
+              value={field.value}
+              onChange={field.onChange}
+              disabled={noExactTime}
+              placeholder={toPersianDigits(DEFAULT_TIME)}
+              hourLabel={t('timeHour')}
+              minuteLabel={t('timeMinute')}
+            />
           )}
         />
-        <p className="mt-2 text-[11px] leading-5 text-white/30">
-          {t('timeNote')}
-        </p>
+        <p className="mt-2 text-sm leading-5 text-[#AAB6CD]">{t('timeNote')}</p>
         <Controller
           control={control}
           name="noExactTime"
@@ -292,12 +263,17 @@ export function Step1Moment({ data, onChange, onNext }: Props) {
               <Checkbox
                 id="noExactTime"
                 checked={field.value}
-                onCheckedChange={field.onChange}
-                className="border-white/30 data-[state=checked]:bg-[#CEB47B] data-[state=checked]:border-[#CEB47B] data-[state=checked]:text-[#0c142b]"
+                onCheckedChange={(checked) => {
+                  field.onChange(checked);
+                  if (checked === true) {
+                    setValue('time', DEFAULT_TIME, { shouldValidate: true });
+                  }
+                }}
+                className="border-white data-[state=checked]:bg-[#CEB47B] data-[state=checked]:border-[#CEB47B] data-[state=checked]:text-[#0c142b]"
               />
               <Label
                 htmlFor="noExactTime"
-                className="cursor-pointer text-xs text-white/55 font-normal"
+                className="cursor-pointer text-sm text-white font-normal"
               >
                 {t('noTimeLabel')}
               </Label>
@@ -307,7 +283,7 @@ export function Step1Moment({ data, onChange, onNext }: Props) {
       </div>
 
       {/* Night note */}
-      <div className="flex gap-3 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-4 text-xs leading-6 text-white/45">
+      <div className="flex gap-3 rounded-xl bg-[#142039] p-4 text-sm leading-6 text-[#AAB6CD]">
         <Moon className="mt-0.5 size-4 shrink-0 text-[#CEB47B]" />
         <span>{t('nightNote')}</span>
       </div>
@@ -315,13 +291,15 @@ export function Step1Moment({ data, onChange, onNext }: Props) {
       {/* CTA */}
       <Button
         type="submit"
-        className="h-14 w-full rounded-2xl bg-[#CEB47B] text-sm font-bold text-[#0c142b] hover:bg-[#e0c180] gap-2"
+        className="w-full py-8 bg-[#CEB47B] text-base font-bold text-[#0c142b] hover:bg-[#e0c180] gap-2"
       >
         {t('cta')}
         <ArrowLeft className="size-4" />
       </Button>
 
-      <p className="text-center text-xs text-white/30">{t('noAccount')}</p>
+      <p className="flex gap-2 text-sm text-[#AAB6CD]">
+        <ShieldCheck className="size-4" /> {t('noAccount')}
+      </p>
     </form>
   );
 }
@@ -337,16 +315,12 @@ function SelectField({
 }) {
   return (
     <Select value={value} onValueChange={onChange}>
-      <SelectTrigger className="h-12 w-full rounded-xl border-white/15 bg-white/[0.06] text-sm text-white focus-visible:border-[#CEB47B]/50 focus-visible:ring-[#CEB47B]/15 [&>svg]:text-white/40">
+      <SelectTrigger className="h-12 w-full py-6! text-base">
         <SelectValue />
       </SelectTrigger>
       <SelectContent className="bg-[#0c1a38] border-white/15 text-white max-h-64">
         {options.map((o) => (
-          <SelectItem
-            key={o}
-            value={o}
-            className="text-white/80 focus:bg-white/10 focus:text-white"
-          >
+          <SelectItem key={o} value={o}>
             {o}
           </SelectItem>
         ))}

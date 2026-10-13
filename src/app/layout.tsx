@@ -28,10 +28,15 @@ export default async function RootLayout({ children }: LayoutProps<'/'>) {
   const dir = localeDirection[locale];
 
   return (
-    <html lang={locale} dir={dir} className={`h-full antialiased`}>
+    <html
+      lang={locale}
+      dir={dir}
+      className="dark h-full antialiased"
+      suppressHydrationWarning
+    >
       <body
         className={clsx(
-          'min-h-full flex flex-col font-sans',
+          'min-h-full flex flex-col bg-background font-sans text-foreground',
           vazirMatn.className,
         )}
       >

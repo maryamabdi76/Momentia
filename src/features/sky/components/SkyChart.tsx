@@ -71,11 +71,13 @@ const R = 100;
 const VIEW = 110;
 export const DEFAULT_MAX_MAGNITUDE = 4.6;
 
-const starRadius = (mag: number) => 0.28 + 0.15 * Math.max(0, 6.2 - mag) ** 1.15;
+const starRadius = (mag: number) =>
+  0.28 + 0.15 * Math.max(0, 6.2 - mag) ** 1.15;
 const starOpacity = (mag: number) => (mag > 4.8 ? 0.72 : mag > 3.8 ? 0.88 : 1);
 const f = (n: number) => Number(n.toFixed(2));
 /** Radius of a circle of constant altitude in the stereographic projection. */
-const altitudeRing = (altitude: number) => R * Math.tan(((90 - altitude) * Math.PI) / 360);
+const altitudeRing = (altitude: number) =>
+  R * Math.tan(((90 - altitude) * Math.PI) / 360);
 
 function Ticks({ color }: { color: string }) {
   const marks = [];
@@ -113,7 +115,9 @@ function Moon({ moon, color }: { moon: SkyMoon; color: string }) {
       : `M0 ${-r} A${r} ${r} 0 0 1 0 ${r} A${f(rx)} ${r} 0 0 ${cosPhase > 0 ? 1 : 0} 0 ${-r}Z`;
 
   return (
-    <g transform={`translate(${f(moon.x * R)} ${f(moon.y * R)}) rotate(${f(moon.brightLimbAngle)})`}>
+    <g
+      transform={`translate(${f(moon.x * R)} ${f(moon.y * R)}) rotate(${f(moon.brightLimbAngle)})`}
+    >
       {/* the unlit part, barely there (earthshine) */}
       <circle r={r} fill={color} fillOpacity={0.14} />
       {moon.illumination > 0.012 &&
@@ -152,7 +156,11 @@ function SkyChartBase({
   const p = PALETTES[variant];
 
   const figures = sky.lines
-    .map((piece) => piece.map(([x, y], i) => `${i ? 'L' : 'M'}${f(x * R)} ${f(y * R)}`).join(''))
+    .map((piece) =>
+      piece
+        .map(([x, y], i) => `${i ? 'L' : 'M'}${f(x * R)} ${f(y * R)}`)
+        .join(''),
+    )
     .join('');
 
   return (
@@ -171,22 +179,39 @@ function SkyChartBase({
 
       {/* altitude rings at 30° and 60° */}
       {[30, 60].map((alt) => (
-        <circle key={alt} r={f(altitudeRing(alt))} fill="none" stroke={p.ringSoft} strokeOpacity={0.16} strokeWidth={0.3} />
+        <circle
+          key={alt}
+          r={f(altitudeRing(alt))}
+          fill="none"
+          stroke={p.ringSoft}
+          strokeOpacity={0.16}
+          strokeWidth={0.3}
+        />
       ))}
 
       <g clipPath="url(#sky-horizon)">
-        <path d={figures} fill="none" stroke={p.figure} strokeOpacity={p.figureOpacity} strokeWidth={0.32} strokeLinecap="round" strokeLinejoin="round" />
+        <path
+          d={figures}
+          fill="none"
+          stroke={p.figure}
+          strokeOpacity={p.figureOpacity}
+          strokeWidth={0.32}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
 
-        {sky.stars.filter((s) => s.mag <= maxMagnitude).map((s, i) => (
-          <circle
-            key={i}
-            cx={f(s.x * R)}
-            cy={f(s.y * R)}
-            r={f(starRadius(s.mag))}
-            fill={p.star(s.bv)}
-            fillOpacity={starOpacity(s.mag)}
-          />
-        ))}
+        {sky.stars
+          .filter((s) => s.mag <= maxMagnitude)
+          .map((s, i) => (
+            <circle
+              key={i}
+              cx={f(s.x * R)}
+              cy={f(s.y * R)}
+              r={f(starRadius(s.mag))}
+              fill={p.star(s.bv)}
+              fillOpacity={starOpacity(s.mag)}
+            />
+          ))}
 
         {sky.planets.map((pl) => {
           const x = pl.x * R;
@@ -194,10 +219,25 @@ function SkyChartBase({
           const r = Math.max(0.9, starRadius(pl.mag));
           return (
             <g key={pl.id}>
-              <circle cx={f(x)} cy={f(y)} r={f(r + 1.6)} fill="none" stroke={p.planet} strokeOpacity={0.55} strokeWidth={0.3} />
+              <circle
+                cx={f(x)}
+                cy={f(y)}
+                r={f(r + 1.6)}
+                fill="none"
+                stroke={p.planet}
+                strokeOpacity={0.55}
+                strokeWidth={0.3}
+              />
               <circle cx={f(x)} cy={f(y)} r={f(r)} fill={p.planet} />
               {planetLabels && (
-                <text x={f(x)} y={f(y + r + 6.4)} textAnchor="middle" fontSize={3.4} fill={p.label} fillOpacity={0.9}>
+                <text
+                  x={f(x)}
+                  y={f(y + r + 6.4)}
+                  textAnchor="middle"
+                  fontSize={3.4}
+                  fill={p.label}
+                  fillOpacity={0.9}
+                >
                   {planetLabels[pl.id]}
                 </text>
               )}
