@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl';
 import { ArrowRight, Info, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { PosterPreview, type PosterData } from './PosterPreview';
+import { toPersianDigits } from '../lib/digits';
 import type { SkySnapshot } from '@/features/sky/lib/types';
 import type { MomentData } from './CreateStepper';
 
@@ -32,14 +33,16 @@ export function CreatePreview({ step, poster, sky, moment, onBack }: Props) {
     }))
     .find((o) => o.day === moment.day && o.month === moment.month)?.label;
 
-  const caption = [
-    moment.city,
-    occasion,
-    `${moment.day} ${moment.month} ${moment.year}`,
-    moment.noExactTime ? null : moment.time,
-  ]
-    .filter(Boolean)
-    .join(' · ');
+  const caption = toPersianDigits(
+    [
+      moment.city,
+      occasion,
+      `${moment.day} ${moment.month} ${moment.year}`,
+      moment.noExactTime ? null : moment.time,
+    ]
+      .filter(Boolean)
+      .join(' · '),
+  );
 
   return (
     <aside className="flex flex-col gap-5 md:sticky md:top-8">

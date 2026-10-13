@@ -48,7 +48,7 @@ const PALETTES: Record<SkyChartVariant, Palette> = {
     ring: '#CEB47B',
     ringSoft: '#CEB47B',
     figure: '#CEB47B',
-    figureOpacity: 0.6,
+    figureOpacity: 0.5,
     star: warmStar,
     moon: '#EAD9AA',
     planet: '#FFD9A0',
@@ -69,6 +69,7 @@ const PALETTES: Record<SkyChartVariant, Palette> = {
 /** Everything is drawn in a viewBox where the horizon circle has radius 100. */
 const R = 100;
 const VIEW = 110;
+export const DEFAULT_MAX_MAGNITUDE = 4.6;
 
 const starRadius = (mag: number) => 0.28 + 0.15 * Math.max(0, 6.2 - mag) ** 1.15;
 const starOpacity = (mag: number) => (mag > 4.8 ? 0.72 : mag > 3.8 ? 0.88 : 1);
@@ -99,7 +100,8 @@ function Ticks({ color }: { color: string }) {
   return <g>{marks}</g>;
 }
 
-const MOON_RADIUS = 4.4;
+// A real Moon is only ~0.2 units wide on this chart; this is a deliberate, modest exaggeration.
+const MOON_RADIUS = 2.6;
 
 function Moon({ moon, color }: { moon: SkyMoon; color: string }) {
   const r = MOON_RADIUS;
@@ -123,6 +125,11 @@ function Moon({ moon, color }: { moon: SkyMoon; color: string }) {
 export type SkyChartProps = {
   sky: SkySnapshot;
   variant?: SkyChartVariant;
+  /**
+   * Faintest star to draw. Naked-eye skies hold ~2,800 stars to magnitude 5.5,
+   * which turns a small poster into noise; 4.6 keeps the recognisable shapes.
+   */
+  maxMagnitude?: number;
   /** Persian names next to the planets; pass `false` to leave them unlabelled. */
   planetLabels?: Record<PlanetId, string> | false;
   className?: string;
@@ -137,6 +144,7 @@ export type SkyChartProps = {
 function SkyChartBase({
   sky,
   variant = 'gold',
+  maxMagnitude = DEFAULT_MAX_MAGNITUDE,
   planetLabels = DEFAULT_PLANET_LABELS,
   className,
   ariaLabel = 'نقشه‌ی آسمان شب',
@@ -167,9 +175,9 @@ function SkyChartBase({
       ))}
 
       <g clipPath="url(#sky-horizon)">
-        <path d={figures} fill="none" stroke={p.figure} strokeOpacity={p.figureOpacity} strokeWidth={0.36} strokeLinecap="round" strokeLinejoin="round" />
+        <path d={figures} fill="none" stroke={p.figure} strokeOpacity={p.figureOpacity} strokeWidth={0.32} strokeLinecap="round" strokeLinejoin="round" />
 
-        {sky.stars.map((s, i) => (
+        {sky.stars.filter((s) => s.mag <= maxMagnitude).map((s, i) => (
           <circle
             key={i}
             cx={f(s.x * R)}

@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { jalaliToGregorian, isJalaliLeapYear } from '../lib/jalali.ts';
+import { toPersianDigits } from '../lib/digits.ts';
 import { zonedTimeToUtc } from '../lib/zoned-time.ts';
 import { parseClockTime, resolveMoment, type MomentInput } from '../lib/moment.ts';
 import { sunAltitude } from '../../sky/lib/compute.ts';
@@ -91,4 +92,8 @@ test('resolveMoment: 31 Mehr is clamped; unknown city or month gives null', () =
   assert.equal(r.dayClamped, true);
   assert.equal(resolveMoment({ ...yalda, city: 'ناکجاآباد' }), null);
   assert.equal(resolveMoment({ ...yalda, month: 'x' }), null);
+});
+
+test('digits become Persian, other characters are untouched', () => {
+  assert.equal(toPersianDigits('تهران · 30 آذر 1405 · 21:00'), 'تهران · ۳۰ آذر ۱۴۰۵ · ۲۱:۰۰');
 });

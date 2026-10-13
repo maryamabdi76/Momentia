@@ -8,6 +8,7 @@ import {
   type StepItem,
   type StepStatus,
 } from '@/components/ui/stepper';
+import { toPersianDigits } from '../lib/digits';
 import { skyForMoment } from '../lib/sky-for-moment';
 import { CreatePreview } from './CreatePreview';
 import type { PosterData, PosterStyle } from './PosterPreview';
@@ -88,8 +89,8 @@ function StepperInner() {
   const posterData: Partial<PosterData> = {
     ...personal,
     city: moment.city,
-    dateLabel: `${moment.day} ${moment.month} ${moment.year}`,
-    timeLabel: moment.noExactTime ? '' : moment.time,
+    dateLabel: toPersianDigits(`${moment.day} ${moment.month} ${moment.year}`),
+    timeLabel: moment.noExactTime ? '' : toPersianDigits(moment.time),
   };
 
   const stepItems: StepItem[] = [1, 2, 3].map((n) => {
