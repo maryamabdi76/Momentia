@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "node --test --experimental-strip-types \"src/**/__tests__/*.test.ts\"",
+    "build:sky-data": "node scripts/build-sky-data.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",

@@ -2,6 +2,8 @@ import { cn } from 'cn';
 import { Sparkles } from 'lucide-react';
 import { vazirmatnVariable } from 'next-persian-fonts/vazirmatn-variable';
 import Image from 'next/image';
+import { SkyChart } from '@/features/sky/components/SkyChart';
+import type { SkySnapshot } from '@/features/sky/lib/types';
 
 export type PosterStyle = 'gold' | 'mono';
 
@@ -59,12 +61,15 @@ export function PosterPreview({
   className,
   size = 'default',
   showDisclaimer = true,
+  sky,
 }: {
   data?: Partial<PosterData>;
   labels?: Partial<PosterLabels>;
   className?: string;
   size?: 'default' | 'hero';
   showDisclaimer?: boolean;
+  /** The real sky for the chosen moment. Without it the static illustration is shown. */
+  sky?: SkySnapshot | null;
 }) {
   const p = { ...DEFAULT_DATA, ...data };
   const l = { ...DEFAULT_LABELS, ...labels };
@@ -106,10 +111,10 @@ export function PosterPreview({
             'relative mx-auto mt-1 flex aspect-square w-full items-center justify-center',
           )}
         >
-          {/* compass labels */}
+          {/* compass labels — looking up with north on top, east is on the left */}
           <span
             className={cn(
-              'absolute -right-2 top-1/2 -translate-y-1/2 text-[8px]',
+              'absolute -left-2 top-1/2 -translate-y-1/2 text-[8px]',
               textPrimary,
             )}
           >
@@ -117,24 +122,33 @@ export function PosterPreview({
           </span>
           <span
             className={cn(
-              'absolute -left-2 top-1/2 -translate-y-1/2 text-[8px]',
+              'absolute -right-2 top-1/2 -translate-y-1/2 text-[8px]',
               textPrimary,
             )}
           >
             {l.west}
           </span>
 
-          <Image
-            src={
-              isGold
-                ? '/images/gold-constellation.png'
-                : '/images/monochrome-constellation.png'
-            }
-            alt={l.mapAlt}
-            className={cn('size-[92%] object-contain', !isGold && 'opacity-85')}
-            width={360}
-            height={360}
-          />
+          {sky ? (
+            <SkyChart
+              sky={sky}
+              variant={isGold ? 'gold' : 'mono'}
+              ariaLabel={l.mapAlt}
+              className="size-[92%]"
+            />
+          ) : (
+            <Image
+              src={
+                isGold
+                  ? '/images/gold-constellation.png'
+                  : '/images/monochrome-constellation.png'
+              }
+              alt={l.mapAlt}
+              className={cn('size-[92%] object-contain', !isGold && 'opacity-85')}
+              width={360}
+              height={360}
+            />
+          )}
         </div>
 
         {/* South label */}

@@ -4,17 +4,21 @@ import { useTranslations } from 'next-intl';
 import { ArrowRight, Info, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { PosterPreview, type PosterData } from './PosterPreview';
+import { toPersianDigits } from '../lib/digits';
+import type { SkySnapshot } from '@/features/sky/lib/types';
 import type { MomentData } from './CreateStepper';
 
 type Props = {
   step: number;
   poster: Partial<PosterData>;
+  /** Real sky for the chosen moment; null falls back to the static illustration. */
+  sky: SkySnapshot | null;
   moment: MomentData;
   onBack: () => void;
 };
 
 /** Cream preview card + the per-step content shown beneath it. */
-export function CreatePreview({ step, poster, moment, onBack }: Props) {
+export function CreatePreview({ step, poster, sky, moment, onBack }: Props) {
   const t = useTranslations('CreatePage');
   const tPoster = useTranslations('Poster');
   const tMoment = useTranslations('CreatePage.step1');
@@ -29,14 +33,16 @@ export function CreatePreview({ step, poster, moment, onBack }: Props) {
     }))
     .find((o) => o.day === moment.day && o.month === moment.month)?.label;
 
-  const caption = [
-    moment.city,
-    occasion,
-    `${moment.day} ${moment.month} ${moment.year}`,
-    moment.noExactTime ? null : moment.time,
-  ]
-    .filter(Boolean)
-    .join(' · ');
+  const caption = toPersianDigits(
+    [
+      moment.city,
+      occasion,
+      `${moment.day} ${moment.month} ${moment.year}`,
+      moment.noExactTime ? null : moment.time,
+    ]
+      .filter(Boolean)
+      .join(' · '),
+  );
 
   return (
     <aside className="flex flex-col gap-5 md:sticky md:top-8">
@@ -49,6 +55,7 @@ export function CreatePreview({ step, poster, moment, onBack }: Props) {
         <div className="mt-6 flex justify-center">
           <PosterPreview
             data={poster}
+            sky={sky}
             showDisclaimer={false}
             labels={{
               headerLine: tPoster('headerLine'),
