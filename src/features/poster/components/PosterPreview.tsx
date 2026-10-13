@@ -1,6 +1,4 @@
 import { cn } from 'cn';
-import { Sparkles } from 'lucide-react';
-import { vazirmatnVariable } from 'next-persian-fonts/vazirmatn-variable';
 import Image from 'next/image';
 import { SkyChart } from '@/features/sky/components/SkyChart';
 import type { SkySnapshot } from '@/features/sky/lib/types';
@@ -48,12 +46,75 @@ const DEFAULT_DATA: PosterData = {
   names: 'مریم و جلال',
   quote: 'از آن شب، هر ستاره نشانی از توست.',
   city: 'تهران',
-  dateLabel: '30 آذر 1405',
-  timeLabel: '21:00',
+  dateLabel: '۳۰ آذر ۱۴۰۵',
+  timeLabel: '۲۱:۰۰',
   showDate: true,
   showCity: true,
   style: 'gold',
 };
+
+type Theme = {
+  paper: string;
+  frame: string;
+  frameSoft: string;
+  ink: string;
+  accent: string;
+  muted: string;
+};
+
+const THEMES: Record<PosterStyle, Theme> = {
+  gold: {
+    paper:
+      'radial-gradient(120% 70% at 50% 38%, #1a2f5c 0%, #0f2147 45%, #08132b 100%)',
+    frame: '#CEB47B',
+    frameSoft: 'rgba(206,180,123,0.45)',
+    ink: '#F1E6C8',
+    accent: '#E3C88A',
+    muted: 'rgba(241,230,200,0.62)',
+  },
+  mono: {
+    paper: 'linear-gradient(180deg,#fbf9f4 0%,#f3efe5 100%)',
+    frame: '#2a2a28',
+    frameSoft: 'rgba(42,42,40,0.35)',
+    ink: '#1c1c1a',
+    accent: '#1c1c1a',
+    muted: 'rgba(28,28,26,0.62)',
+  },
+};
+
+/** A hairline with a small four-point star in the middle. */
+function Divider({ color }: { color: string }) {
+  return (
+    <div
+      aria-hidden
+      className="flex items-center justify-center gap-[2.4cqw]"
+      style={{ color }}
+    >
+      <span className="h-px w-[16cqw]" style={{ background: `linear-gradient(90deg,transparent,${color})` }} />
+      <svg viewBox="-5 -5 10 10" className="size-[2.8cqw]">
+        <path d="M0 -5 L1.2 -1.2 L5 0 L1.2 1.2 L0 5 L-1.2 1.2 L-5 0 L-1.2 -1.2Z" fill="currentColor" />
+      </svg>
+      <span className="h-px w-[16cqw]" style={{ background: `linear-gradient(270deg,transparent,${color})` }} />
+    </div>
+  );
+}
+
+/** Small ornament that sits on each corner of the inner frame. */
+function Corner({ color, className }: { color: string; className: string }) {
+  return (
+    <svg
+      aria-hidden
+      viewBox="0 0 20 20"
+      className={cn('absolute size-[5cqw]', className)}
+      fill="none"
+      stroke={color}
+      strokeWidth={0.9}
+    >
+      <path d="M1 19 V6 Q1 1 6 1 H19" />
+      <circle cx="6" cy="6" r="1.3" fill={color} stroke="none" />
+    </svg>
+  );
+}
 
 export function PosterPreview({
   data,
@@ -74,147 +135,169 @@ export function PosterPreview({
   const p = { ...DEFAULT_DATA, ...data };
   const l = { ...DEFAULT_LABELS, ...labels };
   const isGold = p.style === 'gold';
+  const t = THEMES[p.style];
 
-  const bg = isGold ? 'bg-[#0e1e3d]' : 'bg-[#f8f6f0]';
-  const border = isGold ? 'border-[#CEB47B]' : 'border-[#b9b5aa]';
-  const textPrimary = isGold ? 'text-[#E8D9B8]' : 'text-[#222222]';
-
-  const isHero = size === 'hero';
+  const place = p.showCity ? p.city : null;
+  const when = p.showDate ? p.dateLabel : null;
+  const time = p.showDate && p.timeLabel ? p.timeLabel : null;
+  const meta = [
+    place && { k: 'place', v: place },
+    when && { k: 'date', v: when },
+    time && { k: 'time', v: `${l.timeAt} ${time}` },
+  ].filter(Boolean) as Array<{ k: string; v: string }>;
 
   return (
     <div
       className={cn(
-        'overflow-hidden rounded-lg shadow-2xl',
-        isHero ? 'max-w-none' : 'max-w-md',
+        'w-full overflow-hidden rounded-[6px] shadow-[0_30px_70px_-20px_rgba(0,0,0,0.65)]',
+        size === 'hero' ? 'max-w-none' : 'max-w-md',
         className,
       )}
     >
-      <div className={cn('border p-5', border, bg)}>
-        {/* header line */}
-        <p
-          className={cn(
-            'mb-1 text-center tracking-widest text-[9px] uppercase',
-            textPrimary,
-          )}
-        >
-          {l.headerLine}
-        </p>
-
-        {/* North label */}
-        <p className={cn('text-center top-4 relative text-[8px]', textPrimary)}>
-          {l.north}
-        </p>
-
-        {/* star map */}
+      {/* container-type lets every size below scale with the poster's own width */}
+      <div
+        className="relative aspect-[3/4.5] w-full [container-type:inline-size]"
+        style={{ background: t.paper, color: t.ink }}
+      >
+        {/* outer and inner frame */}
         <div
-          className={cn(
-            'relative mx-auto mt-1 flex aspect-square w-full items-center justify-center',
-          )}
-        >
-          {/* compass labels — looking up with north on top, east is on the left */}
-          <span
-            className={cn(
-              'absolute -left-2 top-1/2 -translate-y-1/2 text-[8px]',
-              textPrimary,
-            )}
-          >
-            {l.east}
-          </span>
-          <span
-            className={cn(
-              'absolute -right-2 top-1/2 -translate-y-1/2 text-[8px]',
-              textPrimary,
-            )}
-          >
-            {l.west}
-          </span>
+          aria-hidden
+          className="pointer-events-none absolute inset-[2.4cqw] border"
+          style={{ borderColor: t.frame }}
+        />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-[3.7cqw] border"
+          style={{ borderColor: t.frameSoft }}
+        />
+        <Corner color={t.frame} className="left-[4.6cqw] top-[4.6cqw]" />
+        <Corner color={t.frame} className="right-[4.6cqw] top-[4.6cqw] -scale-x-100" />
+        <Corner color={t.frame} className="bottom-[4.6cqw] left-[4.6cqw] -scale-y-100" />
+        <Corner color={t.frame} className="bottom-[4.6cqw] right-[4.6cqw] scale-[-1]" />
 
-          {sky ? (
-            <SkyChart
-              sky={sky}
-              variant={isGold ? 'gold' : 'mono'}
-              ariaLabel={l.mapAlt}
-              className="size-[92%]"
-            />
-          ) : (
-            <Image
-              src={
-                isGold
-                  ? '/images/gold-constellation.png'
-                  : '/images/monochrome-constellation.png'
-              }
-              alt={l.mapAlt}
-              className={cn('size-[92%] object-contain', !isGold && 'opacity-85')}
-              width={360}
-              height={360}
-            />
+        <div className="relative flex h-full flex-col items-center px-[9cqw] pb-[7cqw] pt-[8cqw]">
+          {/* eyebrow */}
+          <p
+            className="text-[3cqw] font-medium tracking-[0.18em]"
+            style={{ color: t.accent }}
+          >
+            {l.headerLine}
+          </p>
+
+          {/* chart */}
+          <div className="relative mt-[8cqw] aspect-square w-[78%]">
+            {isGold && (
+              <div
+                aria-hidden
+                className="absolute inset-[-6%] rounded-full"
+                style={{
+                  background:
+                    'radial-gradient(closest-side, rgba(206,180,123,0.16), rgba(206,180,123,0) 100%)',
+                }}
+              />
+            )}
+
+            {/* compass: north on top, east on the left (we are looking up) */}
+            {(
+              [
+                [l.north, 'left-1/2 -top-[1.2cqw] -translate-x-1/2 -translate-y-full'],
+                [l.south, 'left-1/2 -bottom-[1.2cqw] -translate-x-1/2 translate-y-full'],
+                [l.east, '-left-[1.6cqw] top-1/2 -translate-x-full -translate-y-1/2'],
+                [l.west, '-right-[1.6cqw] top-1/2 translate-x-full -translate-y-1/2'],
+              ] as const
+            ).map(([text, pos]) => (
+              <span
+                key={text}
+                className={cn('absolute text-[2.6cqw]', pos)}
+                style={{ color: t.muted }}
+              >
+                {text}
+              </span>
+            ))}
+
+            {sky ? (
+              <SkyChart
+                sky={sky}
+                variant={p.style}
+                ariaLabel={l.mapAlt}
+                className="relative size-full"
+              />
+            ) : (
+              <Image
+                src={
+                  isGold
+                    ? '/images/gold-constellation.png'
+                    : '/images/monochrome-constellation.png'
+                }
+                alt={l.mapAlt}
+                className={cn('relative size-full object-contain', !isGold && 'opacity-85')}
+                width={360}
+                height={360}
+              />
+            )}
+          </div>
+
+          {/* title block */}
+          <div className="mt-[9cqw] flex w-full flex-col items-center text-center">
+            <h3 className="text-balance text-[7.2cqw] font-bold leading-[1.35]">
+              {p.title}
+            </h3>
+            <p className="mt-[1.6cqw] text-[4.4cqw] font-medium" style={{ color: t.accent }}>
+              {p.names}
+            </p>
+
+            <div className="mt-[3.6cqw]">
+              <Divider color={t.frame} />
+            </div>
+
+            <p
+              className="mt-[3.4cqw] max-w-[88%] text-balance text-[3.5cqw] leading-[1.9]"
+              style={{ color: t.muted }}
+            >
+              {p.quote}
+            </p>
+          </div>
+
+          {/* meta: place · date · time */}
+          {meta.length > 0 && (
+            <div
+              className="mt-auto flex w-full items-center justify-center gap-[3cqw] pt-[4cqw] text-[3.1cqw] font-medium"
+              style={{ color: t.ink }}
+            >
+              {meta.map((m, i) => (
+                <span key={m.k} className="flex items-center gap-[3cqw]">
+                  {i > 0 && (
+                    <span
+                      aria-hidden
+                      className="size-[0.9cqw] rotate-45"
+                      style={{ background: t.frame }}
+                    />
+                  )}
+                  {m.v}
+                </span>
+              ))}
+            </div>
+          )}
+
+          <p
+            className={cn(
+              'text-[2.2cqw] tracking-[0.2em]',
+              meta.length > 0 ? 'mt-[2.6cqw]' : 'mt-auto',
+            )}
+            style={{ color: t.muted }}
+          >
+            {l.watermark}
+          </p>
+
+          {showDisclaimer && (
+            <p
+              className="mt-[1.6cqw] text-center text-[2cqw] leading-[1.6]"
+              style={{ color: t.muted }}
+            >
+              {l.disclaimer}
+            </p>
           )}
         </div>
-
-        {/* South label */}
-        <p
-          className={cn('text-center -top-2 relative text-[8px]', textPrimary)}
-        >
-          {l.south}
-        </p>
-
-        {/* title */}
-        <p
-          className={cn(
-            'mt-4 text-center font-bold leading-7',
-            isHero ? 'text-2xl' : 'text-base',
-            textPrimary,
-          )}
-        >
-          {p.title}
-        </p>
-
-        {/* names */}
-        <p className={cn('mt-1 text-center text-xs', textPrimary)}>{p.names}</p>
-
-        {/* quote */}
-        <p className={cn('mt-2 text-center leading-5 text-[9px]', textPrimary)}>
-          {p.quote}
-        </p>
-
-        {/* meta */}
-        {(p.showDate || p.showCity) && (
-          <p className={cn('mt-3 text-center text-[9px]', textPrimary)}>
-            {[
-              p.showCity ? p.city : null,
-              p.showDate
-                ? [
-                    p.dateLabel,
-                    p.timeLabel ? `${l.timeAt} ${p.timeLabel}` : null,
-                  ]
-                    .filter(Boolean)
-                    .join(' · ')
-                : null,
-            ]
-              .filter(Boolean)
-              .join(' · ')}
-          </p>
-        )}
-
-        {/* watermark */}
-        <p
-          className={cn(
-            'flex gap-1 items-center justify-center mt-4 text-center tracking-wider text-[7px]',
-            textPrimary,
-          )}
-        >
-          <Sparkles className="size-2" />
-          {l.watermark}
-        </p>
-
-        {/* disclaimer */}
-        {showDisclaimer && (
-          <p
-            className={cn('mt-2 text-center text-[7px] leading-4', textPrimary)}
-          >
-            {l.disclaimer}
-          </p>
-        )}
       </div>
     </div>
   );
