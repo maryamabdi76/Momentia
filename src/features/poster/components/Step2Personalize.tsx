@@ -24,6 +24,7 @@ import {
   type PersonalizeValues,
 } from '@/features/poster/lib/schemas';
 import type { PersonalizeData, MomentData } from './CreateStepper';
+import { MAGNITUDE_PRESETS } from '@/features/sky/lib/layers';
 import { cn } from 'cn';
 import { Separator } from '@/components/ui/separator';
 
@@ -56,11 +57,13 @@ export function Step2Personalize({
       style: data.style,
       showDate: data.showDate,
       showCity: data.showCity,
+      layers: data.layers,
     },
   });
 
   // Live-sync every field change to parent so the poster preview updates in real time
   const watched = useWatch({ control });
+  const layers = watched.layers;
   useEffect(() => {
     onChange(watched as PersonalizeValues);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -71,6 +74,12 @@ export function Step2Personalize({
     watched.style,
     watched.showDate,
     watched.showCity,
+    layers?.constellationLines,
+    layers?.moonAndPlanets,
+    layers?.planetNames,
+    layers?.ecliptic,
+    layers?.equator,
+    layers?.maxMagnitude,
   ]);
 
   const momentSummary = [
@@ -282,6 +291,109 @@ export function Step2Personalize({
             </div>
           )}
         />
+      </div>
+
+      {/* Sky objects: everything here is optional */}
+      <div className="space-y-2.5">
+        <div>
+          <p className="text-sm font-medium text-[#E8D9B8]">{t('skyLabel')}</p>
+          <p className="mt-1 text-[11px] leading-6 text-[#AAB6CD]">
+            {t('skyHint')}
+          </p>
+        </div>
+
+        {(
+          [
+            'constellationLines',
+            'moonAndPlanets',
+            'planetNames',
+            'ecliptic',
+            'equator',
+          ] as const
+        ).map((key) => (
+          <Controller
+            key={key}
+            control={control}
+            name={`layers.${key}`}
+            render={({ field }) => {
+              // planet names only make sense while planets are shown
+              const disabled = key === 'planetNames' && !layers?.moonAndPlanets;
+              return (
+                <div
+                  className={cn(
+                    'flex items-start justify-start gap-2 py-1.5',
+                    key === 'planetNames' && 'ps-6',
+                    disabled && 'opacity-45',
+                  )}
+                >
+                  <Checkbox
+                    id={`layers-${key}`}
+                    checked={field.value}
+                    disabled={disabled}
+                    onCheckedChange={field.onChange}
+                    className="mt-1 border-white/30 data-[state=checked]:border-[#CEB47B] data-[state=checked]:bg-[#CEB47B] data-[state=checked]:text-[#0c142b] dark:data-[state=checked]:border-[#CEB47B] dark:data-[state=checked]:bg-[#CEB47B]"
+                  />
+                  <Label
+                    htmlFor={`layers-${key}`}
+                    className="flex-col items-start gap-0.5 text-sm font-normal text-white"
+                  >
+                    {t(`sky.${key}.label`)}
+                    <span className="text-[11px] leading-5 text-[#AAB6CD]">
+                      {t(`sky.${key}.hint`)}
+                    </span>
+                  </Label>
+                </div>
+              );
+            }}
+          />
+        ))}
+
+        <div className="space-y-2 pt-2">
+          <p className="text-sm text-white">{t('sky.density.label')}</p>
+          <Controller
+            control={control}
+            name="layers.maxMagnitude"
+            render={({ field }) => (
+              <RadioGroup
+                value={String(field.value)}
+                onValueChange={(v) => field.onChange(Number(v))}
+                className="grid grid-cols-3 gap-3"
+              >
+                {MAGNITUDE_PRESETS.map((m, i) => {
+                  const isSelected = field.value === m;
+                  return (
+                    <Label
+                      key={m}
+                      htmlFor={`density-${m}`}
+                      className={cn(
+                        'flex cursor-pointer items-center justify-between rounded-xl border px-3 py-3 transition-colors',
+                        isSelected
+                          ? 'border-[#CEB47B]/70 bg-[#CEB47B]/8'
+                          : 'border-[#33415B]',
+                      )}
+                    >
+                      <span
+                        className={
+                          isSelected
+                            ? 'text-sm font-medium text-white'
+                            : 'text-sm font-normal text-white/55'
+                        }
+                      >
+                        {t(`sky.density.options.${i}`)}
+                      </span>
+                      <RadioGroupItem
+                        value={String(m)}
+                        id={`density-${m}`}
+                        className="border-white/20 data-checked:border-[#CEB47B] data-checked:bg-[#CEB47B] dark:data-checked:border-[#CEB47B] dark:data-checked:bg-[#CEB47B] [&_[data-slot=radio-group-indicator]_span]:bg-[#0c142b]"
+                      />
+                    </Label>
+                  );
+                })}
+              </RadioGroup>
+            )}
+          />
+          <p className="text-[11px] text-[#AAB6CD]">{t('sky.density.hint')}</p>
+        </div>
       </div>
 
       {/* CTA buttons */}

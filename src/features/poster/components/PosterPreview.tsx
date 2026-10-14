@@ -1,6 +1,7 @@
 import { cn } from 'cn';
 import Image from 'next/image';
 import { SkyChart } from '@/features/sky/components/SkyChart';
+import type { SkyLayers } from '@/features/sky/lib/layers';
 import type { SkySnapshot } from '@/features/sky/lib/types';
 
 export type PosterStyle = 'gold' | 'mono';
@@ -15,6 +16,8 @@ export type PosterData = {
   showDate: boolean;
   showCity: boolean;
   style: PosterStyle;
+  /** Which parts of the sky are drawn; missing fields take their defaults. */
+  layers?: Partial<SkyLayers>;
 };
 
 export type PosterLabels = {
@@ -261,6 +264,7 @@ export function PosterPreview({
               <SkyChart
                 sky={sky}
                 variant={p.style}
+                layers={p.layers}
                 ariaLabel={l.mapAlt}
                 className="relative size-full"
               />

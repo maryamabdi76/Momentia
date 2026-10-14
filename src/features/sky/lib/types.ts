@@ -71,6 +71,11 @@ export type SkySnapshot = {
   stars: SkyStar[];
   /** Constellation figures, already clipped at the horizon. */
   lines: Array<Array<[x: number, y: number]>>;
+  /** The celestial equator and the ecliptic, clipped at the horizon like `lines`. */
+  guides: {
+    equator: Array<Array<[x: number, y: number]>>;
+    ecliptic: Array<Array<[x: number, y: number]>>;
+  };
   /** Always present; check `moon.visible` before drawing it. */
   moon: SkyMoon;
   planets: SkyPlanet[];

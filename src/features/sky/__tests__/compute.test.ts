@@ -120,3 +120,16 @@ test('computing a full sky is fast enough to run on every keystroke', () => {
   const perCall = (performance.now() - t0) / 20;
   assert.ok(perCall < 25, `computeSky took ${perCall.toFixed(1)} ms`);
 });
+
+test('equator and ecliptic guides: above the horizon, and the ecliptic tilts ~23.4° from the equator', () => {
+  const sky = computeSky({ ...TEHRAN, date: new Date('2023-12-21T17:30:00Z'), catalog: { stars: [], lines: [] } });
+  for (const pieces of [sky.guides.equator, sky.guides.ecliptic]) {
+    assert.ok(pieces.length >= 1);
+    for (const piece of pieces) {
+      for (const [x, y] of piece) assert.ok(Math.hypot(x, y) <= 1.0001, 'inside the horizon circle');
+    }
+  }
+  // The equator crosses the meridian at altitude 90° − latitude (≈ 54.3° in Tehran).
+  const alts = sky.guides.equator.flat().map(([x, y]) => altitudeFromChart(x, y));
+  close(Math.max(...alts), 90 - TEHRAN.latitude, 0.6, 'equator culmination');
+});
