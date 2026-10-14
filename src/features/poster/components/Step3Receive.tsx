@@ -112,7 +112,9 @@ export function Step3Receive({ personal, moment, exporter, payResult }: Props) {
             {t('premiumBadge')}
           </span>
         </div>
-        <p className="text-[12px] leading-6 text-white/45">{t('premiumDesc')}</p>
+        <p className="text-[12px] leading-6 text-white/45">
+          {t('premiumDesc')}
+        </p>
         {payResult && (
           <p
             role="status"
@@ -166,9 +168,6 @@ export function Step3Receive({ personal, moment, exporter, payResult }: Props) {
           role="status"
           className={
             exporter.notice !== 'copied'
-              ? 'text-start text-xs text-red-300'
-              : 'text-start text-xs text-[#CEB47B]'
-            exporter.notice === 'error'
               ? 'text-start text-xs text-red-300'
               : 'text-start text-xs text-[#CEB47B]'
           }
