@@ -269,7 +269,7 @@ export function Step1Moment({ data, onChange, onNext }: Props) {
                     setValue('time', DEFAULT_TIME, { shouldValidate: true });
                   }
                 }}
-                className="border-white data-[state=checked]:bg-[#CEB47B] data-[state=checked]:border-[#CEB47B] data-[state=checked]:text-[#0c142b]"
+                className="border-white data-[state=checked]:border-[#CEB47B] data-[state=checked]:bg-[#CEB47B] data-[state=checked]:text-[#0c142b] dark:data-[state=checked]:border-[#CEB47B] dark:data-[state=checked]:bg-[#CEB47B]"
               />
               <Label
                 htmlFor="noExactTime"
@@ -291,7 +291,7 @@ export function Step1Moment({ data, onChange, onNext }: Props) {
       {/* CTA */}
       <Button
         type="submit"
-        className="w-full py-8 bg-[#CEB47B] text-base font-bold text-[#0c142b] hover:bg-[#e0c180] gap-2"
+        className="w-full py-6 bg-[#CEB47B] text-base font-bold text-[#0c142b] hover:bg-[#e0c180] gap-2"
       >
         {t('cta')}
         <ArrowLeft className="size-4" />
