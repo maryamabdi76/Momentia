@@ -2,8 +2,9 @@
 const TOKEN_KEY = 'momentia.premium-token';
 const CHANGE_EVENT = 'momentia:premium-token';
 
+/** Must be NEXT_PUBLIC_ so SSR and the browser see the same value (avoids hydration mismatch). */
 export const PREMIUM_PRICE_TOMAN =
-  Number(process.env.PREMIUM_PRICE_IRT ?? '') || null;
+  Number(process.env.NEXT_PUBLIC_PREMIUM_PRICE_IRT ?? '') || null;
 
 export function readPremiumToken(): string | null {
   try {

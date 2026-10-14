@@ -28,7 +28,7 @@ test('config needs merchant, long secret and a sane price', () => {
   const ok = {
     ZARINPAL_MERCHANT_ID: 'm',
     PAYMENT_TOKEN_SECRET: SECRET,
-    PREMIUM_PRICE_IRT: '49000',
+    NEXT_PUBLIC_PREMIUM_PRICE_IRT: '49000',
   };
   assert.equal(readPaymentConfig(ok)?.amountRial, 490000);
   assert.equal(
@@ -39,8 +39,14 @@ test('config needs merchant, long secret and a sane price', () => {
     readPaymentConfig({ ...ok, PAYMENT_TOKEN_SECRET: 'short' }),
     null,
   );
-  assert.equal(readPaymentConfig({ ...ok, PREMIUM_PRICE_IRT: '10' }), null);
-  assert.equal(readPaymentConfig({ ...ok, PREMIUM_PRICE_IRT: 'abc' }), null);
+  assert.equal(
+    readPaymentConfig({ ...ok, NEXT_PUBLIC_PREMIUM_PRICE_IRT: '10' }),
+    null,
+  );
+  assert.equal(
+    readPaymentConfig({ ...ok, NEXT_PUBLIC_PREMIUM_PRICE_IRT: 'abc' }),
+    null,
+  );
   assert.equal(readPaymentConfig({ ...ok, ZARINPAL_MERCHANT_ID: '' }), null);
 });
 

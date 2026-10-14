@@ -4,7 +4,7 @@
  *   ZARINPAL_MERCHANT_ID            36-character merchant id (any UUID in sandbox)
  *   ZARINPAL_SANDBOX                "true" to use sandbox.zarinpal.com
  *   PAYMENT_TOKEN_SECRET            ≥ 32 random characters, signs the download token
- *   PREMIUM_PRICE_IRT   price in tomans (shown in the UI and charged)
+ *   NEXT_PUBLIC_PREMIUM_PRICE_IRT   price in tomans (shown in the UI and charged)
  *   SITE_URL                        optional, e.g. https://example.ir — the callback
  *                                   origin; must match the domain registered with Zarinpal
  */
@@ -30,7 +30,7 @@ export function readPaymentConfig(
 ): PaymentConfig | null {
   const merchantId = env.ZARINPAL_MERCHANT_ID?.trim();
   const secret = env.PAYMENT_TOKEN_SECRET?.trim();
-  const priceToman = Number(env.PREMIUM_PRICE_IRT);
+  const priceToman = Number(env.NEXT_PUBLIC_PREMIUM_PRICE_IRT);
 
   if (!merchantId || !secret || secret.length < 32) return null;
   if (
