@@ -2,9 +2,8 @@
 const TOKEN_KEY = 'momentia.premium-token';
 const CHANGE_EVENT = 'momentia:premium-token';
 
-export const PREMIUM_PRICE_TOMAN = Number(
-  process.env.NEXT_PUBLIC_PREMIUM_PRICE_IRT ?? '',
-) || null;
+export const PREMIUM_PRICE_TOMAN =
+  Number(process.env.PREMIUM_PRICE_IRT ?? '') || null;
 
 export function readPremiumToken(): string | null {
   try {
