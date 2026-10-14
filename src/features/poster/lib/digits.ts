@@ -4,3 +4,10 @@ const PERSIAN_DIGITS = '۰۱۲۳۴۵۶۷۸۹';
 export function toPersianDigits(value: string): string {
   return value.replace(/\d/g, (d) => PERSIAN_DIGITS[Number(d)] ?? d);
 }
+
+/** 49000 → "۴۹٬۰۰۰" (Persian digits, Arabic thousands separator). */
+export function formatToman(value: number): string {
+  return toPersianDigits(
+    String(Math.round(value)).replace(/\B(?=(\d{3})+(?!\d))/g, '٬'),
+  );
+}

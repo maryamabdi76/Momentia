@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useSyncExternalStore } from 'react';
 import { useTranslations } from 'next-intl';
 import type { SkySnapshot } from '@/features/sky/lib/types';
 import type { PosterData, PosterLabels } from '../components/PosterPreview';
@@ -11,14 +11,21 @@ import {
   downloadBlob,
   svgToPngBlob,
 } from '../lib/export-poster';
-import { ensurePremiumAccess } from '../lib/premium-access';
+import {
+  readPremiumToken,
+  subscribePremiumToken,
+} from '@/features/payments/lib/client';
+import type { PosterDraft } from '../lib/draft';
+import { PremiumAccessError, ensurePremiumAccess } from '../lib/premium-access';
 
 export type ExportAction = 'png' | 'svg' | 'premium' | 'share';
 
 export type PosterExport = {
   busy: ExportAction | null;
-  /** 'error' | 'copied' | null — shown under the buttons. */
-  notice: 'error' | 'copied' | null;
+  /** Shown under the buttons. */
+  notice: 'error' | 'copied' | 'payment' | null;
+  /** A payment has been verified in this browser session. */
+  premiumUnlocked: boolean;
   downloadPng: () => void;
   downloadSvg: () => void;
   downloadPremium: () => void;
@@ -30,11 +37,17 @@ const BASENAME = 'momentia-night-sky';
 export function usePosterExport(
   data: PosterData,
   sky: SkySnapshot | null,
+  draft: PosterDraft,
 ): PosterExport {
   const tPoster = useTranslations('Poster');
   const tShare = useTranslations('CreatePage.step3');
   const [busy, setBusy] = useState<ExportAction | null>(null);
   const [notice, setNotice] = useState<PosterExport['notice']>(null);
+  const premiumUnlocked = useSyncExternalStore(
+    subscribePremiumToken,
+    () => readPremiumToken() !== null,
+    () => false,
+  );
 
   const labels: PosterLabels = {
     headerLine: tPoster('headerLine'),
@@ -57,7 +70,7 @@ export function usePosterExport(
         .catch((err: unknown) => {
           if (err instanceof DOMException && err.name === 'AbortError') return;
           console.error(err);
-          setNotice('error');
+          setNotice(err instanceof PremiumAccessError ? 'payment' : 'error');
         })
         .finally(() => setBusy(null));
     },
@@ -72,6 +85,7 @@ export function usePosterExport(
   return {
     busy,
     notice,
+    premiumUnlocked,
     downloadPng: () =>
       run('png', async () => {
         downloadBlob(await png(true, FREE_PNG_WIDTH), `${BASENAME}.png`);
@@ -83,7 +97,7 @@ export function usePosterExport(
       }),
     downloadPremium: () =>
       run('premium', async () => {
-        if (!(await ensurePremiumAccess())) return;
+        if (!(await ensurePremiumAccess(draft))) return;
         downloadBlob(
           await png(false, PREMIUM_PNG_WIDTH),
           `${BASENAME}-premium.png`,
