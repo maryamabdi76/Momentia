@@ -3,6 +3,8 @@
 import { useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 import { Check, Download, Loader2, ShieldCheck } from 'lucide-react';
+import { PREMIUM_PRICE_TOMAN } from '@/features/payments/lib/client';
+import { formatToman } from '../lib/digits';
 import { Button } from '@/components/ui/button';
 import type { PosterExport } from '../hooks/use-poster-export';
 import type { MomentData, PersonalizeData } from './CreateStepper';
@@ -11,6 +13,7 @@ type Props = {
   personal: PersonalizeData;
   moment: MomentData;
   exporter: PosterExport;
+  payResult: 'ok' | 'cancelled' | 'failed' | null;
 };
 
 function occasionKeepsakeLabel(
@@ -29,7 +32,7 @@ function occasionKeepsakeLabel(
 }
 
 // Back / share actions live under the poster preview (see CreatePreview).
-export function Step3Receive({ personal, moment, exporter }: Props) {
+export function Step3Receive({ personal, moment, exporter, payResult }: Props) {
   const t = useTranslations('CreatePage.step3');
   const tMoment = useTranslations('CreatePage.step1');
 
@@ -106,6 +109,18 @@ export function Step3Receive({ personal, moment, exporter }: Props) {
           </span>
         </div>
         <p className="text-[12px] leading-6 text-white/45">{t('premiumDesc')}</p>
+        {payResult && (
+          <p
+            role="status"
+            className={
+              payResult === 'ok'
+                ? 'rounded-lg border border-[#CEB47B]/40 px-3 py-2 text-[12px] text-[#CEB47B]'
+                : 'rounded-lg border border-red-300/30 px-3 py-2 text-[12px] text-red-300'
+            }
+          >
+            {t(`pay.${payResult}`)}
+          </p>
+        )}
         <ul className="space-y-1.5">
           {([0, 1, 2] as const).map((i) => (
             <li
@@ -125,7 +140,9 @@ export function Step3Receive({ personal, moment, exporter }: Props) {
           className="h-11 w-full rounded-xl bg-[#CEB47B] text-sm font-bold text-[#0c142b] hover:bg-[#e0c180] gap-2"
         >
           {icon('premium')}
-          {t('premiumDownloadBtn')}
+          {!exporter.premiumUnlocked && PREMIUM_PRICE_TOMAN
+            ? t('premiumPayBtn', { price: formatToman(PREMIUM_PRICE_TOMAN) })
+            : t('premiumDownloadBtn')}
         </Button>
         <p className="text-center text-[11px] leading-5 text-white/30">
           {t('premiumNote')}
@@ -136,12 +153,16 @@ export function Step3Receive({ personal, moment, exporter }: Props) {
         <p
           role="status"
           className={
-            exporter.notice === 'error'
+            exporter.notice !== 'copied'
               ? 'text-center text-xs text-red-300'
               : 'text-center text-xs text-[#CEB47B]'
           }
         >
-          {exporter.notice === 'error' ? t('exportError') : t('shareCopied')}
+          {exporter.notice === 'error'
+            ? t('exportError')
+            : exporter.notice === 'payment'
+              ? t('pay.unavailable')
+              : t('shareCopied')}
         </p>
       )}
 

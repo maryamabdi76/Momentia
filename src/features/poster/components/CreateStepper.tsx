@@ -1,7 +1,8 @@
 'use client';
 
-import { Suspense, useMemo, useState } from 'react';
+import { Suspense, useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { storePremiumToken } from '@/features/payments/lib/client';
 import { useTranslations } from 'next-intl';
 import {
   Stepper,
@@ -10,6 +11,7 @@ import {
 } from '@/components/ui/stepper';
 import { toPersianDigits } from '../lib/digits';
 import { usePosterExport } from '../hooks/use-poster-export';
+import { loadDraft } from '../lib/draft';
 import { skyForMoment } from '../lib/sky-for-moment';
 import { CreatePreview } from './CreatePreview';
 import type { PosterData, PosterStyle } from './PosterPreview';
@@ -73,6 +75,26 @@ function StepperInner() {
   const [personal, setPersonal] =
     useState<PersonalizeData>(DEFAULT_PERSONALIZE);
 
+  // Coming back from the payment gateway: /create?step=3&pay=ok#pt=<token>.
+  // Keep the token, restore the poster that was being edited, then tidy the URL.
+  const [payResult, setPayResult] = useState<'ok' | 'cancelled' | 'failed' | null>(null);
+  useEffect(() => {
+    const pay = new URLSearchParams(window.location.search).get('pay');
+    if (pay !== 'ok' && pay !== 'cancelled' && pay !== 'failed') return;
+
+    const token = new URLSearchParams(window.location.hash.slice(1)).get('pt');
+    const verified = pay === 'ok' && !!token;
+    if (verified) storePremiumToken(token);
+
+    const draft = loadDraft();
+    if (draft) {
+      setMoment(draft.moment);
+      setPersonal(draft.personal);
+    }
+    setPayResult(verified || pay !== 'ok' ? pay : 'failed');
+    window.history.replaceState(null, '', '/create?step=3');
+  }, []);
+
   function goTo(n: number) {
     const params = new URLSearchParams(searchParams.toString());
     params.set('step', String(n));
@@ -94,7 +116,10 @@ function StepperInner() {
     timeLabel: moment.noExactTime ? '' : toPersianDigits(moment.time),
   };
 
-  const exporter = usePosterExport(posterData, moonSky?.sky ?? null);
+  const exporter = usePosterExport(posterData, moonSky?.sky ?? null, {
+    moment,
+    personal,
+  });
 
   const stepItems: StepItem[] = [1, 2, 3].map((n) => {
     const status: StepStatus =
@@ -141,6 +166,7 @@ function StepperInner() {
                 personal={personal}
                 moment={moment}
                 exporter={exporter}
+                payResult={payResult}
               />
             )}
           </section>
