@@ -1,4 +1,9 @@
 import { memo } from 'react';
+import {
+  DEFAULT_SKY_LAYERS,
+  resolveSkyLayers,
+  type SkyLayers,
+} from '../lib/layers';
 import type { PlanetId, SkyMoon, SkySnapshot } from '../lib/types';
 
 export type SkyChartVariant = 'gold' | 'mono';
@@ -20,6 +25,8 @@ type Palette = {
   moon: string;
   planet: string;
   label: string;
+  /** Ecliptic and equator. */
+  guide: string;
 };
 
 type RGB = [number, number, number];
@@ -53,6 +60,7 @@ const PALETTES: Record<SkyChartVariant, Palette> = {
     moon: '#EAD9AA',
     planet: '#FFD9A0',
     label: '#E8D9B8',
+    guide: '#E3C88A',
   },
   mono: {
     ring: '#2a2a28',
@@ -63,13 +71,14 @@ const PALETTES: Record<SkyChartVariant, Palette> = {
     moon: '#1c1c1a',
     planet: '#1c1c1a',
     label: '#2a2a28',
+    guide: '#2a2a28',
   },
 };
 
 /** Everything is drawn in a viewBox where the horizon circle has radius 100. */
 const R = 100;
 const VIEW = 110;
-export const DEFAULT_MAX_MAGNITUDE = 4.6;
+export const DEFAULT_MAX_MAGNITUDE = DEFAULT_SKY_LAYERS.maxMagnitude;
 
 const starRadius = (mag: number) =>
   0.28 + 0.15 * Math.max(0, 6.2 - mag) ** 1.15;
@@ -134,6 +143,8 @@ export type SkyChartProps = {
    * which turns a small poster into noise; 4.6 keeps the recognisable shapes.
    */
   maxMagnitude?: number;
+  /** Which parts of the sky to draw; anything left out takes its default. */
+  layers?: Partial<SkyLayers>;
   /** Persian names next to the planets; pass `false` to leave them unlabelled. */
   planetLabels?: Record<PlanetId, string> | false;
   className?: string;
@@ -148,20 +159,25 @@ export type SkyChartProps = {
 function SkyChartBase({
   sky,
   variant = 'gold',
-  maxMagnitude = DEFAULT_MAX_MAGNITUDE,
+  maxMagnitude,
   planetLabels = DEFAULT_PLANET_LABELS,
+  layers,
   className,
   ariaLabel = 'نقشه‌ی آسمان شب',
 }: SkyChartProps) {
   const p = PALETTES[variant];
+  const show = resolveSkyLayers(layers);
+  const faintest = maxMagnitude ?? show.maxMagnitude;
 
-  const figures = sky.lines
-    .map((piece) =>
-      piece
-        .map(([x, y], i) => `${i ? 'L' : 'M'}${f(x * R)} ${f(y * R)}`)
-        .join(''),
-    )
-    .join('');
+  const toPath = (pieces: SkySnapshot['lines']) =>
+    pieces
+      .map((piece) =>
+        piece
+          .map(([x, y], i) => `${i ? 'L' : 'M'}${f(x * R)} ${f(y * R)}`)
+          .join(''),
+      )
+      .join('');
+  const figures = toPath(sky.lines);
 
   return (
     <svg
@@ -190,18 +206,42 @@ function SkyChartBase({
       ))}
 
       <g clipPath="url(#sky-horizon)">
-        <path
-          d={figures}
-          fill="none"
-          stroke={p.figure}
-          strokeOpacity={p.figureOpacity}
-          strokeWidth={0.32}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
+        {show.equator && (
+          <path
+            d={toPath(sky.guides.equator)}
+            fill="none"
+            stroke={p.guide}
+            strokeOpacity={0.5}
+            strokeWidth={0.3}
+            strokeDasharray="0.6 1.4"
+            strokeLinecap="round"
+          />
+        )}
+        {show.ecliptic && (
+          <path
+            d={toPath(sky.guides.ecliptic)}
+            fill="none"
+            stroke={p.guide}
+            strokeOpacity={0.7}
+            strokeWidth={0.35}
+            strokeDasharray="3 1.6"
+          />
+        )}
+
+        {show.constellationLines && (
+          <path
+            d={figures}
+            fill="none"
+            stroke={p.figure}
+            strokeOpacity={p.figureOpacity}
+            strokeWidth={0.32}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        )}
 
         {sky.stars
-          .filter((s) => s.mag <= maxMagnitude)
+          .filter((s) => s.mag <= faintest)
           .map((s, i) => (
             <circle
               key={i}
@@ -213,7 +253,7 @@ function SkyChartBase({
             />
           ))}
 
-        {sky.planets.map((pl) => {
+        {show.moonAndPlanets && sky.planets.map((pl) => {
           const x = pl.x * R;
           const y = pl.y * R;
           const r = Math.max(0.9, starRadius(pl.mag));
@@ -229,7 +269,7 @@ function SkyChartBase({
                 strokeWidth={0.3}
               />
               <circle cx={f(x)} cy={f(y)} r={f(r)} fill={p.planet} />
-              {planetLabels && (
+              {planetLabels && show.planetNames && (
                 <text
                   x={f(x)}
                   y={f(y + r + 6.4)}
@@ -245,7 +285,7 @@ function SkyChartBase({
           );
         })}
 
-        {sky.moon.visible && <Moon moon={sky.moon} color={p.moon} />}
+        {show.moonAndPlanets && sky.moon.visible && <Moon moon={sky.moon} color={p.moon} />}
       </g>
 
       <circle r={R} fill="none" stroke={p.ring} strokeWidth={0.6} />

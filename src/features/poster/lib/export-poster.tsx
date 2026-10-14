@@ -55,7 +55,12 @@ export async function createPosterSvg({
   const fonts = await loadFonts();
   const chartSvg = sky
     ? renderToStaticMarkup(
-        <SkyChart sky={sky} variant={data.style} ariaLabel={labels.mapAlt} />,
+        <SkyChart
+          sky={sky}
+          variant={data.style}
+          layers={data.layers}
+          ariaLabel={labels.mapAlt}
+        />,
       )
     : '';
   return buildPosterSvg({ data, labels, chartSvg, fonts, watermark });

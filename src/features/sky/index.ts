@@ -9,6 +9,12 @@
 export { computeSky, sunAltitude } from './lib/compute';
 export { SkyChart, DEFAULT_PLANET_LABELS } from './components/SkyChart';
 export type { SkyChartProps, SkyChartVariant } from './components/SkyChart';
+export {
+  DEFAULT_SKY_LAYERS,
+  MAGNITUDE_PRESETS,
+  resolveSkyLayers,
+} from './lib/layers';
+export type { SkyLayers } from './lib/layers';
 export type {
   PlanetId,
   SkyCatalog,

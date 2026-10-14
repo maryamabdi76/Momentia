@@ -18,6 +18,14 @@ export const personalizeSchema = z.object({
   style: z.enum(['gold', 'mono']),
   showDate: z.boolean(),
   showCity: z.boolean(),
+  layers: z.object({
+    constellationLines: z.boolean(),
+    moonAndPlanets: z.boolean(),
+    planetNames: z.boolean(),
+    ecliptic: z.boolean(),
+    equator: z.boolean(),
+    maxMagnitude: z.number().min(2).max(6),
+  }),
 });
 
 export type MomentValues = z.infer<typeof momentSchema>;

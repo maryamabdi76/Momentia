@@ -12,6 +12,11 @@ import {
 import { toPersianDigits } from '../lib/digits';
 import { usePosterExport } from '../hooks/use-poster-export';
 import { loadDraft } from '../lib/draft';
+import {
+  DEFAULT_SKY_LAYERS,
+  resolveSkyLayers,
+  type SkyLayers,
+} from '@/features/sky/lib/layers';
 import { skyForMoment } from '../lib/sky-for-moment';
 import { CreatePreview } from './CreatePreview';
 import type { PosterData, PosterStyle } from './PosterPreview';
@@ -36,6 +41,7 @@ export type PersonalizeData = {
   style: PosterStyle;
   showDate: boolean;
   showCity: boolean;
+  layers: SkyLayers;
 };
 
 const STEP_COUNT = 3;
@@ -57,6 +63,7 @@ const DEFAULT_PERSONALIZE: PersonalizeData = {
   style: 'gold',
   showDate: true,
   showCity: true,
+  layers: DEFAULT_SKY_LAYERS,
 };
 
 function parseStep(value: string | null): number {
@@ -89,7 +96,11 @@ function StepperInner() {
     const draft = loadDraft();
     if (draft) {
       setMoment(draft.moment);
-      setPersonal(draft.personal);
+      // drafts saved before the sky options existed have no `layers`
+      setPersonal({
+        ...draft.personal,
+        layers: resolveSkyLayers(draft.personal.layers),
+      });
     }
     setPayResult(verified || pay !== 'ok' ? pay : 'failed');
     window.history.replaceState(null, '', '/create?step=3');

@@ -4,9 +4,11 @@ import {
   altAzToEnu,
   applyMat3,
   centuriesTT,
+  eclipticToEquatorial,
   enuMatrix,
   enuToAltAz,
   localSiderealDegrees,
+  meanObliquityDegrees,
   multiplyMat3,
   normalizeDegrees,
   precessionMatrix,
@@ -57,6 +59,54 @@ const unit = (v: Vec3): Vec3 => {
 const dot = (a: Vec3, b: Vec3) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 
 /**
+ * Projects a path of East/North/Up directions onto the chart, cutting it where
+ * it crosses the horizon. Returns the pieces that are above it.
+ */
+function clipToHorizon(path: readonly Vec3[]): Array<Array<[number, number]>> {
+  const pieces: Array<Array<[number, number]>> = [];
+  let piece: Array<[number, number]> = [];
+  const flush = () => {
+    if (piece.length > 1) pieces.push(piece);
+    piece = [];
+  };
+  const add = (v: Vec3) => {
+    const p = chartPoint(v);
+    piece.push([p.x, p.y]);
+  };
+
+  let prev: Vec3 | null = null;
+  for (const cur of path) {
+    if (prev === null) {
+      if (cur[2] >= 0) add(cur);
+    } else {
+      const aUp = prev[2] >= 0;
+      const bUp = cur[2] >= 0;
+      if (aUp && bUp) {
+        add(cur);
+      } else if (aUp !== bUp) {
+        // Crossing: the chord's point on the horizon plane, pushed back to the sphere.
+        const t = prev[2] / (prev[2] - cur[2]);
+        const edge = unit([
+          prev[0] + t * (cur[0] - prev[0]),
+          prev[1] + t * (cur[1] - prev[1]),
+          0,
+        ]);
+        if (aUp) {
+          add(edge);
+          flush();
+        } else {
+          add(edge);
+          add(cur);
+        }
+      }
+    }
+    prev = cur;
+  }
+  flush();
+  return pieces;
+}
+
+/**
  * Everything visible from `latitude`/`longitude` at `date`, already projected
  * into chart space. Pure and synchronous (a few milliseconds), so it can run on
  * every keystroke.
@@ -85,47 +135,28 @@ export function computeSky(options: ComputeSkyOptions): SkySnapshot {
   const lines: SkySnapshot['lines'] = [];
   for (const figure of catalog.lines) {
     for (const path of figure.paths) {
-      let piece: Array<[number, number]> = [];
-      const flush = () => {
-        if (piece.length > 1) lines.push(piece);
-        piece = [];
-      };
-      const add = (v: Vec3) => {
-        const p = chartPoint(v);
-        piece.push([p.x, p.y]);
-      };
-
-      let prev: Vec3 | null = null;
-      for (const [ra, dec] of path) {
-        const cur = applyMat3(j2000ToEnu, raDecToVector(ra, dec));
-        if (prev === null) {
-          if (cur[2] >= 0) add(cur);
-        } else {
-          const aUp = prev[2] >= 0;
-          const bUp = cur[2] >= 0;
-          if (aUp && bUp) {
-            add(cur);
-          } else if (aUp !== bUp) {
-            // Crossing: the chord's point on the horizon plane, pushed back to the sphere.
-            const t = prev[2] / (prev[2] - cur[2]);
-            const edge = unit([
-              prev[0] + t * (cur[0] - prev[0]),
-              prev[1] + t * (cur[1] - prev[1]),
-              0,
-            ]);
-            if (aUp) {
-              add(edge);
-              flush();
-            } else {
-              add(edge);
-              add(cur);
-            }
-          }
-        }
-        prev = cur;
-      }
-      flush();
+      lines.push(
+        ...clipToHorizon(
+          path.map(([ra, dec]) => applyMat3(j2000ToEnu, raDecToVector(ra, dec))),
+        ),
+      );
     }
+  }
+
+  // ── celestial equator and ecliptic (both defined "of date", so no precession) ──
+  const equator: SkySnapshot['lines'] = [];
+  const ecliptic: SkySnapshot['lines'] = [];
+  {
+    const obliquity = meanObliquityDegrees(T);
+    const equatorPath: Vec3[] = [];
+    const eclipticPath: Vec3[] = [];
+    for (let deg = 0; deg <= 360; deg++) {
+      equatorPath.push(applyMat3(toEnu, raDecToVector(deg, 0)));
+      const eq = eclipticToEquatorial(deg, 0, obliquity);
+      eclipticPath.push(applyMat3(toEnu, raDecToVector(eq.ra, eq.dec)));
+    }
+    equator.push(...clipToHorizon(equatorPath));
+    ecliptic.push(...clipToHorizon(eclipticPath));
   }
 
   // ── Sun (only its direction, for the Moon's phase and the twilight check) ──
@@ -191,6 +222,7 @@ export function computeSky(options: ComputeSkyOptions): SkySnapshot {
     sunAltitude: sunAlt,
     stars,
     lines,
+    guides: { equator, ecliptic },
     moon,
     planets,
   };
