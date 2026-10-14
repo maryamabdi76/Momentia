@@ -90,11 +90,20 @@ function Divider({ color }: { color: string }) {
       className="flex items-center justify-center gap-[2.4cqw]"
       style={{ color }}
     >
-      <span className="h-px w-[16cqw]" style={{ background: `linear-gradient(90deg,transparent,${color})` }} />
+      <span
+        className="h-px w-[16cqw]"
+        style={{ background: `linear-gradient(90deg,transparent,${color})` }}
+      />
       <svg viewBox="-5 -5 10 10" className="size-[2.8cqw]">
-        <path d="M0 -5 L1.2 -1.2 L5 0 L1.2 1.2 L0 5 L-1.2 1.2 L-5 0 L-1.2 -1.2Z" fill="currentColor" />
+        <path
+          d="M0 -5 L1.2 -1.2 L5 0 L1.2 1.2 L0 5 L-1.2 1.2 L-5 0 L-1.2 -1.2Z"
+          fill="currentColor"
+        />
       </svg>
-      <span className="h-px w-[16cqw]" style={{ background: `linear-gradient(270deg,transparent,${color})` }} />
+      <span
+        className="h-px w-[16cqw]"
+        style={{ background: `linear-gradient(270deg,transparent,${color})` }}
+      />
     </div>
   );
 }
@@ -146,6 +155,13 @@ export function PosterPreview({
     time && { k: 'time', v: `${l.timeAt} ${time}` },
   ].filter(Boolean) as Array<{ k: string; v: string }>;
 
+  const hasTitle = Boolean(p.title);
+  const hasNames = Boolean(p.names);
+  const hasQuote = Boolean(p.quote);
+  const hasTextBlock = hasTitle || hasNames || hasQuote;
+  const showDivider = (hasTitle || hasNames) && hasQuote;
+  const hasFooter = meta.length > 0 || Boolean(l.watermark) || showDisclaimer;
+
   return (
     <div
       className={cn(
@@ -171,11 +187,25 @@ export function PosterPreview({
           style={{ borderColor: t.frameSoft }}
         />
         <Corner color={t.frame} className="left-[4.6cqw] top-[4.6cqw]" />
-        <Corner color={t.frame} className="right-[4.6cqw] top-[4.6cqw] -scale-x-100" />
-        <Corner color={t.frame} className="bottom-[4.6cqw] left-[4.6cqw] -scale-y-100" />
-        <Corner color={t.frame} className="bottom-[4.6cqw] right-[4.6cqw] scale-[-1]" />
+        <Corner
+          color={t.frame}
+          className="right-[4.6cqw] top-[4.6cqw] -scale-x-100"
+        />
+        <Corner
+          color={t.frame}
+          className="bottom-[4.6cqw] left-[4.6cqw] -scale-y-100"
+        />
+        <Corner
+          color={t.frame}
+          className="bottom-[4.6cqw] right-[4.6cqw] scale-[-1]"
+        />
 
-        <div className="relative flex h-full flex-col items-center px-[9cqw] pb-[7cqw] pt-[8cqw]">
+        <div
+          className={cn(
+            'relative flex h-full flex-col items-center px-[9cqw] pb-[7cqw] pt-[8cqw]',
+            !hasTextBlock && !hasFooter && 'justify-center',
+          )}
+        >
           {/* eyebrow */}
           <p
             className="text-[3cqw] font-medium tracking-[0.18em]"
@@ -200,10 +230,22 @@ export function PosterPreview({
             {/* compass: north on top, east on the left (we are looking up) */}
             {(
               [
-                [l.north, 'left-1/2 -top-[1.2cqw] -translate-x-1/2 -translate-y-full'],
-                [l.south, 'left-1/2 -bottom-[1.2cqw] -translate-x-1/2 translate-y-full'],
-                [l.east, '-left-[1.6cqw] top-1/2 -translate-x-full -translate-y-1/2'],
-                [l.west, '-right-[1.6cqw] top-1/2 translate-x-full -translate-y-1/2'],
+                [
+                  l.north,
+                  'left-1/2 -top-[1.2cqw] -translate-x-1/2 -translate-y-full',
+                ],
+                [
+                  l.south,
+                  'left-1/2 -bottom-[1.2cqw] -translate-x-1/2 translate-y-full',
+                ],
+                [
+                  l.east,
+                  '-left-[1.6cqw] top-1/2 -translate-x-full -translate-y-1/2',
+                ],
+                [
+                  l.west,
+                  '-right-[1.6cqw] top-1/2 translate-x-full -translate-y-1/2',
+                ],
               ] as const
             ).map(([text, pos]) => (
               <span
@@ -230,33 +272,57 @@ export function PosterPreview({
                     : '/images/monochrome-constellation.png'
                 }
                 alt={l.mapAlt}
-                className={cn('relative size-full object-contain', !isGold && 'opacity-85')}
+                className={cn(
+                  'relative size-full object-contain',
+                  !isGold && 'opacity-85',
+                )}
                 width={360}
                 height={360}
               />
             )}
           </div>
 
-          {/* title block */}
-          <div className="mt-[9cqw] flex w-full flex-col items-center text-center">
-            <h3 className="text-balance text-[7.2cqw] font-bold leading-[1.35]">
-              {p.title}
-            </h3>
-            <p className="mt-[1.6cqw] text-[4.4cqw] font-medium" style={{ color: t.accent }}>
-              {p.names}
-            </p>
+          {/* title block — omitted entirely when title/names/quote are empty */}
+          {hasTextBlock && (
+            <div className="mt-[9cqw] flex w-full flex-col items-center text-center">
+              {hasTitle && (
+                <h3 className="text-balance text-[7.2cqw] font-bold leading-[1.35]">
+                  {p.title}
+                </h3>
+              )}
+              {hasNames && (
+                <p
+                  className={cn(
+                    'text-[4.4cqw] font-medium',
+                    hasTitle ? 'mt-[1.6cqw]' : undefined,
+                  )}
+                  style={{ color: t.accent }}
+                >
+                  {p.names}
+                </p>
+              )}
 
-            <div className="mt-[3.6cqw]">
-              <Divider color={t.frame} />
+              {showDivider && (
+                <div className="mt-[3.6cqw]">
+                  <Divider color={t.frame} />
+                </div>
+              )}
+
+              {hasQuote && (
+                <p
+                  className={cn(
+                    'max-w-[88%] text-balance text-[3.5cqw] leading-[1.9]',
+                    showDivider || hasTitle || hasNames
+                      ? 'mt-[3.4cqw]'
+                      : undefined,
+                  )}
+                  style={{ color: t.muted }}
+                >
+                  {p.quote}
+                </p>
+              )}
             </div>
-
-            <p
-              className="mt-[3.4cqw] max-w-[88%] text-balance text-[3.5cqw] leading-[1.9]"
-              style={{ color: t.muted }}
-            >
-              {p.quote}
-            </p>
-          </div>
+          )}
 
           {/* meta: place · date · time */}
           {meta.length > 0 && (
@@ -279,15 +345,17 @@ export function PosterPreview({
             </div>
           )}
 
-          <p
-            className={cn(
-              'text-[2.2cqw] tracking-[0.2em]',
-              meta.length > 0 ? 'mt-[2.6cqw]' : 'mt-auto',
-            )}
-            style={{ color: t.muted }}
-          >
-            {l.watermark}
-          </p>
+          {l.watermark ? (
+            <p
+              className={cn(
+                'text-[2.2cqw] tracking-[0.2em]',
+                meta.length > 0 ? 'mt-[2.6cqw]' : 'mt-auto',
+              )}
+              style={{ color: t.muted }}
+            >
+              {l.watermark}
+            </p>
+          ) : null}
 
           {showDisclaimer && (
             <p
