@@ -9,7 +9,11 @@ export type MomentSky = {
 };
 
 /** The sky for what the person typed in step 1, or null while the form is unusable. */
-export function skyForMoment(input: MomentInput): MomentSky | null {
+export function skyForMoment(
+  input: MomentInput,
+  /** Degrees of sky to also compute below the horizon (the full-page template). */
+  extendBelowHorizon?: number,
+): MomentSky | null {
   const moment = resolveMoment(input);
   if (!moment) return null;
   const sky = computeSky({
@@ -17,6 +21,7 @@ export function skyForMoment(input: MomentInput): MomentSky | null {
     longitude: moment.longitude,
     date: moment.instant,
     catalog: skyCatalog,
+    extendBelowHorizon,
   });
   return { sky, moment };
 }

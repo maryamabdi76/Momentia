@@ -18,6 +18,11 @@ import {
   type SkyLayers,
 } from '@/features/sky/lib/layers';
 import { skyForMoment } from '../lib/sky-for-moment';
+import {
+  DEFAULT_TEMPLATE,
+  FULL_SKY_DEPTH,
+  type PosterTemplate,
+} from '../lib/templates';
 import { CreatePreview } from './CreatePreview';
 import type { PosterData, PosterStyle } from './PosterPreview';
 import { Step1Moment } from './Step1Moment';
@@ -39,6 +44,7 @@ export type PersonalizeData = {
   names: string;
   quote: string;
   style: PosterStyle;
+  template: PosterTemplate;
   showDate: boolean;
   showCity: boolean;
   layers: SkyLayers;
@@ -61,6 +67,7 @@ const DEFAULT_PERSONALIZE: PersonalizeData = {
   names: 'مریم و جلال',
   quote: 'از آن شب، هر ستاره نشانی از توست.',
   style: 'gold',
+  template: DEFAULT_TEMPLATE,
   showDate: true,
   showCity: true,
   layers: DEFAULT_SKY_LAYERS,
@@ -100,6 +107,7 @@ function StepperInner() {
       setPersonal({
         ...draft.personal,
         layers: resolveSkyLayers(draft.personal.layers),
+        template: draft.personal.template ?? DEFAULT_TEMPLATE,
       });
     }
     setPayResult(verified || pay !== 'ok' ? pay : 'failed');
@@ -115,9 +123,11 @@ function StepperInner() {
   // The real sky for the chosen city, date and time. Recomputed (a few ms) only
   // when one of those fields changes, not when the title or names are edited.
   const { city, day, month, year, time, noExactTime } = moment;
+  // The full-page template also needs the sky below the horizon, to fill the corners.
+  const depth = personal.template === 'full' ? FULL_SKY_DEPTH : undefined;
   const moonSky = useMemo(
-    () => skyForMoment({ city, day, month, year, time, noExactTime }),
-    [city, day, month, year, time, noExactTime],
+    () => skyForMoment({ city, day, month, year, time, noExactTime }, depth),
+    [city, day, month, year, time, noExactTime, depth],
   );
 
   const posterData: PosterData = {

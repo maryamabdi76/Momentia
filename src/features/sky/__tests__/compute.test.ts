@@ -133,3 +133,28 @@ test('equator and ecliptic guides: above the horizon, and the ecliptic tilts ~23
   const alts = sky.guides.equator.flat().map(([x, y]) => altitudeFromChart(x, y));
   close(Math.max(...alts), 90 - TEHRAN.latitude, 0.6, 'equator culmination');
 });
+
+test('extendBelowHorizon adds the sky under the horizon, beyond the unit circle; off by default', () => {
+  const date = new Date('2023-12-21T17:30:00Z');
+  const plain = computeSky({ ...TEHRAN, date, catalog });
+  assert.equal(plain.below, undefined);
+
+  const wide = computeSky({ ...TEHRAN, date, catalog, extendBelowHorizon: 50 });
+  assert.ok(wide.below && wide.below.stars.length > 200 && wide.below.lines.length > 20);
+  // the part above the horizon is untouched by asking for more
+  assert.equal(wide.stars.length, plain.stars.length);
+  assert.equal(wide.lines.length, plain.lines.length);
+
+  for (const s of wide.below!.stars) {
+    const r = Math.hypot(s.x, s.y);
+    assert.ok(r > 1 - 1e-9, 'below the horizon means outside the unit circle');
+    const alt = altitudeFromChart(s.x, s.y);
+    assert.ok(alt <= 1e-6 && alt >= -50 - 1e-6, `altitude ${alt}`);
+  }
+  for (const piece of wide.below!.lines) {
+    for (const [x, y] of piece) {
+      const alt = altitudeFromChart(x, y);
+      assert.ok(alt <= 1e-6 && alt >= -50 - 1e-6, `line altitude ${alt}`);
+    }
+  }
+});

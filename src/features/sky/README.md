@@ -5,7 +5,8 @@ Computes and draws the sky for a place and a moment. No dependencies, no network
 ```
 features/poster/lib/moment.ts   form (Jalali date, city, time) → one real instant + lat/lon
 features/sky/lib/compute.ts     computeSky() → stars, constellation lines, Moon, planets (chart coordinates)
-features/sky/components/SkyChart.tsx   draws that as SVG
+features/sky/components/SkyChart.tsx   draws that as a round SVG chart
+features/sky/components/SkyField.tsx   draws it across a whole rectangle (the full-page poster template)
 ```
 
 ## How it works
@@ -19,6 +20,13 @@ features/sky/components/SkyChart.tsx   draws that as SVG
    east on the **left**. Constellation lines are clipped where they cross the horizon.
 4. **Moon.** Phase from the Sun–Moon geometry; the bright limb is oriented in chart space; altitude
    includes lunar parallax (up to ~1°).
+
+## Full-page sky
+
+`computeSky({ ..., extendBelowHorizon: 52 })` also returns `snapshot.below`: the stars and constellation
+lines down to 52° under the horizon, in the same chart coordinates (outside the unit circle). `SkyField`
+draws them dimmer around the horizon ring so a rectangular poster can be sky edge to edge. Without the
+option nothing changes and `below` is absent.
 
 ## Accuracy
 
