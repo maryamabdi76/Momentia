@@ -1,8 +1,10 @@
 import { cn } from 'cn';
 import Image from 'next/image';
 import { SkyChart } from '@/features/sky/components/SkyChart';
+import { SkyField } from '@/features/sky/components/SkyField';
 import type { SkyLayers } from '@/features/sky/lib/layers';
 import type { SkySnapshot } from '@/features/sky/lib/types';
+import { FULL_LAYOUT, type PosterTemplate } from '../lib/templates';
 import { POSTER_THEMES, paperCss, type PosterStyle } from '../lib/themes';
 
 export type { PosterStyle };
@@ -17,6 +19,8 @@ export type PosterData = {
   showDate: boolean;
   showCity: boolean;
   style: PosterStyle;
+  /** `circle` (default): a round chart with the text below. `full`: the whole page is sky. */
+  template?: PosterTemplate;
   /** Which parts of the sky are drawn; missing fields take their defaults. */
   layers?: Partial<SkyLayers>;
 };
@@ -119,6 +123,10 @@ export function PosterPreview({
   const p = { ...DEFAULT_DATA, ...data };
   const l = { ...DEFAULT_LABELS, ...labels };
   const t = POSTER_THEMES[p.style];
+  // the full template needs a real sky; without one the circle layout stands in
+  const full = p.template === 'full' && Boolean(sky);
+  const edge = t.paperStops[t.paperStops.length - 1]![1];
+  const fade = (alpha: number) => `color-mix(in srgb, ${edge} ${alpha * 100}%, transparent)`;
 
   const place = p.showCity ? p.city : null;
   const when = p.showDate ? p.dateLabel : null;
@@ -149,6 +157,34 @@ export function PosterPreview({
         className="relative aspect-[3/4.5] w-full [container-type:inline-size]"
         style={{ background: paperCss(t), color: t.ink }}
       >
+        {/* full template: the sky fills the page and the text sits on a fade */}
+        {full && sky && (
+          <>
+            <SkyField
+              sky={sky}
+              variant={p.style}
+              layers={p.layers}
+              {...FULL_LAYOUT}
+              compass={{ north: l.north, south: l.south, east: l.east, west: l.west }}
+              compassColor={t.muted}
+              ariaLabel={l.mapAlt}
+              className="absolute inset-0 size-full"
+            />
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-x-0 top-0 h-[19.3%]"
+              style={{ background: `linear-gradient(to bottom, ${fade(0.85)}, transparent)` }}
+            />
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-x-0 bottom-0 h-[42.2%]"
+              style={{
+                background: `linear-gradient(to bottom, transparent 0%, ${fade(0.55)} 22%, ${fade(0.9)} 45%, ${fade(0.97)} 100%)`,
+              }}
+            />
+          </>
+        )}
+
         {/* outer and inner frame */}
         <div
           aria-hidden
@@ -189,6 +225,7 @@ export function PosterPreview({
           </p>
 
           {/* chart */}
+          {!full && (
           <div className="relative mt-[8cqw] aspect-square w-[78%]">
             {t.glow && (
               <div
@@ -255,10 +292,16 @@ export function PosterPreview({
               />
             )}
           </div>
+          )}
 
           {/* title block — omitted entirely when title/names/quote are empty */}
           {hasTextBlock && (
-            <div className="mt-[9cqw] flex w-full flex-col items-center text-center">
+            <div
+              className={cn(
+                'flex w-full flex-col items-center text-center',
+                full ? 'mt-auto' : 'mt-[9cqw]',
+              )}
+            >
               {hasTitle && (
                 <h3 className="text-balance text-[7.2cqw] font-bold leading-[1.35]">
                   {p.title}
@@ -301,7 +344,10 @@ export function PosterPreview({
           {/* meta: place · date · time */}
           {meta.length > 0 && (
             <div
-              className="mt-auto flex w-full items-center justify-center gap-[3cqw] pt-[4cqw] text-[3.1cqw] font-medium"
+              className={cn(
+                'flex w-full items-center justify-center gap-[3cqw] pt-[4cqw] text-[3.1cqw] font-medium',
+                full ? 'mt-[4cqw]' : 'mt-auto',
+              )}
               style={{ color: t.ink }}
             >
               {meta.map((m, i) => (

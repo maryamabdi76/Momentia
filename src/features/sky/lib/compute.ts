@@ -42,6 +42,12 @@ export type ComputeSkyOptions = {
   catalog: SkyCatalog;
   /** Drop catalog stars fainter than this. Defaults to everything in the catalog. */
   limitMagnitude?: number;
+  /**
+   * Also return the sky below the horizon, down to this many degrees under it
+   * (`snapshot.below`). A circular chart doesn't need it; a poster whose whole
+   * rectangle is sky does, to fill the corners with real stars.
+   */
+  extendBelowHorizon?: number;
 };
 
 /** Altitude of the Sun in degrees (no refraction); handy for deciding whether it is night. */
@@ -59,44 +65,40 @@ const unit = (v: Vec3): Vec3 => {
 const dot = (a: Vec3, b: Vec3) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 
 /**
- * Projects a path of East/North/Up directions onto the chart, cutting it where
- * it crosses the horizon. Returns the pieces that are above it.
+ * Cuts a path of East/North/Up directions at the plane z = `zc` and keeps the
+ * parts on one side: above it, or below it. Where the path crosses, the chord's
+ * point on the plane is pushed back onto the sphere.
  */
-function clipToHorizon(path: readonly Vec3[]): Array<Array<[number, number]>> {
-  const pieces: Array<Array<[number, number]>> = [];
-  let piece: Array<[number, number]> = [];
+function clipHalf(path: readonly Vec3[], zc: number, keepAbove: boolean): Vec3[][] {
+  const side = (v: Vec3) => (keepAbove ? v[2] - zc : zc - v[2]);
+  const pieces: Vec3[][] = [];
+  let piece: Vec3[] = [];
   const flush = () => {
     if (piece.length > 1) pieces.push(piece);
     piece = [];
-  };
-  const add = (v: Vec3) => {
-    const p = chartPoint(v);
-    piece.push([p.x, p.y]);
   };
 
   let prev: Vec3 | null = null;
   for (const cur of path) {
     if (prev === null) {
-      if (cur[2] >= 0) add(cur);
+      if (side(cur) >= 0) piece.push(cur);
     } else {
-      const aUp = prev[2] >= 0;
-      const bUp = cur[2] >= 0;
-      if (aUp && bUp) {
-        add(cur);
-      } else if (aUp !== bUp) {
-        // Crossing: the chord's point on the horizon plane, pushed back to the sphere.
-        const t = prev[2] / (prev[2] - cur[2]);
-        const edge = unit([
-          prev[0] + t * (cur[0] - prev[0]),
-          prev[1] + t * (cur[1] - prev[1]),
-          0,
-        ]);
-        if (aUp) {
-          add(edge);
+      const aIn = side(prev) >= 0;
+      const bIn = side(cur) >= 0;
+      if (aIn && bIn) {
+        piece.push(cur);
+      } else if (aIn !== bIn) {
+        const t = (prev[2] - zc) / (prev[2] - cur[2]);
+        // The crossing's bearing, placed exactly on the plane and on the sphere.
+        const ex = prev[0] + t * (cur[0] - prev[0]);
+        const ey = prev[1] + t * (cur[1] - prev[1]);
+        const k = Math.sqrt(Math.max(0, 1 - zc * zc)) / (Math.hypot(ex, ey) || 1);
+        const edge: Vec3 = [ex * k, ey * k, zc];
+        if (aIn) {
+          piece.push(edge);
           flush();
         } else {
-          add(edge);
-          add(cur);
+          piece.push(edge, cur);
         }
       }
     }
@@ -106,13 +108,41 @@ function clipToHorizon(path: readonly Vec3[]): Array<Array<[number, number]>> {
   return pieces;
 }
 
+const project = (pieces: Vec3[][]): Array<Array<[number, number]>> =>
+  pieces.map((piece) =>
+    piece.map((v): [number, number] => {
+      const p = chartPoint(v);
+      return [p.x, p.y];
+    }),
+  );
+
+/** The parts of a path above the horizon, projected onto the chart. */
+const clipToHorizon = (path: readonly Vec3[]) => project(clipHalf(path, 0, true));
+
+/** The parts between the horizon and `depth` degrees below it. */
+function clipBelowHorizon(path: readonly Vec3[], depth: number) {
+  const zMin = -Math.sin(depth * DEG);
+  return project(
+    clipHalf(path, 0, false).flatMap((piece) => clipHalf(piece, zMin, true)),
+  );
+}
+
 /**
  * Everything visible from `latitude`/`longitude` at `date`, already projected
  * into chart space. Pure and synchronous (a few milliseconds), so it can run on
  * every keystroke.
  */
 export function computeSky(options: ComputeSkyOptions): SkySnapshot {
-  const { latitude, longitude, date, catalog, limitMagnitude = Infinity } = options;
+  const {
+    latitude,
+    longitude,
+    date,
+    catalog,
+    limitMagnitude = Infinity,
+    extendBelowHorizon = 0,
+  } = options;
+  const depth = Math.min(Math.max(extendBelowHorizon, 0), 60);
+  const zMin = -Math.sin(depth * DEG);
 
   const T = centuriesTT(date);
   const lst = localSiderealDegrees(date, longitude);
@@ -122,24 +152,34 @@ export function computeSky(options: ComputeSkyOptions): SkySnapshot {
 
   // ── stars ──────────────────────────────────────────────────────────────────
   const stars: SkyStar[] = [];
+  const starsBelow: SkyStar[] = [];
   for (const [ra, dec, mag, bv] of catalog.stars) {
     if (mag > limitMagnitude) continue;
     const enu = applyMat3(j2000ToEnu, raDecToVector(ra, dec));
-    if (enu[2] <= 0) continue; // below the horizon
+    if (enu[2] <= 0) {
+      // below the horizon: only kept when the caller asked for the extended sky
+      if (depth > 0 && enu[2] >= zMin) {
+        const { x, y } = chartPoint(enu);
+        starsBelow.push({ x, y, mag, bv });
+      }
+      continue;
+    }
     const { x, y } = chartPoint(enu);
     stars.push({ x, y, mag, bv });
   }
   stars.sort((a, b) => b.mag - a.mag); // faint first → bright stars paint on top
+  starsBelow.sort((a, b) => b.mag - a.mag);
 
   // ── constellation lines, clipped where they cross the horizon ─────────────
   const lines: SkySnapshot['lines'] = [];
+  const linesBelow: SkySnapshot['lines'] = [];
   for (const figure of catalog.lines) {
     for (const path of figure.paths) {
-      lines.push(
-        ...clipToHorizon(
-          path.map(([ra, dec]) => applyMat3(j2000ToEnu, raDecToVector(ra, dec))),
-        ),
+      const enuPath = path.map(([ra, dec]) =>
+        applyMat3(j2000ToEnu, raDecToVector(ra, dec)),
       );
+      lines.push(...clipToHorizon(enuPath));
+      if (depth > 0) linesBelow.push(...clipBelowHorizon(enuPath, depth));
     }
   }
 
@@ -223,6 +263,7 @@ export function computeSky(options: ComputeSkyOptions): SkySnapshot {
     stars,
     lines,
     guides: { equator, ecliptic },
+    ...(depth > 0 ? { below: { stars: starsBelow, lines: linesBelow } } : {}),
     moon,
     planets,
   };

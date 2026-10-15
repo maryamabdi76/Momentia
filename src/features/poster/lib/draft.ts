@@ -1,3 +1,4 @@
+import { isPosterTemplate } from './templates';
 import { isPosterStyle } from './themes';
 import type { MomentData, PersonalizeData } from '../components/CreateStepper';
 
@@ -30,6 +31,8 @@ export function loadDraft(): PosterDraft | null {
     const strings = [m.city, m.timezone, m.day, m.month, m.year, m.time, p.title, p.names, p.quote];
     if (strings.some((v) => typeof v !== 'string')) return null;
     if (!isPosterStyle(p.style)) return null;
+    // drafts saved before templates existed have none; the stepper fills in the default
+    if (p.template !== undefined && !isPosterTemplate(p.template)) return null;
     return parsed as unknown as PosterDraft;
   } catch {
     return null;

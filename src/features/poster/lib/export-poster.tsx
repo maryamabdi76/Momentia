@@ -1,7 +1,10 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { SkyChart } from '@/features/sky/components/SkyChart';
+import { SkyField } from '@/features/sky/components/SkyField';
 import type { SkySnapshot } from '@/features/sky/lib/types';
 import type { PosterData, PosterLabels } from '../components/PosterPreview';
+import { FULL_LAYOUT } from './templates';
+import { POSTER_THEMES } from './themes';
 import {
   POSTER_HEIGHT,
   POSTER_WIDTH,
@@ -53,16 +56,33 @@ export async function createPosterSvg({
   watermark,
 }: ExportInput): Promise<string> {
   const fonts = await loadFonts();
-  const chartSvg = sky
-    ? renderToStaticMarkup(
-        <SkyChart
-          sky={sky}
-          variant={data.style}
-          layers={data.layers}
-          ariaLabel={labels.mapAlt}
-        />,
-      )
-    : '';
+  const chartSvg = !sky
+    ? ''
+    : renderToStaticMarkup(
+        data.template === 'full' ? (
+          <SkyField
+            sky={sky}
+            variant={data.style}
+            layers={data.layers}
+            {...FULL_LAYOUT}
+            compass={{
+              north: labels.north,
+              south: labels.south,
+              east: labels.east,
+              west: labels.west,
+            }}
+            compassColor={POSTER_THEMES[data.style].muted}
+            ariaLabel={labels.mapAlt}
+          />
+        ) : (
+          <SkyChart
+            sky={sky}
+            variant={data.style}
+            layers={data.layers}
+            ariaLabel={labels.mapAlt}
+          />
+        ),
+      );
   return buildPosterSvg({ data, labels, chartSvg, fonts, watermark });
 }
 

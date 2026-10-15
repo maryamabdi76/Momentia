@@ -25,6 +25,10 @@ import {
 } from '@/features/poster/lib/schemas';
 import type { PersonalizeData, MomentData } from './CreateStepper';
 import {
+  POSTER_TEMPLATES,
+  type PosterTemplate,
+} from '@/features/poster/lib/templates';
+import {
   POSTER_STYLES,
   POSTER_THEMES,
   paperCss,
@@ -41,6 +45,39 @@ type Props = {
   onBack: () => void;
   onEditMoment?: () => void;
 };
+
+/** A tiny schematic of each layout, drawn in the current colour. */
+function TemplateIcon({
+  template,
+  className,
+}: {
+  template: PosterTemplate;
+  className?: string;
+}) {
+  const dots =
+    template === 'full'
+      ? [
+          [5, 6], [11, 4], [19, 7], [27, 5], [33, 9], [8, 14], [16, 12], [24, 15],
+          [31, 17], [6, 22], [14, 25], [22, 21], [30, 26], [10, 30], [26, 32],
+        ]
+      : [[14, 12], [20, 9], [26, 13], [18, 18], [24, 21], [15, 24]];
+  return (
+    <svg
+      aria-hidden
+      viewBox="0 0 40 56"
+      className={cn('h-14 w-10 shrink-0', className)}
+      fill="none"
+      stroke="currentColor"
+    >
+      <rect x="0.75" y="0.75" width="38.5" height="54.5" rx="2" strokeWidth={1.2} />
+      {template === 'circle' && <circle cx="20" cy="17" r="12" strokeWidth={1} />}
+      {dots.map(([x, y]) => (
+        <circle key={`${x}-${y}`} cx={x} cy={y} r={1} fill="currentColor" stroke="none" />
+      ))}
+      <path d="M9 40h22M12 46h16" strokeWidth={1.6} strokeLinecap="round" />
+    </svg>
+  );
+}
 
 export function Step2Personalize({
   data,
@@ -60,6 +97,7 @@ export function Step2Personalize({
       names: data.names,
       quote: data.quote,
       style: data.style,
+      template: data.template,
       showDate: data.showDate,
       showCity: data.showCity,
       layers: data.layers,
@@ -77,6 +115,7 @@ export function Step2Personalize({
     watched.names,
     watched.quote,
     watched.style,
+    watched.template,
     watched.showDate,
     watched.showCity,
     layers?.constellationLines,
@@ -212,6 +251,63 @@ export function Step2Personalize({
                 </p>
               )}
             </>
+          )}
+        />
+      </div>
+
+      {/* Layout picker: round chart, or the whole page as sky */}
+      <div className="space-y-3">
+        <p className="text-sm font-medium text-[#E8D9B8]">{t('templateLabel')}</p>
+        <Controller
+          control={control}
+          name="template"
+          render={({ field }) => (
+            <RadioGroup
+              value={field.value}
+              onValueChange={field.onChange}
+              className="grid grid-cols-2 gap-3"
+            >
+              {POSTER_TEMPLATES.map((tpl) => {
+                const isSelected = field.value === tpl;
+                return (
+                  <Label
+                    key={tpl}
+                    htmlFor={`template-${tpl}`}
+                    className={cn(
+                      'flex cursor-pointer flex-col items-stretch gap-3 rounded-xl border p-3.5 transition-colors',
+                      isSelected
+                        ? 'border-[#CEB47B]/70 bg-[#CEB47B]/8'
+                        : 'border-[#33415B]',
+                    )}
+                  >
+                    <span className="flex items-start justify-between gap-2">
+                      <TemplateIcon
+                        template={tpl}
+                        className={isSelected ? 'text-[#CEB47B]' : 'text-white/40'}
+                      />
+                      <RadioGroupItem
+                        value={tpl}
+                        id={`template-${tpl}`}
+                        className="border-white/20 data-checked:border-[#CEB47B] data-checked:bg-[#CEB47B] dark:data-checked:border-[#CEB47B] dark:data-checked:bg-[#CEB47B] [&_[data-slot=radio-group-indicator]_span]:bg-[#0c142b]"
+                      />
+                    </span>
+                    <span className="space-y-1">
+                      <span
+                        className={cn(
+                          'block text-sm',
+                          isSelected ? 'font-medium text-white' : 'font-normal text-white/60',
+                        )}
+                      >
+                        {t(`templates.${tpl}.label`)}
+                      </span>
+                      <span className="block text-[11px] font-normal leading-5 text-[#AAB6CD]">
+                        {t(`templates.${tpl}.hint`)}
+                      </span>
+                    </span>
+                  </Label>
+                );
+              })}
+            </RadioGroup>
           )}
         />
       </div>

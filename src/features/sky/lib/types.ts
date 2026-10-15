@@ -71,6 +71,14 @@ export type SkySnapshot = {
   stars: SkyStar[];
   /** Constellation figures, already clipped at the horizon. */
   lines: Array<Array<[x: number, y: number]>>;
+  /**
+   * The sky under the horizon, in the same chart coordinates (so beyond radius 1).
+   * Only present when `computeSky` is called with `extendBelowHorizon`.
+   */
+  below?: {
+    stars: SkyStar[];
+    lines: Array<Array<[x: number, y: number]>>;
+  };
   /** The celestial equator and the ecliptic, clipped at the horizon like `lines`. */
   guides: {
     equator: Array<Array<[x: number, y: number]>>;
