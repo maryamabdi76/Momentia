@@ -1,3 +1,4 @@
+import { isPosterStyle } from './themes';
 import type { MomentData, PersonalizeData } from '../components/CreateStepper';
 
 /**
@@ -28,7 +29,7 @@ export function loadDraft(): PosterDraft | null {
     const { moment: m, personal: p } = parsed;
     const strings = [m.city, m.timezone, m.day, m.month, m.year, m.time, p.title, p.names, p.quote];
     if (strings.some((v) => typeof v !== 'string')) return null;
-    if (p.style !== 'gold' && p.style !== 'mono') return null;
+    if (!isPosterStyle(p.style)) return null;
     return parsed as unknown as PosterDraft;
   } catch {
     return null;

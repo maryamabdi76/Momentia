@@ -3,8 +3,9 @@ import Image from 'next/image';
 import { SkyChart } from '@/features/sky/components/SkyChart';
 import type { SkyLayers } from '@/features/sky/lib/layers';
 import type { SkySnapshot } from '@/features/sky/lib/types';
+import { POSTER_THEMES, paperCss, type PosterStyle } from '../lib/themes';
 
-export type PosterStyle = 'gold' | 'mono';
+export type { PosterStyle };
 
 export type PosterData = {
   title: string;
@@ -54,35 +55,6 @@ const DEFAULT_DATA: PosterData = {
   showDate: true,
   showCity: true,
   style: 'gold',
-};
-
-type Theme = {
-  paper: string;
-  frame: string;
-  frameSoft: string;
-  ink: string;
-  accent: string;
-  muted: string;
-};
-
-const THEMES: Record<PosterStyle, Theme> = {
-  gold: {
-    paper:
-      'radial-gradient(120% 70% at 50% 38%, #1a2f5c 0%, #0f2147 45%, #08132b 100%)',
-    frame: '#CEB47B',
-    frameSoft: 'rgba(206,180,123,0.45)',
-    ink: '#F1E6C8',
-    accent: '#E3C88A',
-    muted: 'rgba(241,230,200,0.62)',
-  },
-  mono: {
-    paper: 'linear-gradient(180deg,#fbf9f4 0%,#f3efe5 100%)',
-    frame: '#2a2a28',
-    frameSoft: 'rgba(42,42,40,0.35)',
-    ink: '#1c1c1a',
-    accent: '#1c1c1a',
-    muted: 'rgba(28,28,26,0.62)',
-  },
 };
 
 /** A hairline with a small four-point star in the middle. */
@@ -146,8 +118,7 @@ export function PosterPreview({
 }) {
   const p = { ...DEFAULT_DATA, ...data };
   const l = { ...DEFAULT_LABELS, ...labels };
-  const isGold = p.style === 'gold';
-  const t = THEMES[p.style];
+  const t = POSTER_THEMES[p.style];
 
   const place = p.showCity ? p.city : null;
   const when = p.showDate ? p.dateLabel : null;
@@ -176,7 +147,7 @@ export function PosterPreview({
       {/* container-type lets every size below scale with the poster's own width */}
       <div
         className="relative aspect-[3/4.5] w-full [container-type:inline-size]"
-        style={{ background: t.paper, color: t.ink }}
+        style={{ background: paperCss(t), color: t.ink }}
       >
         {/* outer and inner frame */}
         <div
@@ -219,13 +190,12 @@ export function PosterPreview({
 
           {/* chart */}
           <div className="relative mt-[8cqw] aspect-square w-[78%]">
-            {isGold && (
+            {t.glow && (
               <div
                 aria-hidden
                 className="absolute inset-[-6%] rounded-full"
                 style={{
-                  background:
-                    'radial-gradient(closest-side, rgba(206,180,123,0.16), rgba(206,180,123,0) 100%)',
+                  background: `radial-gradient(closest-side, color-mix(in srgb, ${t.glow} 16%, transparent), transparent 100%)`,
                 }}
               />
             )}
@@ -271,14 +241,14 @@ export function PosterPreview({
             ) : (
               <Image
                 src={
-                  isGold
+                  t.dark
                     ? '/images/gold-constellation.png'
                     : '/images/monochrome-constellation.png'
                 }
                 alt={l.mapAlt}
                 className={cn(
                   'relative size-full object-contain',
-                  !isGold && 'opacity-85',
+                  !t.dark && 'opacity-85',
                 )}
                 width={360}
                 height={360}

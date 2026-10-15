@@ -24,6 +24,11 @@ import {
   type PersonalizeValues,
 } from '@/features/poster/lib/schemas';
 import type { PersonalizeData, MomentData } from './CreateStepper';
+import {
+  POSTER_STYLES,
+  POSTER_THEMES,
+  paperCss,
+} from '@/features/poster/lib/themes';
 import { MAGNITUDE_PRESETS } from '@/features/sky/lib/layers';
 import { cn } from 'cn';
 import { Separator } from '@/components/ui/separator';
@@ -223,7 +228,7 @@ export function Step2Personalize({
               onValueChange={field.onChange}
               className="grid grid-cols-2 gap-3"
             >
-              {(['mono', 'gold'] as const).map((s, i) => {
+              {POSTER_STYLES.map((s) => {
                 const isSelected = field.value === s;
                 return (
                   <Label
@@ -236,14 +241,24 @@ export function Step2Personalize({
                         : 'border-[#33415B]',
                     )}
                   >
-                    <span
-                      className={
-                        isSelected
-                          ? 'text-sm font-medium text-white'
-                          : 'text-sm font-normal text-white/55'
-                      }
-                    >
-                      {t(`styles.${i}.label`)}
+                    <span className="flex items-center gap-2.5">
+                      <span
+                        aria-hidden
+                        className="size-6 shrink-0 rounded-full border"
+                        style={{
+                          background: paperCss(POSTER_THEMES[s]),
+                          borderColor: POSTER_THEMES[s].frame,
+                        }}
+                      />
+                      <span
+                        className={
+                          isSelected
+                            ? 'text-sm font-medium text-white'
+                            : 'text-sm font-normal text-white/55'
+                        }
+                      >
+                        {t(`styles.${s}`)}
+                      </span>
                     </span>
                     <RadioGroupItem
                       value={s}
