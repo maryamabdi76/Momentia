@@ -21,6 +21,8 @@ export type PosterTheme = {
   glow: string | null;
   /** Dark paper: decides which fallback illustration is shown. */
   dark: boolean;
+  /** Backdrop colour for small poster cards on the home page (the "mat" around the print). */
+  mat: string;
 };
 
 export const POSTER_THEMES: Record<PosterStyle, PosterTheme> = {
@@ -39,6 +41,7 @@ export const POSTER_THEMES: Record<PosterStyle, PosterTheme> = {
     muted: 'rgba(241,230,200,0.62)',
     glow: '#CEB47B',
     dark: true,
+    mat: '#132346',
   },
   // clean white paper, black ink
   mono: {
@@ -54,6 +57,7 @@ export const POSTER_THEMES: Record<PosterStyle, PosterTheme> = {
     muted: 'rgba(28,28,26,0.62)',
     glow: null,
     dark: false,
+    mat: '#f8f6f0',
   },
   // deep black, silver linework: the high-contrast look most star maps sell in
   black: {
@@ -70,6 +74,7 @@ export const POSTER_THEMES: Record<PosterStyle, PosterTheme> = {
     muted: 'rgba(244,245,247,0.6)',
     glow: '#C9CDD6',
     dark: true,
+    mat: '#0b0c0f',
   },
   // aged paper, sepia ink: an old navigational chart
   parchment: {
@@ -86,6 +91,7 @@ export const POSTER_THEMES: Record<PosterStyle, PosterTheme> = {
     muted: 'rgba(58,39,20,0.68)',
     glow: null,
     dark: false,
+    mat: '#ecdfbd',
   },
   // deep plum night, rose-gold linework: a softer, warmer dark
   violet: {
@@ -102,6 +108,7 @@ export const POSTER_THEMES: Record<PosterStyle, PosterTheme> = {
     muted: 'rgba(247,230,226,0.62)',
     glow: '#E2A9A0',
     dark: true,
+    mat: '#1f0f38',
   },
 };
 
