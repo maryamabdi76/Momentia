@@ -1,14 +1,32 @@
 import { getTranslations } from 'next-intl/server';
-import { HomePosterPreview, type PosterVariant } from './HomePosterPreview';
+import type { PosterStyle } from '@/features/poster/lib/themes';
+import { skyForMoment } from '@/features/poster/lib/sky-for-moment';
+import { HomePosterPreview } from './HomePosterPreview';
 
-const VARIANTS: PosterVariant[] = ['gold', 'mono'];
+// The same sample night as the hero and the create page: Yalda in Tehran, 21:00.
+const SAMPLE_NIGHT = {
+  city: 'تهران',
+  day: '30',
+  month: 'آذر',
+  year: '1405',
+  time: '21:00',
+  noExactTime: false,
+};
+
+// Gold leads, as it always has; the rest follow the order of the create page.
+const ORDER: PosterStyle[] = ['gold', 'mono', 'black', 'parchment', 'violet'];
+
+// The cards are ~320px wide, so fewer stars keep them clean and the markup small.
+const CARD_LAYERS = { maxMagnitude: 4 };
 
 export async function HomeGifts() {
   const t = await getTranslations('HomePage.gifts');
+  const sky = skyForMoment(SAMPLE_NIGHT)?.sky ?? null;
 
-  const items = [0, 1].map((i) => ({
-    title: t(`items.${i}.title`),
-    body: t(`items.${i}.body`),
+  const items = ORDER.map((style) => ({
+    style,
+    title: t(`items.${style}.title`),
+    body: t(`items.${style}.body`),
   }));
 
   return (
@@ -20,17 +38,27 @@ export async function HomeGifts() {
             {t('title')}
           </h2>
         </div>
+        {/* centred wrap: 1 → 2 → 3 per row; the leftovers stay in the middle */}
         <div
           data-animate="stagger"
-          className="mt-14 grid gap-6 md:grid-cols-2 md:gap-8"
+          className="mt-14 flex flex-wrap justify-center gap-x-6 gap-y-12 md:gap-x-8"
         >
-          {items.map(({ title, body }, index) => (
-            <div key={title} data-animate-item className=" text-center">
-              <div className="mx-auto flex justify-center rounded-2xl bg-[#DDD8CD] px-8 py-10">
-                <HomePosterPreview variant={VARIANTS[index]} size="product" />
+          {items.map(({ style, title, body }) => (
+            <div
+              key={style}
+              data-animate-item
+              className="w-full text-center sm:w-[calc(50%-0.75rem)] lg:w-[calc(33.333%-1.34rem)]"
+            >
+              <div className="mx-auto flex justify-center rounded-2xl bg-[#DDD8CD] px-6 py-8 md:px-8 md:py-10">
+                <HomePosterPreview
+                  variant={style}
+                  size="product"
+                  sky={sky}
+                  layers={CARD_LAYERS}
+                />
               </div>
               <h3 className="mt-8 text-xl">{title}</h3>
-              <p className="mx-auto mt-2 text-xs leading-6">{body}</p>
+              <p className="mx-auto mt-2 max-w-xs text-xs leading-6">{body}</p>
             </div>
           ))}
         </div>

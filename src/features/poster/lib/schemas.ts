@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { POSTER_STYLES } from './themes';
 import { JALALI_MONTHS, JALALI_DAYS, JALALI_YEARS } from './calendar';
 
 export const momentSchema = z.object({
@@ -15,7 +16,7 @@ export const personalizeSchema = z.object({
   title: z.string().min(1).max(60),
   names: z.string().min(1).max(40),
   quote: z.string().max(100),
-  style: z.enum(['gold', 'mono']),
+  style: z.enum(POSTER_STYLES),
   showDate: z.boolean(),
   showCity: z.boolean(),
   layers: z.object({

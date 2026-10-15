@@ -1,4 +1,5 @@
 import type { PosterData, PosterLabels } from '../components/PosterPreview';
+import { POSTER_THEMES } from './themes.ts';
 
 /**
  * The poster as one self-contained SVG string — the single source for every
@@ -12,44 +13,6 @@ const CHART_SIZE = 576;
 const CHART_X = (POSTER_WIDTH - CHART_SIZE) / 2;
 const CHART_Y = 180;
 const CHART_CENTER_Y = CHART_Y + CHART_SIZE / 2;
-
-type Theme = {
-  paperStops: Array<[offset: number, color: string]>;
-  linear: boolean;
-  frame: string;
-  frameSoft: string;
-  ink: string;
-  accent: string;
-  muted: string;
-};
-
-const THEMES: Record<PosterData['style'], Theme> = {
-  gold: {
-    paperStops: [
-      [0, '#1a2f5c'],
-      [0.45, '#0f2147'],
-      [1, '#08132b'],
-    ],
-    linear: false,
-    frame: '#CEB47B',
-    frameSoft: 'rgba(206,180,123,0.45)',
-    ink: '#F1E6C8',
-    accent: '#E3C88A',
-    muted: 'rgba(241,230,200,0.62)',
-  },
-  mono: {
-    paperStops: [
-      [0, '#fbf9f4'],
-      [1, '#f3efe5'],
-    ],
-    linear: true,
-    frame: '#2a2a28',
-    frameSoft: 'rgba(42,42,40,0.35)',
-    ink: '#1c1c1a',
-    accent: '#1c1c1a',
-    muted: 'rgba(28,28,26,0.62)',
-  },
-};
 
 export type PosterFonts = { regular: string; bold: string };
 
@@ -102,7 +65,7 @@ function corner(color: string, x: number, y: number, sx: 1 | -1, sy: 1 | -1) {
 
 export function buildPosterSvg(opts: PosterSvgOptions): string {
   const { data: p, labels: l, chartSvg, fonts, watermark } = opts;
-  const t = THEMES[p.style];
+  const t = POSTER_THEMES[p.style];
   const W = POSTER_WIDTH;
   const H = POSTER_HEIGHT;
   const cx = W / 2;
@@ -123,7 +86,7 @@ export function buildPosterSvg(opts: PosterSvgOptions): string {
   parts.push(text(l.headerLine, 94, 27, t.accent));
 
   // chart, glow and compass
-  if (p.style === 'gold') {
+  if (t.glow) {
     parts.push(
       `<circle cx="${cx}" cy="${CHART_CENTER_Y}" r="${CHART_SIZE * 0.56}" fill="url(#glow)"/>`,
     );
@@ -192,7 +155,9 @@ export function buildPosterSvg(opts: PosterSvgOptions): string {
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="${esc(l.mapAlt)}">` +
     `<defs><style>${fontCss}text{font-family:'Vazirmatn',Tahoma,sans-serif}</style>` +
     paper +
-    `<radialGradient id="glow"><stop offset="0" stop-color="#CEB47B" stop-opacity="0.16"/><stop offset="1" stop-color="#CEB47B" stop-opacity="0"/></radialGradient>` +
+    (t.glow
+      ? `<radialGradient id="glow"><stop offset="0" stop-color="${t.glow}" stop-opacity="0.16"/><stop offset="1" stop-color="${t.glow}" stop-opacity="0"/></radialGradient>`
+      : '') +
     `<linearGradient id="divL" x1="0" x2="1"><stop offset="0" stop-color="${t.frame}" stop-opacity="0"/><stop offset="1" stop-color="${t.frame}"/></linearGradient>` +
     `<linearGradient id="divR" x1="0" x2="1"><stop offset="0" stop-color="${t.frame}"/><stop offset="1" stop-color="${t.frame}" stop-opacity="0"/></linearGradient>` +
     `</defs>` +
