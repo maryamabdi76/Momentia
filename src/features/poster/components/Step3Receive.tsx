@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import { useTranslations } from 'next-intl';
-import { Check, Download, Loader2, ShieldCheck } from 'lucide-react';
+import { Check, Crown, Download, Loader2, Lock, ShieldCheck } from 'lucide-react';
 import { PREMIUM_PRICE_TOMAN } from '@/features/payments/lib/client';
 import { formatToman } from '../lib/digits';
 import { Button } from '@/components/ui/button';
@@ -14,6 +14,8 @@ type Props = {
   moment: MomentData;
   exporter: PosterExport;
   payResult: 'ok' | 'cancelled' | 'failed' | null;
+  /** Switch to the free round layout (offered when the chosen layout is premium-only). */
+  onUseFreeLayout?: () => void;
 };
 
 function occasionKeepsakeLabel(
@@ -32,7 +34,13 @@ function occasionKeepsakeLabel(
 }
 
 // Back / share actions live under the poster preview (see CreatePreview).
-export function Step3Receive({ personal, moment, exporter, payResult }: Props) {
+export function Step3Receive({
+  personal,
+  moment,
+  exporter,
+  payResult,
+  onUseFreeLayout,
+}: Props) {
   const t = useTranslations('CreatePage.step3');
   const tMoment = useTranslations('CreatePage.step1');
 
@@ -47,6 +55,8 @@ export function Step3Receive({ personal, moment, exporter, payResult }: Props) {
     ) : (
       <Download className={cls} />
     );
+
+  const locked = exporter.freeLocked;
 
   const description = occasionKeepsake
     ? t('descriptionOccasion', {
@@ -68,21 +78,43 @@ export function Step3Receive({ personal, moment, exporter, payResult }: Props) {
       </div>
 
       {/* Digital — free */}
-      <div className="rounded-2xl border border-[#33415B] bg-[#142039] p-5 space-y-4">
+      <div
+        className={`rounded-2xl border border-[#33415B] bg-[#142039] p-5 space-y-4 ${locked ? 'opacity-90' : ''}`}
+      >
         <div className="flex items-center justify-between gap-3">
           <p className="text-base font-bold text-white">{t('digitalTitle')}</p>
-          <span className="shrink-0 rounded-full border border-[#CEB47B]/40 px-2.5 py-0.5 text-[11px] text-[#CEB47B]">
-            {t('digitalBadge')}
+          <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-[#CEB47B]/40 px-2.5 py-0.5 text-[11px] text-[#CEB47B]">
+            {locked && <Lock aria-hidden className="size-3" />}
+            {locked ? t('freeLocked.badge') : t('digitalBadge')}
           </span>
         </div>
-        <p className="text-[12px] leading-6 text-[#AAB6CD]">
-          {t('digitalDesc')}
-        </p>
+        {locked ? (
+          <div className="space-y-3 rounded-xl border border-[#CEB47B]/30 bg-[#CEB47B]/5 p-3.5">
+            <p className="flex items-start gap-2 text-[12px] leading-6 text-[#E8D9B8]">
+              <Crown aria-hidden className="mt-1 size-3.5 shrink-0 text-[#CEB47B]" />
+              {t('freeLocked.body')}
+            </p>
+            {onUseFreeLayout && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onUseFreeLayout}
+                className="h-10 w-full border-[#33415B] bg-transparent text-xs text-white/80 hover:bg-white/5"
+              >
+                {t('freeLocked.useFree')}
+              </Button>
+            )}
+          </div>
+        ) : (
+          <p className="text-[12px] leading-6 text-[#AAB6CD]">
+            {t('digitalDesc')}
+          </p>
+        )}
         <div className="flex flex-col gap-2.5">
           <Button
             type="button"
             onClick={exporter.downloadPng}
-            disabled={exporter.busy !== null}
+            disabled={locked || exporter.busy !== null}
             className="h-11 w-full bg-[#CEB47B] text-sm font-bold text-[#0c142b] hover:bg-[#e0c180] gap-2"
           >
             {icon('png')}
@@ -92,14 +124,16 @@ export function Step3Receive({ personal, moment, exporter, payResult }: Props) {
             type="button"
             variant="outline"
             onClick={exporter.downloadSvg}
-            disabled={exporter.busy !== null}
+            disabled={locked || exporter.busy !== null}
             className="h-11 w-full border-[#33415B] bg-transparent text-sm text-white/70 hover:bg-white/5 gap-2"
           >
             {icon('svg', 'size-4 opacity-70')}
             {t('downloadSvg')}
           </Button>
         </div>
-        <p className="text-[11px] leading-5 text-[#AAB6CD]">{t('svgNote')}</p>
+        {!locked && (
+          <p className="text-[11px] leading-5 text-[#AAB6CD]">{t('svgNote')}</p>
+        )}
       </div>
 
       {/* Premium digital — no watermark */}

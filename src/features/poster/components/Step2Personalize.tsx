@@ -9,7 +9,7 @@ import {
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect } from 'react';
 import { useTranslations } from 'next-intl';
-import { ArrowLeft, ArrowRight, Pencil, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Crown, Pencil, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   InputGroup,
@@ -26,6 +26,7 @@ import {
 import type { PersonalizeData, MomentData } from './CreateStepper';
 import {
   POSTER_TEMPLATES,
+  isPremiumTemplate,
   type PosterTemplate,
 } from '@/features/poster/lib/templates';
 import {
@@ -35,6 +36,7 @@ import {
 } from '@/features/poster/lib/themes';
 import { MAGNITUDE_PRESETS } from '@/features/sky/lib/layers';
 import { cn } from 'cn';
+import { PremiumMark } from './PremiumMark';
 import { Separator } from '@/components/ui/separator';
 
 type Props = {
@@ -285,11 +287,19 @@ export function Step2Personalize({
                         template={tpl}
                         className={isSelected ? 'text-[#CEB47B]' : 'text-white/40'}
                       />
+                      <span className="flex flex-col items-end gap-2">
                       <RadioGroupItem
                         value={tpl}
                         id={`template-${tpl}`}
                         className="border-white/20 data-checked:border-[#CEB47B] data-checked:bg-[#CEB47B] dark:data-checked:border-[#CEB47B] dark:data-checked:bg-[#CEB47B] [&_[data-slot=radio-group-indicator]_span]:bg-[#0c142b]"
                       />
+                      {isPremiumTemplate(tpl) && (
+                        <PremiumMark
+                          label={t('premium.badge')}
+                          tooltip={t('premium.tooltip')}
+                        />
+                      )}
+                      </span>
                     </span>
                     <span className="space-y-1">
                       <span
@@ -310,6 +320,12 @@ export function Step2Personalize({
             </RadioGroup>
           )}
         />
+        {isPremiumTemplate(watched.template as PosterTemplate) && (
+          <p className="flex items-start gap-2 rounded-xl border border-[#CEB47B]/30 bg-[#CEB47B]/5 p-3 text-[11px] leading-5 text-[#E8D9B8]">
+            <Crown aria-hidden className="mt-0.5 size-3.5 shrink-0 text-[#CEB47B]" />
+            {t('premium.note')}
+          </p>
+        )}
       </div>
 
       {/* Style picker */}

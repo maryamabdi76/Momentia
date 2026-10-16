@@ -115,7 +115,8 @@ export function CreatePreview({ step, poster, sky, moment, onBack, exporter }: P
               type="button"
               variant="outline"
               onClick={exporter.share}
-              disabled={exporter.busy !== null}
+              disabled={exporter.freeLocked || exporter.busy !== null}
+              title={exporter.freeLocked ? tReceive('freeLocked.shareHint') : undefined}
               className="cursor-pointer p-7! gap-2 rounded-xl border-[#33415B] bg-transparent text-sm font-bold text-[#E8D9B8] hover:text-[#E8D9B8] hover:bg-white/5"
             >
               {exporter.busy === 'share'

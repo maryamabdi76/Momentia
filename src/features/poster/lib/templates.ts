@@ -13,6 +13,13 @@ export function isPosterTemplate(value: unknown): value is PosterTemplate {
   return typeof value === 'string' && (POSTER_TEMPLATES as readonly string[]).includes(value);
 }
 
+/** Layouts that have no free download: the file is only handed out as the paid, watermark-free PNG. */
+export const PREMIUM_TEMPLATES: readonly PosterTemplate[] = ['full'];
+
+export function isPremiumTemplate(template: PosterTemplate): boolean {
+  return PREMIUM_TEMPLATES.includes(template);
+}
+
 /**
  * Geometry of the "full" template on the 900 × 1350 poster canvas. The preview
  * and the exported file both read it, so they line up.

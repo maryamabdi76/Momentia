@@ -1,6 +1,7 @@
 import { getTranslations } from 'next-intl/server';
 import { PosterPreview } from '@/features/poster/components/PosterPreview';
 import { POSTER_THEMES, type PosterStyle } from '@/features/poster/lib/themes';
+import type { PosterTemplate } from '@/features/poster/lib/templates';
 import type { SkyLayers } from '@/features/sky/lib/layers';
 import type { SkySnapshot } from '@/features/sky/lib/types';
 
@@ -9,11 +10,13 @@ export type PosterSize = 'hero' | 'product' | 'compact';
 
 export async function HomePosterPreview({
   variant = 'gold',
+  template,
   size = 'product',
   sky,
   layers,
 }: {
   variant?: PosterVariant;
+  template?: PosterTemplate;
   size?: PosterSize;
   /** A real sky for the card; without it the static illustration is shown. */
   sky?: SkySnapshot | null;
@@ -27,7 +30,7 @@ export async function HomePosterPreview({
       size={size === 'hero' ? 'hero' : 'default'}
       showDisclaimer={false}
       sky={sky}
-      data={{ style: variant, layers }}
+      data={{ style: variant, template, layers }}
       labels={{
         headerLine: t('posterHeader'),
         mapAlt: t(`posterAlt.${variant}`),
