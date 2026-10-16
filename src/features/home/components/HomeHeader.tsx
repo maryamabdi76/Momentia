@@ -29,6 +29,7 @@ export async function HomeHeader({ variant = 'home' }: HomeHeaderProps) {
   const anchorBase = isCreate ? '/' : '';
   const navLinks = [
     ['gifts', t('nav.posters')],
+    ['moon', t('nav.moon')],
     ['steps', t('nav.how')],
     ['faq', t('nav.faq')],
   ] as const;

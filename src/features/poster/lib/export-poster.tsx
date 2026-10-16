@@ -30,7 +30,7 @@ async function toBase64(url: string): Promise<string> {
 }
 
 /** The two Vazirmatn weights, embedded so the file looks the same everywhere. */
-function loadFonts(): Promise<PosterFonts> {
+export function loadFonts(): Promise<PosterFonts> {
   fontCache ??= Promise.all([
     toBase64('/fonts/vazirmatn/Vazirmatn-Regular.woff2'),
     toBase64('/fonts/vazirmatn/Vazirmatn-Bold.woff2'),

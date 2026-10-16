@@ -1,5 +1,5 @@
 import { clearPendingCookie, readPendingCookie } from '@/features/payments/lib/cookie';
-import { readPaymentConfig } from '@/features/payments/lib/config';
+import { readPaymentConfig, returnPath } from '@/features/payments/lib/config';
 import { signPremiumToken } from '@/features/payments/lib/token';
 import { AUTHORITY_PATTERN, verifyPayment } from '@/features/payments/lib/zarinpal';
 
@@ -15,7 +15,7 @@ export async function GET(request: Request) {
   const secure = origin.startsWith('https:');
 
   const back = (result: 'ok' | 'cancelled' | 'failed', token?: string) => {
-    const target = new URL('/create?step=3', origin);
+    const target = new URL(`${returnPath(url.searchParams.get('product'))}?step=3`, origin);
     target.searchParams.set('pay', result);
     if (token) target.hash = `pt=${token}`;
     return new Response(null, {

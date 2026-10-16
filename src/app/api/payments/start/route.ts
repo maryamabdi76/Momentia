@@ -1,5 +1,5 @@
 import { pendingCookie } from '@/features/payments/lib/cookie';
-import { readPaymentConfig } from '@/features/payments/lib/config';
+import { readPaymentConfig, RETURN_PATHS } from '@/features/payments/lib/config';
 import { requestPayment, startPayUrl } from '@/features/payments/lib/zarinpal';
 
 /** Creates a Zarinpal payment for the premium poster and returns the gateway URL. */
@@ -9,12 +9,17 @@ export async function POST(request: Request) {
     return Response.json({ error: 'not_configured' }, { status: 503 });
   }
 
+  // /api/payments/start?product=moon sends the buyer back to /moon afterwards
+  const asked = new URL(request.url).searchParams.get('product');
+  const product =
+    asked && Object.hasOwn(RETURN_PATHS, asked) ? `?product=${asked}` : '';
+
   const origin = config.siteUrl ?? new URL(request.url).origin;
   try {
     const { authority } = await requestPayment(config, {
       amountRial: config.amountRial,
       description: 'Momentia premium night-sky poster',
-      callbackUrl: `${origin}/api/payments/callback`,
+      callbackUrl: `${origin}/api/payments/callback${product}`,
     });
     return Response.json(
       { url: startPayUrl(config, authority) },

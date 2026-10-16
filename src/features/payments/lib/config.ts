@@ -51,3 +51,12 @@ export function readPaymentConfig(
     siteUrl,
   };
 }
+
+/** Products with their own create page; the buyer returns there after paying. */
+export const RETURN_PATHS = { moon: '/moon' } as const;
+
+export function returnPath(product: string | null): string {
+  return product && Object.hasOwn(RETURN_PATHS, product)
+    ? RETURN_PATHS[product as keyof typeof RETURN_PATHS]
+    : '/create';
+}
