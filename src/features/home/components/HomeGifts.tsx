@@ -1,20 +1,13 @@
 import { getTranslations } from 'next-intl/server';
+import Link from 'next/link';
+import { ArrowLeft } from 'lucide-react';
 import type { PosterStyle } from '@/features/poster/lib/themes';
 import { skyForMoment } from '@/features/poster/lib/sky-for-moment';
-import { HomePosterPreview } from './HomePosterPreview';
+import { PosterCard } from './PosterCard';
+import { SAMPLE_NIGHT } from './sample-night';
 
-// The same sample night as the hero and the create page: Yalda in Tehran, 21:00.
-const SAMPLE_NIGHT = {
-  city: 'تهران',
-  day: '30',
-  month: 'آذر',
-  year: '1405',
-  time: '21:00',
-  noExactTime: false,
-};
-
-// Gold leads, as it always has; the rest follow the order of the create page.
-const ORDER: PosterStyle[] = ['gold', 'mono', 'black', 'parchment', 'violet'];
+// A taste of the range; every poster lives on /posters.
+const FEATURED: PosterStyle[] = ['gold', 'mono', 'black'];
 
 // The cards are ~320px wide, so fewer stars keep them clean and the markup small.
 const CARD_LAYERS = { maxMagnitude: 4 };
@@ -23,7 +16,7 @@ export async function HomeGifts() {
   const t = await getTranslations('HomePage.gifts');
   const sky = skyForMoment(SAMPLE_NIGHT)?.sky ?? null;
 
-  const items = ORDER.map((style) => ({
+  const items = FEATURED.map((style) => ({
     style,
     title: t(`items.${style}.title`),
     body: t(`items.${style}.body`),
@@ -44,27 +37,30 @@ export async function HomeGifts() {
           className="mt-14 flex flex-wrap justify-center gap-x-6 gap-y-12 md:gap-x-8"
         >
           {items.map(({ style, title, body }) => (
-            <div
+            <PosterCard
               key={style}
-              data-animate-item
+              style={style}
+              sky={sky}
+              layers={CARD_LAYERS}
+              title={title}
+              body={body}
               className="w-full text-center sm:w-[calc(50%-0.75rem)] lg:w-[calc(33.333%-1.34rem)]"
-            >
-              <div className="mx-auto flex justify-center rounded-2xl bg-[#DDD8CD] px-6 py-8 md:px-8 md:py-10">
-                <HomePosterPreview
-                  variant={style}
-                  size="product"
-                  sky={sky}
-                  layers={CARD_LAYERS}
-                />
-              </div>
-              <h3 className="mt-8 text-xl">{title}</h3>
-              <p className="mx-auto mt-2 max-w-xs text-xs leading-6">{body}</p>
-            </div>
+            />
           ))}
         </div>
-        <p data-animate="reveal" className="mt-10 text-xs">
-          {t('note')}
-        </p>
+        <div
+          data-animate="reveal"
+          className="mt-12 flex flex-col items-center gap-4 text-center"
+        >
+          <Link
+            href="/posters"
+            className="inline-flex items-center gap-2 rounded-full border border-[#17233B]/40 px-6 py-3 text-sm font-medium transition-colors hover:bg-[#17233B] hover:text-[#F4F0E7]"
+          >
+            {t('showMore')}
+            <ArrowLeft className="size-4" />
+          </Link>
+          <p className="text-xs">{t('note')}</p>
+        </div>
       </div>
     </section>
   );

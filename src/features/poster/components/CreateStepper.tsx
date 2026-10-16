@@ -17,10 +17,12 @@ import {
   resolveSkyLayers,
   type SkyLayers,
 } from '@/features/sky/lib/layers';
+import { isPosterStyle } from '../lib/themes';
 import { skyForMoment } from '../lib/sky-for-moment';
 import {
   DEFAULT_TEMPLATE,
   FULL_SKY_DEPTH,
+  isPosterTemplate,
   type PosterTemplate,
 } from '../lib/templates';
 import { CreatePreview } from './CreatePreview';
@@ -86,8 +88,16 @@ function StepperInner() {
   const step = parseStep(searchParams.get('step'));
 
   const [moment, setMoment] = useState<MomentData>(DEFAULT_MOMENT);
-  const [personal, setPersonal] =
-    useState<PersonalizeData>(DEFAULT_PERSONALIZE);
+  // /create?style=violet&template=full (from the posters page) picks the starting look.
+  const [personal, setPersonal] = useState<PersonalizeData>(() => {
+    const style = searchParams.get('style');
+    const template = searchParams.get('template');
+    return {
+      ...DEFAULT_PERSONALIZE,
+      ...(isPosterStyle(style) ? { style } : {}),
+      ...(isPosterTemplate(template) ? { template } : {}),
+    };
+  });
 
   // Coming back from the payment gateway: /create?step=3&pay=ok#pt=<token>.
   // Keep the token, restore the poster that was being edited, then tidy the URL.
@@ -188,6 +198,9 @@ function StepperInner() {
                 moment={moment}
                 exporter={exporter}
                 payResult={payResult}
+                onUseFreeLayout={() =>
+                  setPersonal((p) => ({ ...p, template: DEFAULT_TEMPLATE }))
+                }
               />
             )}
           </section>

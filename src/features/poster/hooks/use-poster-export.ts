@@ -16,6 +16,7 @@ import {
   subscribePremiumToken,
 } from '@/features/payments/lib/client';
 import type { PosterDraft } from '../lib/draft';
+import { isPremiumTemplate } from '../lib/templates';
 import { PremiumAccessError, ensurePremiumAccess } from '../lib/premium-access';
 
 export type ExportAction = 'png' | 'svg' | 'premium' | 'share';
@@ -24,6 +25,8 @@ export type PosterExport = {
   busy: ExportAction | null;
   /** Shown under the buttons. */
   notice: 'error' | 'copied' | 'payment' | null;
+  /** The chosen layout has no free download (PNG, SVG and share are locked). */
+  freeLocked: boolean;
   /** A payment has been verified in this browser session. */
   premiumUnlocked: boolean;
   downloadPng: () => void;
@@ -61,6 +64,8 @@ export function usePosterExport(
     timeAt: tPoster('timeAt'),
   };
 
+  const freeLocked = isPremiumTemplate(draft.personal.template);
+
   const run = useCallback(
     (action: ExportAction, job: () => Promise<void>) => {
       if (busy) return;
@@ -86,12 +91,15 @@ export function usePosterExport(
     busy,
     notice,
     premiumUnlocked,
+    freeLocked,
     downloadPng: () =>
       run('png', async () => {
+        if (freeLocked) return;
         downloadBlob(await png(true, FREE_PNG_WIDTH), `${BASENAME}.png`);
       }),
     downloadSvg: () =>
       run('svg', async () => {
+        if (freeLocked) return;
         const svg = await createPosterSvg({ data, labels, sky, watermark: true });
         downloadBlob(new Blob([svg], { type: 'image/svg+xml' }), `${BASENAME}.svg`);
       }),
@@ -105,6 +113,7 @@ export function usePosterExport(
       }),
     share: () =>
       run('share', async () => {
+        if (freeLocked) return;
         const url = window.location.origin;
         const text = tShare('shareText', { names: data.names });
         const blob = await png(true, FREE_PNG_WIDTH);
