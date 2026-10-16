@@ -1,4 +1,5 @@
 import { HomeMotion } from '@/features/home/components/HomeMotion';
+import { SpaceBackdrop } from '@/features/home/components/SpaceBackdrop';
 import { HomeHeader } from '@/features/home/components/HomeHeader';
 import { HomeHero } from '@/features/home/components/HomeHero';
 import { HomeStories } from '@/features/home/components/HomeStories';
@@ -14,9 +15,10 @@ import { Separator } from '@/components/ui/separator';
 export default function Home() {
   return (
     <HomeMotion
-      className="overflow-hidden bg-[#080f28] text-[#f7f3e8]"
+      className="relative isolate overflow-hidden bg-[#080f28] text-[#f7f3e8]"
       dir="rtl"
     >
+      <SpaceBackdrop />
       <HomeHeader />
       <HomeHero />
       <Separator />
