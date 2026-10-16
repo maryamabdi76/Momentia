@@ -37,6 +37,7 @@ Momentia takes a date and a place, computes the real sky of that night, and draw
 | 🎨  | **Styles**       | Five colour styles: navy & gold, black & white, black & silver, parchment, violet                                                 |
 | 📥  | **Downloads**    | Free: watermarked PNG / SVG / share (round layout only). Premium: watermark-free 3000px PNG, available for both layouts          |
 | 🌕  | **Moon poster**  | A second product at `/moon`: one big real photo of the Moon with the phase it really had that night (phase name and % lit), same 3-step flow, five styles |
+| 🚀  | **Space home**   | The landing page floats in space: a canvas starfield with depth, streaks as you scroll, shooting stars, a nebula and the real Moon receding down the page (GSAP; respects reduced motion) |
 | 🗂️  | **Gallery**      | `/posters` lists every layout in every style and opens the create flow with that look preselected                                 |
 | 🇮🇷  | **Locale**       | Persian UI (`fa`), RTL, Vazirmatn, Jalali calendar                                                                                |
 
