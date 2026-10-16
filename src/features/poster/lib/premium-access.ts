@@ -1,4 +1,5 @@
 import {
+  type PremiumProduct,
   clearPremiumToken,
   readPremiumToken,
   startCheckout,
@@ -22,17 +23,21 @@ export class PremiumAccessError extends Error {
  *   step 3 with a token.
  * - It throws `PremiumAccessError` when checkout can't be started.
  */
-export async function ensurePremiumAccess(draft: PosterDraft): Promise<boolean> {
+export async function ensurePremiumAccess(
+  draft: PosterDraft | null,
+  options: { product?: PremiumProduct; save?: () => void } = {},
+): Promise<boolean> {
   const token = readPremiumToken();
   if (token) {
     if (await validatePremiumToken(token).catch(() => false)) return true;
     clearPremiumToken();
   }
 
-  saveDraft(draft);
+  if (options.save) options.save();
+  else if (draft) saveDraft(draft);
   let url: string;
   try {
-    url = await startCheckout();
+    url = await startCheckout(options.product);
   } catch {
     throw new PremiumAccessError();
   }

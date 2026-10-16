@@ -10,7 +10,7 @@ import type { PosterExport } from '../hooks/use-poster-export';
 import type { MomentData, PersonalizeData } from './CreateStepper';
 
 type Props = {
-  personal: PersonalizeData;
+  personal: Pick<PersonalizeData, 'names'>;
   moment: MomentData;
   exporter: PosterExport;
   payResult: 'ok' | 'cancelled' | 'failed' | null;

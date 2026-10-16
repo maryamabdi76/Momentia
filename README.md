@@ -36,6 +36,7 @@ Momentia takes a date and a place, computes the real sky of that night, and draw
 | 🖼️  | **Layouts**      | **Round chart** (free) and **Full-page sky** (premium), the whole poster is sky with the text over it                            |
 | 🎨  | **Styles**       | Five colour styles: navy & gold, black & white, black & silver, parchment, violet                                                 |
 | 📥  | **Downloads**    | Free: watermarked PNG / SVG / share (round layout only). Premium: watermark-free 3000px PNG, available for both layouts          |
+| 🌕  | **Moon poster**  | A second product at `/moon`: one big real photo of the Moon with the phase it really had that night (phase name and % lit), same 3-step flow, five styles |
 | 🗂️  | **Gallery**      | `/posters` lists every layout in every style and opens the create flow with that look preselected                                 |
 | 🇮🇷  | **Locale**       | Persian UI (`fa`), RTL, Vazirmatn, Jalali calendar                                                                                |
 
@@ -46,6 +47,10 @@ Momentia takes a date and a place, computes the real sky of that night, and draw
 3. **Receive**: download. The full-page layout has no free download; the free buttons are disabled and the watermark-free premium file is offered instead.
 
 `/create?style=violet&template=full` starts the flow with that style and layout.
+
+### Moon poster (`/moon`)
+
+The same three steps (moment → personalize → receive) for a poster that is only the Moon. The phase is computed for the chosen date, time and city; the surface is a real photograph-style disc of the near side (`public/moon/moon-nearside.jpg`) and the unlit part is drawn over it. South of the equator the Moon is turned upside down, as it appears there. Free and premium downloads work as for the sky poster, and the buyer returns to `/moon` after paying.
 
 ---
 
@@ -114,6 +119,12 @@ Copy `.env.example` to `.env.local` and fill it in. Without a payment secret the
 | `SITE_URL`                      | Optional public origin used for the payment callback |
 
 > The free files are generated in the browser, so the lock on the full-page layout is a product gate, not a security boundary. Only the watermark-free premium file is checked against the server-validated token.
+
+---
+
+## 🌕 Moon image
+
+`public/moon/moon-nearside.jpg` is the Earth-facing side of the Moon, projected from the 4096×2048 equirectangular map `textures/moon_4k.jpg` of the [Stellarium](https://github.com/Stellarium/stellarium) repository (orthographic view, north up, contrast stretched). Check that map's licence before using the poster commercially, or replace the image with one you hold the rights to (for example NASA's CGI Moon Kit); the file name and size are all the code relies on.
 
 ---
 

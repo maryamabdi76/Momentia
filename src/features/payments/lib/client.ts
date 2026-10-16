@@ -46,9 +46,15 @@ export async function validatePremiumToken(token: string): Promise<boolean> {
   return ((await res.json()) as { ok?: boolean }).ok === true;
 }
 
+/** Which product the buyer should be sent back to after paying. */
+export type PremiumProduct = 'moon';
+
 /** Creates the payment and returns the gateway URL to send the buyer to. */
-export async function startCheckout(): Promise<string> {
-  const res = await fetch('/api/payments/start', { method: 'POST' });
+export async function startCheckout(product?: PremiumProduct): Promise<string> {
+  const res = await fetch(
+    product ? `/api/payments/start?product=${product}` : '/api/payments/start',
+    { method: 'POST' },
+  );
   const body = (await res.json().catch(() => null)) as { url?: string } | null;
   if (!res.ok || !body?.url) throw new Error(`checkout failed (${res.status})`);
   return body.url;

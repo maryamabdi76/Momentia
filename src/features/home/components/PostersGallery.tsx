@@ -8,7 +8,9 @@ import {
 } from '@/features/poster/lib/templates';
 import { POSTER_STYLES } from '@/features/poster/lib/themes';
 import { SAMPLE_NIGHT } from './sample-night';
+import { MoonPoster } from '@/features/moon/components/MoonPoster';
 import { PosterCard } from './PosterCard';
+import { MOON_SAMPLE_BASE, getMoonSamples } from './moon-sample';
 
 const CARD_LAYERS = { maxMagnitude: 4 };
 
@@ -18,6 +20,8 @@ export async function PostersGallery() {
   const tGifts = await getTranslations('HomePage.gifts');
   const tTpl = await getTranslations('CreatePage.step2');
 
+  const { labels: moonLabels, factsFor } = await getMoonSamples();
+  const moonFacts = factsFor(SAMPLE_NIGHT);
   const sky = skyForMoment(SAMPLE_NIGHT)?.sky ?? null;
   // the full-page layout also draws the sky below the horizon
   const fullSky = skyForMoment(SAMPLE_NIGHT, FULL_SKY_DEPTH)?.sky ?? null;
@@ -72,6 +76,41 @@ export async function PostersGallery() {
             </section>
           );
         })}
+        {moonFacts && (
+          <section className="mt-16">
+            <h2 className="text-xl font-semibold">{t('moonTitle')}</h2>
+            <p className="mt-1 text-xs leading-6">{t('moonHint')}</p>
+            <div className="mt-10 flex flex-wrap justify-center gap-x-6 gap-y-12 md:gap-x-8">
+              {POSTER_STYLES.map((style) => (
+                <Link
+                  key={style}
+                  href={`/moon?style=${style}`}
+                  className="group block w-full text-center sm:w-[calc(50%-0.75rem)] lg:w-[calc(33.333%-1.34rem)]"
+                >
+                  <div className="mx-auto flex justify-center rounded-2xl bg-[#DDD8CD] px-6 py-8 md:px-8 md:py-10">
+                    <MoonPoster
+                      className="max-w-72 shadow-xl"
+                      data={{
+                        ...MOON_SAMPLE_BASE,
+                        style,
+                        title: tGifts(`items.${style}.title`),
+                        names: 'مریم و جلال',
+                        quote: '',
+                        dateLabel: '۳۰ آذر ۱۴۰۵',
+                      }}
+                      facts={moonFacts}
+                      labels={moonLabels}
+                    />
+                  </div>
+                  <h3 className="mt-8 text-xl">{tGifts(`items.${style}.title`)}</h3>
+                  <span className="mt-4 inline-block text-xs underline-offset-4 group-hover:underline">
+                    {t('moonUse')}
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
       </div>
     </div>
   );
