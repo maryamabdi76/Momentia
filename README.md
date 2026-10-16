@@ -21,20 +21,31 @@
 
 ---
 
-Momentia is a **client-side** web app that takes a date and place, then draws that night’s sky as a beautiful SVG poster you can download as PNG.
+Momentia takes a date and a place, computes the real sky of that night, and draws it as a poster you can download as PNG or SVG.
 
-✨ No backend · 🔐 No accounts · 🖥️ Nothing stored on a server
+✨ No accounts · 🖥️ The sky and the poster are computed in your browser · 💳 Optional premium download via Zarinpal
 
 ---
 
-## ✨ Features (roadmap)
+## ✨ Features
 
-|     | Area           | What it does                                                               |
-| --- | -------------- | -------------------------------------------------------------------------- |
-| 🌌  | **Sky engine** | Sun, moon (with phase), planets, and star positions from date + location   |
-| 🖼️  | **Poster**     | Editable title, names, short line, Jalali date, place — SVG → high-res PNG |
-| 🇮🇷  | **Locale**     | Persian UI first (`fa`), RTL, Vazirmatn, Jalali calendar                   |
-| 🔒  | **Privacy**    | Everything runs in the browser                                             |
+|     | Area             | What it does                                                                                                                      |
+| --- | ---------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| 🌌  | **Sky engine**   | Stars, constellations, Sun, Moon (with phase), planets, ecliptic and equator from date + location; north up, east on the left      |
+| 🎛️  | **Sky options**  | Toggle constellation lines, Moon and planets, planet names, ecliptic, equator, and star density                                   |
+| 🖼️  | **Layouts**      | **Round chart** (free) and **Full-page sky** (premium), the whole poster is sky with the text over it                            |
+| 🎨  | **Styles**       | Five colour styles: navy & gold, black & white, black & silver, parchment, violet                                                 |
+| 📥  | **Downloads**    | Free: watermarked PNG / SVG / share (round layout only). Premium: watermark-free 3000px PNG, available for both layouts          |
+| 🗂️  | **Gallery**      | `/posters` lists every layout in every style and opens the create flow with that look preselected                                 |
+| 🇮🇷  | **Locale**       | Persian UI (`fa`), RTL, Vazirmatn, Jalali calendar                                                                                |
+
+### Create flow
+
+1. **Moment**: city, Jalali date, optional time.
+2. **Personalize**: title, names, short line, layout, style, sky options.
+3. **Receive**: download. The full-page layout has no free download; the free buttons are disabled and the watermark-free premium file is offered instead.
+
+`/create?style=violet&template=full` starts the flow with that style and layout.
 
 ---
 
@@ -43,6 +54,8 @@ Momentia is a **client-side** web app that takes a date and place, then draws th
 - **Next.js** (App Router) + TypeScript + Tailwind CSS
 - **[shadcn/ui](https://ui.shadcn.com/docs/components)** (Radix, RTL)
 - **[next-intl](https://next-intl.dev)** — Persian only for now
+- **react-hook-form** + **zod** for the forms
+- **Zarinpal** for the premium download (server routes under `src/app/api/payments`)
 - **Vazirmatn** via `next/font`
 - Root RTL (`dir="rtl"` + `DirectionProvider`)
 
@@ -56,11 +69,13 @@ docs/
 messages/
   fa.json                 # UI translations
 src/
-  app/                    # App Router pages & layout
+  app/                    # Pages (/, /create, /posters) and payment API routes
   components/ui/          # shadcn/ui primitives
   features/
-    sky/                  # Sky math + SVG render
-    poster/               # Poster template + export
+    sky/                  # Sky math (projection, ephemeris) + SVG chart
+    poster/               # Poster themes, layouts, preview + PNG/SVG export
+    payments/             # Zarinpal checkout and premium token
+    home/                 # Landing page sections and the posters gallery
   i18n/                   # next-intl config
   lib/                    # Shared utilities
 ```
@@ -84,6 +99,21 @@ Open [http://localhost:3000](http://localhost:3000) ✨
 | `npm run build` | Production build             |
 | `npm run start` | Serve the production build   |
 | `npm run lint`  | Run ESLint                   |
+| `npm test`      | Run the unit tests           |
+
+### Premium payments
+
+Copy `.env.example` to `.env.local` and fill it in. Without a payment secret the premium button reports that checkout is unavailable; everything else works.
+
+| Variable                        | Purpose                                              |
+| ------------------------------- | ---------------------------------------------------- |
+| `NEXT_PUBLIC_PREMIUM_PRICE_IRT` | Premium price in tomans                              |
+| `ZARINPAL_MERCHANT_ID`          | Merchant id (any UUID works in sandbox)              |
+| `ZARINPAL_SANDBOX`              | `true` to use the Zarinpal sandbox                   |
+| `PAYMENT_TOKEN_SECRET`          | 32+ random characters, signs the premium token       |
+| `SITE_URL`                      | Optional public origin used for the payment callback |
+
+> The free files are generated in the browser, so the lock on the full-page layout is a product gate, not a security boundary. Only the watermark-free premium file is checked against the server-validated token.
 
 ---
 
