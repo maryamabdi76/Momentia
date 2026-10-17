@@ -15,6 +15,32 @@ type HomeMotionProps = {
   children: ReactNode;
 } & ComponentPropsWithoutRef<'main'>;
 
+/** Wraps every word in a clipping mask so it can slide up into place. */
+function splitWords(el: HTMLElement): HTMLElement[] {
+  const inner: HTMLElement[] = [];
+  const nodes = Array.from(el.childNodes);
+  el.textContent = '';
+  for (const node of nodes) {
+    if (node.nodeType !== Node.TEXT_NODE) {
+      el.append(node);
+      continue;
+    }
+    (node.textContent ?? '').split(/\s+/).filter(Boolean).forEach((word, i, all) => {
+      const mask = document.createElement('span');
+      mask.style.cssText = 'display:inline-block;overflow:hidden;vertical-align:bottom;padding-block:0.12em;margin-block:-0.12em';
+      const w = document.createElement('span');
+      w.style.display = 'inline-block';
+      w.textContent = word;
+      mask.append(w);
+      el.append(mask);
+      if (i < all.length - 1) el.append(' ');
+      inner.push(w);
+    });
+    el.append(' ');
+  }
+  return inner;
+}
+
 export function HomeMotion({ children, ...props }: HomeMotionProps) {
   const rootRef = useRef<HTMLElement>(null);
 
@@ -36,14 +62,19 @@ export function HomeMotion({ children, ...props }: HomeMotionProps) {
       return;
     }
 
+    const titleEl = root.querySelector<HTMLElement>('[data-split]');
+    const titleHtml = titleEl?.innerHTML ?? '';
     const ctx = gsap.context(() => {
       const header = root.querySelector('[data-animate="header"]');
       const heroItems = root.querySelectorAll('[data-animate="hero"]');
+      const heroTitle = root.querySelector<HTMLElement>('[data-split]');
+      const words = heroTitle ? splitWords(heroTitle) : [];
       const heroPoster = root.querySelector('[data-animate="hero-poster"]');
 
       gsap.set(header, { opacity: 0, y: -12 });
       gsap.set(heroItems, { opacity: 0, y: 28 });
       gsap.set(heroPoster, { opacity: 0, y: 40, scale: 0.94 });
+      gsap.set(words, { yPercent: 115, rotate: 4 });
 
       const intro = gsap.timeline({
         defaults: { ease: 'power3.out' },
@@ -51,6 +82,11 @@ export function HomeMotion({ children, ...props }: HomeMotionProps) {
 
       intro
         .to(header, { opacity: 1, y: 0, duration: 0.7 })
+        .to(
+          words,
+          { yPercent: 0, rotate: 0, duration: 1.1, stagger: 0.09, ease: 'power4.out' },
+          '-=0.35',
+        )
         .to(
           heroItems,
           {
@@ -122,10 +158,30 @@ export function HomeMotion({ children, ...props }: HomeMotionProps) {
         });
       });
 
+      // buttons that lean towards the pointer
+      root.querySelectorAll<HTMLElement>('[data-magnetic]').forEach((el) => {
+        const x = gsap.quickTo(el, 'x', { duration: 0.5, ease: 'power3.out' });
+        const y = gsap.quickTo(el, 'y', { duration: 0.5, ease: 'power3.out' });
+        const move = (e: PointerEvent) => {
+          const r = el.getBoundingClientRect();
+          x((e.clientX - (r.left + r.width / 2)) * 0.28);
+          y((e.clientY - (r.top + r.height / 2)) * 0.4);
+        };
+        const leave = () => {
+          x(0);
+          y(0);
+        };
+        el.addEventListener('pointermove', move);
+        el.addEventListener('pointerleave', leave);
+      });
+
       ScrollTrigger.refresh();
     }, root);
 
-    return () => ctx.revert();
+    return () => {
+      ctx.revert();
+      if (titleEl) titleEl.innerHTML = titleHtml;
+    };
   }, []);
 
   return (

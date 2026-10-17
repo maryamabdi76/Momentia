@@ -21,7 +21,7 @@ export async function HomeHero() {
           {t('hero.eyebrow')}
         </p>
         <h1
-          data-animate="hero"
+          data-split
           className="text-3xl font-semibold leading-[1.45] tracking-tight text-[#FFFDF8] md:text-5xl lg:text-6xl"
         >
           {line1}
@@ -38,6 +38,7 @@ export async function HomeHero() {
         <div data-animate="hero" className="mt-8">
           <Button
             asChild
+            data-magnetic
             size="lg"
             className="bg-[#CEB47B] p-6! font-bold text-[#0c142b] hover:bg-[#e0c180] px-5 py-2 text-sm"
           >

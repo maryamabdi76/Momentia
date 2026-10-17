@@ -1,5 +1,5 @@
 import { HomeMotion } from '@/features/home/components/HomeMotion';
-import { SpaceBackdrop } from '@/features/home/components/SpaceBackdrop';
+import { SpaceStageServer } from '@/features/home/components/SpaceStageServer';
 import { HomeHeader } from '@/features/home/components/HomeHeader';
 import { HomeHero } from '@/features/home/components/HomeHero';
 import { HomeStories } from '@/features/home/components/HomeStories';
@@ -18,7 +18,7 @@ export default function Home() {
       className="relative isolate overflow-hidden bg-[#080f28] text-[#f7f3e8]"
       dir="rtl"
     >
-      <SpaceBackdrop />
+      <SpaceStageServer />
       <HomeHeader />
       <HomeHero />
       <Separator />
