@@ -35,16 +35,18 @@ export async function HomeStories() {
       </div>
       <div data-animate="stagger" className="grid gap-5 md:grid-cols-3">
         {items.map(({ label, title, description, image }) => (
-          <article key={title} data-animate-item>
-            <div className="aspect-[1.45] overflow-hidden rounded-lg">
+          <article key={title} data-animate-item className="group">
+            <div className="aspect-[1.45] overflow-hidden rounded-lg ring-1 ring-transparent transition-shadow duration-500 group-hover:ring-[#d9b86a]/40">
               <img
                 src={image}
                 alt={title}
-                className="h-full w-full object-cover transition duration-500 hover:scale-105"
+                className="h-full w-full object-cover ease-out motion-safe:transition-transform motion-safe:duration-700 motion-safe:group-hover:scale-105"
               />
             </div>
             <p className="mt-4 text-xs text-[#d9b86a]">{label}</p>
-            <h3 className="mt-2 text-lg font-semibold">{title}</h3>
+            <h3 className="mt-2 text-lg font-semibold transition-colors duration-300 group-hover:text-[#d9b86a]">
+              {title}
+            </h3>
             <p className="mt-2 text-xs leading-6 text-[#AAB6CD]">
               {description}
             </p>

@@ -28,8 +28,10 @@ export async function HomeSteps() {
           {items.map(({ number, title, body }, index) => {
             const Icon = STEP_ICONS[index];
             return (
-              <div key={number} data-animate-item className="text-center">
-                <Icon className="mx-auto size-10 text-[#CEB47B]" />
+              <div key={number} data-animate-item className="group text-center">
+                <div className="mx-auto flex size-[4.5rem] items-center justify-center rounded-full border border-[#CEB47B]/25 bg-[#CEB47B]/5 ease-out transition-[translate,background-color,border-color,box-shadow] duration-300 motion-safe:group-hover:-translate-y-1.5 group-hover:border-[#CEB47B]/60 group-hover:bg-[#CEB47B]/10 group-hover:shadow-[0_0_32px_-6px_rgba(206,180,123,0.45)]">
+                  <Icon className="size-8 text-[#CEB47B]" />
+                </div>
                 <h3 className="mt-6 flex items-center justify-center gap-2 text-xl font-semibold text-[#CEB47B]">
                   <div>{title}</div>
                 </h3>

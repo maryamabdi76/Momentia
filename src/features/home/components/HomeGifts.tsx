@@ -70,10 +70,13 @@ export async function HomeGifts() {
           </div>
           <Link
             href="/posters"
-            className="flex hover:bg-[#69717C]/10 hover:text-[#000] items-center gap-2 border rounded-lg border-[#69717C] px-4 py-2"
+            className="group flex items-center gap-2 rounded-lg border border-[#69717C] px-4 py-2 transition-colors duration-200 hover:bg-[#69717C]/10 hover:text-[#000] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#CEB47B]"
           >
             {t('galleryCta')}
-            <ArrowLeft className="size-4 shrink-0" aria-hidden />
+            <ArrowLeft
+              className="size-4 shrink-0 ease-out motion-safe:transition-transform motion-safe:duration-300 motion-safe:group-hover:-translate-x-1"
+              aria-hidden
+            />
           </Link>
         </div>
 
