@@ -58,7 +58,7 @@ export async function HomeGifts() {
       <div className="mx-auto px-6 md:px-20">
         <div
           data-animate="reveal"
-          className="flex items-start justify-between gap-5 text-start"
+          className="flex flex-wrap items-start justify-between gap-5 text-start"
         >
           <div>
             <h2 className="text-2xl font-semibold md:text-[1.75rem] md:leading-snug">
