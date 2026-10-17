@@ -10,10 +10,10 @@ import {
 
 type HomeFooterProps = {
   /**
-   * `home`   – brand + description with legal/help links.
-   * `create` – compact bar: brand on one side, the "stays in your browser" note on the other.
+   * `home`    – brand + description with legal/help links.
+   * `create`  – compact bar: brand on one side, the "stays in your browser" note on the other.
    */
-  variant?: 'home' | 'create';
+  variant?: 'home' | 'create' | 'posters';
 };
 
 export async function HomeFooter({ variant = 'home' }: HomeFooterProps) {
@@ -39,6 +39,7 @@ export async function HomeFooter({ variant = 'home' }: HomeFooterProps) {
   }
 
   const footerLinks = [
+    ['/', t('footer.links.home')],
     ['#privacy', t('footer.links.privacy')],
     ['#guide', t('footer.links.guide')],
     ['#faq', t('footer.links.faq')],

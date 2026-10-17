@@ -4,8 +4,6 @@ import { Button } from '@/components/ui/button';
 import { HomePosterPreview } from './HomePosterPreview';
 
 const TRUST_ICONS = [ShieldCheck, Server, UserX];
-const ctaButtonClass =
-  'h-auto rounded-full bg-[#CEB47B] font-bold text-[#0c142b] hover:bg-[#e0c180]';
 
 export async function HomeCreate() {
   const t = await getTranslations('HomePage');

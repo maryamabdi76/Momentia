@@ -11,15 +11,12 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default function PostersPage() {
   return (
-    <div
-      className="flex min-h-screen flex-col bg-[#080f28] text-[#f7f3e8]"
-      dir="rtl"
-    >
-      <HomeHeader variant="create" />
-      <main className="flex-1">
+    <div className="flex min-h-screen flex-col bg-[#0b1428]" dir="rtl">
+      <HomeHeader variant="posters" />
+      <main className="flex-1 bg-[#f4f0e7] text-[#172338]">
         <PostersGallery />
       </main>
-      <HomeFooter variant="create" />
+      <HomeFooter variant="posters" />
     </div>
   );
 }

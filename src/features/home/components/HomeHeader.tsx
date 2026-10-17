@@ -14,39 +14,33 @@ const navLinkClass =
 
 type HomeHeaderProps = {
   /**
-   * `home`   – anchors scroll within the landing page, CTA opens /create.
-   * `create` – anchors point back to the landing page, action returns home.
+   * `home`    – anchors scroll within the landing page, CTA opens /create.
+   * `create`  – anchors point back to the landing page, action returns home.
    */
-  variant?: 'home' | 'create';
+  variant?: 'home' | 'create' | 'posters';
 };
 
 export async function HomeHeader({ variant = 'home' }: HomeHeaderProps) {
   const t = await getTranslations('HomePage');
   const tCreate = await getTranslations('CreatePage');
   const isCreate = variant === 'create';
+  const isPosters = variant === 'posters';
 
   // On the create page the sections live on "/", so anchors need the prefix.
-  const anchorBase = isCreate ? '/' : '';
-  const navLinks = [
-    ['gifts', t('nav.posters')],
-    ['moon', t('nav.moon')],
-    ['steps', t('nav.how')],
-    ['faq', t('nav.faq')],
-  ] as const;
+  const navLinks: Array<{ href: string; label: string; active?: boolean }> = [
+    { href: '/moon', label: t('nav.moon') },
+    { href: '/posters', label: t('nav.gallery'), active: isPosters },
+  ];
 
   return (
     <header
-      data-animate={isCreate ? undefined : 'header'}
+      data-animate={variant === 'home' ? 'header' : undefined}
       className="border-b border-[#33415B]"
     >
-      <div
-        className={`mx-auto flex items-center justify-between px-6 text-sm text-white md:px-20 ${
-          isCreate ? 'h-16' : 'h-16'
-        }`}
-      >
+      <div className="mx-auto flex items-center justify-between px-6 text-sm text-white md:px-20 h-16">
         <Link
           className="flex items-center gap-4 text-2xl font-bold text-white"
-          href={isCreate ? '/' : '#top'}
+          href={'/'}
         >
           <Sparkles className="size-4 text-[#CEB47B]" />
           {t('brand')}
@@ -54,11 +48,14 @@ export async function HomeHeader({ variant = 'home' }: HomeHeaderProps) {
 
         <NavigationMenu viewport={false} className="hidden max-w-none md:flex">
           <NavigationMenuList className="gap-6">
-            {navLinks.map(([id, label]) => (
-              <NavigationMenuItem key={id}>
+            {navLinks.map(({ href, label, active }) => (
+              <NavigationMenuItem
+                key={href}
+                className={active ? 'bg-white/10 rounded-lg' : ''}
+              >
                 <NavigationMenuLink
-                  href={`${anchorBase}#${id}`}
-                  className={navLinkClass}
+                  href={href}
+                  className={active ? 'text-[#CEB47B]' : navLinkClass}
                 >
                   {label}
                 </NavigationMenuLink>
