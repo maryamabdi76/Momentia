@@ -46,7 +46,7 @@ export function PosterCard({
     >
       {/* Hover effects live on inner nodes (not this GSAP-animated wrapper). */}
       <div className="mx-auto flex justify-center rounded-2xl bg-[#DDD8CD] px-6 py-8 transition-colors duration-300 group-hover:bg-[#D6D0C3] md:px-8 md:py-10">
-        <div className="ease-out motion-safe:transition-[transform,filter] motion-safe:duration-500 motion-safe:group-hover:-translate-y-1.5 motion-safe:group-hover:scale-[1.03] motion-safe:group-hover:drop-shadow-[0_22px_28px_rgba(23,35,59,0.28)]">
+        <div className="w-full max-w-80 ease-out motion-safe:transition-[transform,filter] motion-safe:duration-500 motion-safe:group-hover:-translate-y-1.5 motion-safe:group-hover:scale-[1.03] motion-safe:group-hover:drop-shadow-[0_22px_28px_rgba(23,35,59,0.28)]">
           {preview ??
             (style ? (
               <HomePosterPreview
