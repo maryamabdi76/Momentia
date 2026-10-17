@@ -43,7 +43,7 @@ export function HomeMotion({ children, ...props }: HomeMotionProps) {
 
       gsap.set(header, { opacity: 0, y: -12 });
       gsap.set(heroItems, { opacity: 0, y: 28 });
-      gsap.set(heroPoster, { opacity: 0, y: 40, scale: 0.94 });
+      gsap.set(heroPoster, { opacity: 0, y: 40 });
 
       const intro = gsap.timeline({
         defaults: { ease: 'power3.out' },
@@ -66,7 +66,6 @@ export function HomeMotion({ children, ...props }: HomeMotionProps) {
           {
             opacity: 1,
             y: 0,
-            scale: 1,
             duration: 1.05,
           },
           '-=0.75',

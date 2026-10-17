@@ -2,6 +2,7 @@ import { HomeMotion } from '@/features/home/components/HomeMotion';
 import { SpaceBackdrop } from '@/features/home/components/SpaceBackdrop';
 import { HomeHeader } from '@/features/home/components/HomeHeader';
 import { HomeHero } from '@/features/home/components/HomeHero';
+import { HomeChoosePoster } from '@/features/home/components/HomeChoosePoster';
 import { HomeStories } from '@/features/home/components/HomeStories';
 import { HomeSteps } from '@/features/home/components/HomeSteps';
 import { HomeGifts } from '@/features/home/components/HomeGifts';
@@ -21,6 +22,7 @@ export default function Home() {
       <SpaceBackdrop />
       <HomeHeader />
       <HomeHero />
+      <HomeChoosePoster />
       <Separator />
       <HomeStories />
       <HomeSteps />

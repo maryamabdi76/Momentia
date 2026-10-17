@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { getTranslations } from 'next-intl/server';
 import { PosterPreview } from '@/features/poster/components/PosterPreview';
 import { POSTER_THEMES, type PosterStyle } from '@/features/poster/lib/themes';
@@ -14,6 +15,7 @@ export async function HomePosterPreview({
   size = 'product',
   sky,
   layers,
+  children,
 }: {
   variant?: PosterVariant;
   template?: PosterTemplate;
@@ -22,23 +24,27 @@ export async function HomePosterPreview({
   sky?: SkySnapshot | null;
   /** Lighter charts keep small cards from becoming heavy markup. */
   layers?: Partial<SkyLayers>;
+  /** Replaces the sky poster; still sits on the same mat. */
+  children?: ReactNode;
 }) {
-  const t = await getTranslations('HomePage.hero');
-
-  const preview = (
-    <PosterPreview
-      size={size === 'hero' ? 'hero' : 'default'}
-      showDisclaimer={false}
-      sky={sky}
-      data={{ style: variant, template, layers }}
-      labels={{
-        headerLine: t('posterHeader'),
-        mapAlt: t(`posterAlt.${variant}`),
-        watermark: t('posterWatermark'),
-      }}
-      className="rounded-none shadow-none"
-    />
-  );
+  let preview = children;
+  if (!preview) {
+    const t = await getTranslations('HomePage.hero');
+    preview = (
+      <PosterPreview
+        size={size === 'hero' ? 'hero' : 'default'}
+        showDisclaimer={false}
+        sky={sky}
+        data={{ style: variant, template, layers }}
+        labels={{
+          headerLine: t('posterHeader'),
+          mapAlt: t(`posterAlt.${variant}`),
+          watermark: t('posterWatermark'),
+        }}
+        className="rounded-none shadow-none"
+      />
+    );
+  }
 
   if (size === 'hero') return <div className="w-full">{preview}</div>;
 

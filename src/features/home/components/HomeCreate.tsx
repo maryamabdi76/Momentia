@@ -12,7 +12,7 @@ export async function HomeCreate() {
   const trustItems = [0, 1, 2].map((i) => t(`trust.items.${i}`));
 
   return (
-    <section id="create" className="py-24 space-y-16">
+    <section id="create" className="py-12 space-y-16">
       <div className="mx-auto px-6 md:px-20">
         {/* Create CTA */}
         <div

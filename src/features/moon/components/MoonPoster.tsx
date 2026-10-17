@@ -27,7 +27,8 @@ export function MoonPoster({
   // several posters can share a page (home cards), so ids must be unique
   const idPrefix = `moon${useId().replace(/[^a-zA-Z0-9]/g, '')}`;
   const svg = useMemo(
-    () => buildMoonPosterSvg({ data, facts, labels, watermark: false, idPrefix }),
+    () =>
+      buildMoonPosterSvg({ data, facts, labels, watermark: false, idPrefix }),
     [data, facts, labels, idPrefix],
   );
   return (

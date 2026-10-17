@@ -16,12 +16,14 @@ export async function HomeMoon() {
     {
       key: 'yalda',
       night: SAMPLE_NIGHT,
-      data: { ...BASE, style: 'gold', title: t('cardYalda'), names: 'مریم و جلال', quote: '', dateLabel: '۳۰ آذر ۱۴۰۵' },
-    },
-    {
-      key: 'nowruz',
-      night: NOWRUZ_NIGHT,
-      data: { ...BASE, style: 'parchment', title: t('cardNowruz'), names: 'مریم و جلال', quote: '', dateLabel: '۱ فروردین ۱۴۰۵' },
+      data: {
+        ...BASE,
+        style: 'gold',
+        title: t('cardYalda'),
+        names: 'مریم و جلال',
+        quote: '',
+        dateLabel: '۳۰ آذر ۱۴۰۵',
+      },
     },
   ] as const;
 
@@ -31,12 +33,25 @@ export async function HomeMoon() {
   });
 
   return (
-    <section id="moon" className="py-24">
+    <section id="moon" className="py-12">
       <div className="mx-auto px-6 md:px-20">
-        <div data-animate="reveal" className="grid items-center gap-14 md:grid-cols-[1fr_1.1fr]">
+        <div
+          data-animate="reveal"
+          className="grid items-center gap-12 pb-10 md:grid-cols-[0.9fr_1.1fr]"
+        >
+          <div className="flex justify-center">
+            <MoonPoster
+              data={rendered[0].data}
+              facts={rendered[0].facts}
+              labels={labels}
+              className="w-full max-w-80"
+            />
+          </div>
           <div>
             <p className="text-xs text-[#CEB47B]">{t('eyebrow')}</p>
-            <h2 className="mt-3 text-3xl font-semibold text-white">{t('title')}</h2>
+            <h2 className="mt-3 text-3xl font-semibold text-white">
+              {t('title')}
+            </h2>
             <p className="mt-5 text-sm leading-8 text-[#AAB6CD]">{t('body')}</p>
             <ul className="mt-6 space-y-4 text-sm text-[#E8D9B8]">
               {[0, 1, 2].map((i) => (
@@ -56,22 +71,7 @@ export async function HomeMoon() {
               </a>
             </Button>
           </div>
-
-          <div data-animate="stagger" className="flex justify-center gap-5 md:gap-6">
-            {rendered.map(({ key, data, facts }, i) => (
-              <div
-                key={key}
-                data-animate-item
-                className={`w-1/2 max-w-64 shadow-2xl ${i === 1 ? 'mt-10' : ''}`}
-              >
-                <MoonPoster data={data} facts={facts} labels={labels} />
-              </div>
-            ))}
-          </div>
         </div>
-        <p data-animate="reveal" className="mt-8 text-center text-xs text-[#AAB6CD] md:text-start">
-          {t('cardNote')}
-        </p>
       </div>
     </section>
   );

@@ -1,65 +1,113 @@
 import { getTranslations } from 'next-intl/server';
 import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
-import type { PosterStyle } from '@/features/poster/lib/themes';
+import { ArrowLeft, ArrowRight } from 'lucide-react';
+import { MoonPoster } from '@/features/moon/components/MoonPoster';
+import { FULL_SKY_DEPTH } from '@/features/poster/lib/templates';
 import { skyForMoment } from '@/features/poster/lib/sky-for-moment';
+import { HomePosterPreview } from './HomePosterPreview';
 import { PosterCard } from './PosterCard';
+import { MOON_SAMPLE_BASE, getMoonSamples } from './moon-sample';
 import { SAMPLE_NIGHT } from './sample-night';
 
-// A taste of the range; every poster lives on /posters.
-const FEATURED: PosterStyle[] = ['gold', 'mono', 'black'];
-
-// The cards are ~320px wide, so fewer stars keep them clean and the markup small.
 const CARD_LAYERS = { maxMagnitude: 4 };
+
+/** Circle · full · moon — same sample night as the hero. */
+const FRAMES = [
+  {
+    key: 'circle' as const,
+    style: 'mono' as const,
+    template: 'circle' as const,
+  },
+  {
+    key: 'full' as const,
+    style: 'black' as const,
+    template: 'full' as const,
+    premium: true,
+  },
+  { key: 'moon' as const, style: 'violet' as const },
+] as const;
 
 export async function HomeGifts() {
   const t = await getTranslations('HomePage.gifts');
+  const tHero = await getTranslations('HomePage.hero');
+  const tPosters = await getTranslations('PostersPage');
+  const { labels: moonLabels, factsFor } = await getMoonSamples();
+  const moonFacts = factsFor(SAMPLE_NIGHT);
   const sky = skyForMoment(SAMPLE_NIGHT)?.sky ?? null;
+  const fullSky = skyForMoment(SAMPLE_NIGHT, FULL_SKY_DEPTH)?.sky ?? null;
 
-  const items = FEATURED.map((style) => ({
-    style,
-    title: t(`items.${style}.title`),
-    body: t(`items.${style}.body`),
-  }));
+  const moonPreview = moonFacts ? (
+    <HomePosterPreview variant="violet" size="product">
+      <MoonPoster
+        data={{
+          ...MOON_SAMPLE_BASE,
+          style: 'violet',
+          title: tHero('poster'),
+          names: tHero('posterNames'),
+          quote: '',
+          dateLabel: '۳۰ آذر ۱۴۰۵',
+        }}
+        facts={moonFacts}
+        labels={moonLabels}
+      />
+    </HomePosterPreview>
+  ) : null;
 
   return (
-    <section id="gifts" className="bg-[#F4F0E7] px-6 py-24 text-[#17233B]">
-      <div className="mx-auto md:px-20">
-        <div data-animate="reveal">
-          <p className="text-xs">{t('eyebrow')}</p>
-          <h2 className="mt-3 text-2xl font-semibold md:text-3xl">
-            {t('title')}
-          </h2>
-        </div>
-        {/* centred wrap: 1 → 2 → 3 per row; the leftovers stay in the middle */}
-        <div
-          data-animate="stagger"
-          className="mt-14 flex flex-wrap justify-center gap-x-6 gap-y-12 md:gap-x-8"
-        >
-          {items.map(({ style, title, body }) => (
-            <PosterCard
-              key={style}
-              style={style}
-              sky={sky}
-              layers={CARD_LAYERS}
-              title={title}
-              body={body}
-              className="w-full text-center sm:w-[calc(50%-0.75rem)] lg:w-[calc(33.333%-1.34rem)]"
-            />
-          ))}
-        </div>
+    <section id="gifts" className="bg-[#F9F7F0] px-6 py-20 text-[#17233B] ">
+      <div className="mx-auto px-6 md:px-20">
         <div
           data-animate="reveal"
-          className="mt-12 flex flex-col items-center gap-4 text-center"
+          className="flex items-start justify-between gap-5 text-start"
         >
+          <div>
+            <h2 className="text-2xl font-semibold md:text-[1.75rem] md:leading-snug">
+              {t('title')}
+            </h2>
+            <p className="mt-3 text-sm leading-7 text-[#69717C]">
+              {t('subtitle')}
+            </p>
+          </div>
           <Link
             href="/posters"
-            className="inline-flex items-center gap-2 rounded-full border border-[#17233B]/40 px-6 py-3 text-sm font-medium transition-colors hover:bg-[#17233B] hover:text-[#F4F0E7]"
+            className="flex hover:bg-[#69717C]/10 hover:text-[#000] items-center gap-2 border rounded-lg border-[#69717C] px-4 py-2"
           >
-            {t('showMore')}
-            <ArrowLeft className="size-4" />
+            {t('galleryCta')}
+            <ArrowLeft className="size-4 shrink-0" aria-hidden />
           </Link>
-          <p className="text-xs">{t('note')}</p>
+        </div>
+
+        <div
+          data-animate="stagger"
+          className="mt-14 grid gap-10 sm:grid-cols-3 lg:gap-8"
+        >
+          {FRAMES.map(({ key, style, ...rest }) => {
+            const isMoon = key === 'moon';
+            const template = 'template' in rest ? rest.template : 'circle';
+            const cardSky = template === 'full' ? fullSky : sky;
+
+            return (
+              <PosterCard
+                key={key}
+                align="start"
+                style={isMoon ? undefined : style}
+                template={template}
+                sky={isMoon ? undefined : cardSky}
+                layers={CARD_LAYERS}
+                title={t(`items.${key}.title`)}
+                body={t(`items.${key}.body`)}
+                preview={isMoon ? moonPreview : undefined}
+                premium={
+                  'premium' in rest && rest.premium
+                    ? {
+                        label: tPosters('premiumBadge'),
+                        tooltip: tPosters('premiumBar'),
+                      }
+                    : undefined
+                }
+              />
+            );
+          })}
         </div>
       </div>
     </section>
