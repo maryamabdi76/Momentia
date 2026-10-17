@@ -38,19 +38,26 @@ export function PosterCard({
   return (
     <div
       data-animate-item
-      className={cn(centered ? 'text-center' : 'text-start', className)}
+      className={cn(
+        'group',
+        centered ? 'text-center' : 'text-start',
+        className,
+      )}
     >
-      <div className="mx-auto flex justify-center rounded-2xl bg-[#DDD8CD] px-6 py-8 md:px-8 md:py-10">
-        {preview ??
-          (style ? (
-            <HomePosterPreview
-              variant={style}
-              template={template}
-              size="product"
-              sky={sky ?? null}
-              layers={layers}
-            />
-          ) : null)}
+      {/* Hover effects live on inner nodes (not this GSAP-animated wrapper). */}
+      <div className="mx-auto flex justify-center rounded-2xl bg-[#DDD8CD] px-6 py-8 transition-colors duration-300 group-hover:bg-[#D6D0C3] md:px-8 md:py-10">
+        <div className="ease-out motion-safe:transition-[transform,filter] motion-safe:duration-500 motion-safe:group-hover:-translate-y-1.5 motion-safe:group-hover:scale-[1.03] motion-safe:group-hover:drop-shadow-[0_22px_28px_rgba(23,35,59,0.28)]">
+          {preview ??
+            (style ? (
+              <HomePosterPreview
+                variant={style}
+                template={template}
+                size="product"
+                sky={sky ?? null}
+                layers={layers}
+              />
+            ) : null)}
+        </div>
       </div>
       <h3
         className={cn(

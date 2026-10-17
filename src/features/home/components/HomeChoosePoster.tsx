@@ -3,13 +3,14 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
 import { ArrowLeft } from 'lucide-react';
+import { cn } from 'cn';
 import { skyForMoment } from '@/features/poster/lib/sky-for-moment';
 import { SkyChart } from '@/features/sky/components/SkyChart';
 import type { SkySnapshot } from '@/features/sky/lib/types';
 import { SAMPLE_NIGHT } from './sample-night';
 
 const VISUAL_SIZE =
-  'relative size-[7.25rem] shrink-0 overflow-hidden rounded-full sm:size-[8.25rem] md:size-[9rem]';
+  'relative size-[7.25rem] shrink-0 overflow-hidden rounded-full sm:size-[8.25rem] md:size-[9rem] ease-out motion-safe:transition-transform motion-safe:duration-500 motion-safe:group-hover:scale-105 motion-safe:group-hover:rotate-6';
 
 type ChooseCardKey = 'moon' | 'sky';
 
@@ -33,13 +34,18 @@ function ChoosePosterCard({
   const isMoon = cardKey === 'moon';
 
   return (
+    // Hover lift uses the `translate` property so it never fights GSAP's
+    // scroll-reveal `transform` on this same element.
     <article
       data-animate-item
-      className={
+      className={cn(
+        'group relative overflow-hidden rounded-2xl ease-out',
+        'motion-safe:transition-[translate,box-shadow] motion-safe:duration-300 motion-safe:hover:-translate-y-1',
+        'has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-[#CEB47B] has-[:focus-visible]:ring-offset-2 has-[:focus-visible]:ring-offset-[#F4F0E7]',
         isMoon
-          ? 'overflow-hidden rounded-2xl bg-[#162033] text-[#FFFDF8]'
-          : 'overflow-hidden rounded-2xl bg-[#FFFCF5] border border-[#DAD4C7] text-[#1A2943]'
-      }
+          ? 'bg-[#162033] text-[#FFFDF8] hover:shadow-[0_18px_36px_-18px_rgba(22,32,51,0.7)]'
+          : 'border border-[#DAD4C7] bg-[#FFFCF5] text-[#1A2943] hover:border-[#CEB47B]/70 hover:shadow-[0_18px_36px_-18px_rgba(26,41,67,0.35)]',
+      )}
     >
       <div className="flex min-h-40 items-between sm:min-h-44">
         <div className="flex min-h-40 items-start text-right flex-1 flex-col justify-between gap-5 p-6">
@@ -57,16 +63,22 @@ function ChoosePosterCard({
               {description}
             </p>
           </div>
+          {/* after:inset-0 stretches the link over the whole card, so the
+              entire card is the click target. */}
           <Link
             href={href}
-            className={
+            className={cn(
+              'inline-flex w-fit items-center gap-1.5 text-[0.8125rem] font-medium transition-colors after:absolute after:inset-0 focus-visible:outline-none',
               isMoon
-                ? 'inline-flex w-fit items-center gap-1.5 text-[0.8125rem] font-medium text-[#CEB47B] transition hover:text-[#e0c180] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#CEB47B]'
-                : 'inline-flex w-fit items-center gap-1.5 text-[0.8125rem] font-medium text-[#1A2943] transition hover:text-[#CEB47B] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#CEB47B]'
-            }
+                ? 'text-[#CEB47B] group-hover:text-[#e0c180]'
+                : 'text-[#1A2943] group-hover:text-[#a8893f]',
+            )}
           >
             {cta}
-            <ArrowLeft className="size-3.5 shrink-0" aria-hidden />
+            <ArrowLeft
+              className="size-3.5 shrink-0 ease-out motion-safe:transition-transform motion-safe:duration-300 motion-safe:group-hover:-translate-x-1"
+              aria-hidden
+            />
           </Link>
         </div>
         <div className="flex shrink-0 items-center justify-center py-7 ps-6 pe-3 sm:w-[36%] sm:py-8 sm:ps-8 sm:pe-4">
