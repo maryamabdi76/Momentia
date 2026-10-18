@@ -225,8 +225,12 @@ export function PosterPreview({
           </p>
 
           {/* chart */}
+          {/* The wrapper is the chart's slot: 78% of the column wide, and it gives
+              way (min-h-0 + shrink) when a long title or quote needs the room, so the
+              text is never pushed off the page. buildPosterSvg does the same sum. */}
           {!full && (
-          <div className="relative mt-[8cqw] aspect-square w-[78%]">
+          <div className="mt-[8cqw] flex h-[63.96cqw] min-h-0 w-full shrink justify-center">
+          <div className="relative aspect-square h-full">
             {t.glow && (
               <div
                 aria-hidden
@@ -291,6 +295,7 @@ export function PosterPreview({
                 height={360}
               />
             )}
+          </div>
           </div>
           )}
 
@@ -369,7 +374,8 @@ export function PosterPreview({
             <p
               className={cn(
                 'text-[2.2cqw] tracking-[0.2em]',
-                meta.length > 0 ? 'mt-[2.6cqw]' : 'mt-auto',
+                // in the full layout the text block already takes the free space above
+                meta.length > 0 || (full && hasTextBlock) ? 'mt-[2.6cqw]' : 'mt-auto',
               )}
               style={{ color: t.muted }}
             >

@@ -16,6 +16,10 @@ const MOON_X = 450;
 const MOON_Y = 520;
 export const MOON_RADIUS = 280;
 
+/** How far the Moon may shrink to make room for a long title, and the clear space kept below it. */
+const MIN_MOON_SCALE = 0.5;
+const MOON_TEXT_GAP = 36;
+
 /** The near side of the Moon as a photograph-style disc (see public/moon). */
 export const MOON_IMAGE_URL = '/moon/moon-nearside.jpg';
 
@@ -119,14 +123,16 @@ export function buildMoonPosterSvg(opts: MoonSvgOptions): string {
 
   parts.push(text(l.headerLine, 94, 27, t.accent));
 
-  // the Moon
+  // The Moon is collected first, not drawn yet: it gives way to the text below when
+  // a long title or quote needs the room (see `moonScale`).
   const rot = moonRotation(facts.latitude);
+  const moonParts: string[] = [];
   if (pal.halo) {
-    parts.push(
+    moonParts.push(
       `<circle cx="${MOON_X}" cy="${MOON_Y}" r="${R * 1.55}" fill="url(#${id}-halo)" opacity="${n(0.25 + 0.75 * facts.illumination)}"/>`,
     );
   }
-  parts.push(
+  moonParts.push(
     `<g transform="translate(${MOON_X} ${MOON_Y})">` +
       `<circle r="${R + 26}" fill="none" stroke="${pal.ring}" stroke-opacity="0.55" stroke-width="1.4"/>` +
       `<circle r="${R + 38}" fill="none" stroke="${pal.ring}" stroke-opacity="0.25" stroke-width="1"/>` +
@@ -140,36 +146,42 @@ export function buildMoonPosterSvg(opts: MoonSvgOptions): string {
       `</g>`,
   );
 
-  if (p.showDetails) parts.push(text(facts.phaseLine, MOON_Y + R + 78, 28, t.accent));
-
   const divider = (dy: number) =>
     `<rect x="${cx - 190}" y="${dy - 0.6}" width="154" height="1.2" fill="url(#${id}-divL)"/>` +
     `<rect x="${cx + 36}" y="${dy - 0.6}" width="154" height="1.2" fill="url(#${id}-divR)"/>` +
     `<path transform="translate(${cx} ${dy}) scale(2.6)" d="M0 -5 L1.2 -1.2 L5 0 L1.2 1.2 L0 5 L-1.2 1.2 L-5 0 L-1.2 -1.2Z" fill="${t.frame}"/>`;
 
-  // text anchored to the bottom, growing upwards so long lines never run off the page
-  const titleLines = wrapText(p.title, 60, maxW, 0.56).slice(0, 2);
-  const quoteLines = p.quote ? wrapText(p.quote, 30, maxW * 0.88).slice(0, 3) : [];
+  // Text anchored to the bottom, growing upwards. Words are never cut: a long title
+  // or quote just takes more lines, and the Moon makes room for them below.
+  const textParts: string[] = [];
+  let textTop = Infinity; // the highest edge of the title block
+  const put = (content: string, ty: number, size: number, fill: string, weight: 400 | 700 = 400) => {
+    textParts.push(text(content, ty, size, fill, weight));
+    textTop = Math.min(textTop, ty - size * 0.8); // ≈ the height of the tall letters
+  };
+  const titleLines = wrapText(p.title, 60, maxW, 0.56);
+  const quoteLines = p.quote ? wrapText(p.quote, 30, maxW * 0.88) : [];
   const hasHead = titleLines.length > 0 || Boolean(p.names);
 
-  if (watermark) parts.push(text(l.watermark, 1274, 20, t.muted));
-  if (meta.length) parts.push(text(meta.join('   •   '), 1225, 28, t.ink));
+  if (watermark) textParts.push(text(l.watermark, 1274, 20, t.muted));
+  if (meta.length) textParts.push(text(meta.join('   •   '), 1225, 28, t.ink));
   const bottom = meta.length ? 1225 : watermark ? 1274 : 1290;
 
   let y = bottom - 64;
   if (quoteLines.length) {
     const first = y - 56 * (quoteLines.length - 1);
-    quoteLines.forEach((line, i) => parts.push(text(line, first + 56 * i, 30, t.muted)));
+    quoteLines.forEach((line, i) => put(line, first + 56 * i, 30, t.muted));
     y = first;
     if (hasHead) {
       y -= 62;
-      parts.push(divider(y));
+      textParts.push(divider(y));
+      textTop = Math.min(textTop, y - 6);
     }
   }
   if (hasHead) {
     if (p.names) {
       y -= quoteLines.length ? 42 : 0;
-      parts.push(text(p.names, y, 38, t.accent));
+      put(p.names, y, 38, t.accent);
       y -= 84;
     } else if (quoteLines.length) {
       y -= 48;
@@ -177,8 +189,34 @@ export function buildMoonPosterSvg(opts: MoonSvgOptions): string {
     titleLines
       .slice()
       .reverse()
-      .forEach((line, i) => parts.push(text(line, y - 80 * i, 60, t.ink, 700)));
+      .forEach((line, i) => put(line, y - 80 * i, 60, t.ink, 700));
   }
+
+  // The Moon block runs from its outer ring down to the phase line. It is shrunk
+  // (about its top) just enough to stay clear of the text; normal text leaves it at 1.
+  const blockTop = MOON_Y - (R + 38);
+  const phaseOffset = MOON_Y + R + 78 - blockTop; // the phase line's baseline below the ring
+  const moonScale = Number.isFinite(textTop)
+    ? Math.min(
+        1,
+        Math.max(
+          MIN_MOON_SCALE,
+          p.showDetails
+            ? (textTop - MOON_TEXT_GAP - 10 - blockTop) / phaseOffset
+            : (textTop - MOON_TEXT_GAP - blockTop) / (2 * (R + 38)),
+        ),
+      )
+    : 1;
+
+  parts.push(
+    moonScale === 1
+      ? moonParts.join('')
+      : `<g transform="translate(${MOON_X} ${blockTop}) scale(${n(moonScale)}) translate(${-MOON_X} ${-blockTop})">${moonParts.join('')}</g>`,
+  );
+  if (p.showDetails) {
+    parts.push(text(facts.phaseLine, n(blockTop + phaseOffset * moonScale), 28, t.accent));
+  }
+  parts.push(...textParts);
 
   const fontCss = fonts
     ? `@font-face{font-family:'Vazirmatn';font-weight:400;src:url(data:font/woff2;base64,${fonts.regular}) format('woff2')}` +
