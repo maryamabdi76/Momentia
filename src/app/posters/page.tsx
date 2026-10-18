@@ -3,10 +3,20 @@ import { getTranslations } from 'next-intl/server';
 import { HomeHeader } from '@/features/home/components/HomeHeader';
 import { HomeFooter } from '@/features/home/components/HomeFooter';
 import { PostersGallery } from '@/features/home/components/PostersGallery';
+import { SHARE_IMAGES, shareMetadata } from '@/lib/share-metadata';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('PostersPage');
-  return { title: t('metaTitle'), description: t('description') };
+  const tMeta = await getTranslations('Metadata');
+  return shareMetadata({
+    title: t('metaTitle'),
+    // the page copy has a line break between its two sentences
+    description: t('description').replace(/\s*\n\s*/g, ' '),
+    image: SHARE_IMAGES.posters,
+    imageAlt: tMeta('shareImageAlt'),
+    siteName: tMeta('title'),
+    path: '/posters',
+  });
 }
 
 export default function PostersPage() {

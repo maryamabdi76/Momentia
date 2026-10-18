@@ -4,6 +4,8 @@ import { getLocale, getMessages, getTranslations } from 'next-intl/server';
 
 import { DirectionProvider } from '@/components/ui/direction';
 import { localeDirection, type Locale } from '@/i18n/config';
+import { getSiteUrl } from '@/lib/site';
+import { SHARE_IMAGES, shareMetadata } from '@/lib/share-metadata';
 
 import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
@@ -17,8 +19,16 @@ export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('Metadata');
 
   return {
-    title: t('title'),
-    description: t('description'),
+    // makes the relative share-image and canonical URLs absolute
+    metadataBase: getSiteUrl(),
+    // the default card; every page below sets its own (see shareMetadata)
+    ...shareMetadata({
+      title: t('title'),
+      description: t('description'),
+      image: SHARE_IMAGES.home,
+      imageAlt: t('shareImageAlt'),
+      siteName: t('title'),
+    }),
   };
 }
 

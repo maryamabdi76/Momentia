@@ -3,10 +3,19 @@ import { getTranslations } from 'next-intl/server';
 import { HomeHeader } from '@/features/home/components/HomeHeader';
 import { HomeFooter } from '@/features/home/components/HomeFooter';
 import { MoonCreateStepper } from '@/features/moon/components/MoonCreateStepper';
+import { SHARE_IMAGES, shareMetadata } from '@/lib/share-metadata';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('MoonPage');
-  return { title: t('metaTitle'), description: t('metaDescription') };
+  const tMeta = await getTranslations('Metadata');
+  return shareMetadata({
+    title: t('metaTitle'),
+    description: t('metaDescription'),
+    image: SHARE_IMAGES.moon,
+    imageAlt: tMeta('shareImageAlt'),
+    siteName: tMeta('title'),
+    path: '/moon',
+  });
 }
 
 export default function MoonPage() {
