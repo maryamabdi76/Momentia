@@ -9,6 +9,8 @@ import {
   POSTER_HEIGHT,
   POSTER_WIDTH,
   buildPosterSvg,
+  estimateWidth,
+  type Measure,
   type PosterFonts,
 } from './poster-svg';
 
@@ -42,6 +44,39 @@ export function loadFonts(): Promise<PosterFonts> {
   return fontCache;
 }
 
+let measureCache: Promise<Measure> | null = null;
+
+/**
+ * Text widths from the real Vazirmatn, so the downloaded file breaks its lines
+ * exactly where the on-screen preview does. The fonts are registered under their
+ * own family name, so it works whatever font the page itself uses.
+ */
+export function loadMeasure(): Promise<Measure> {
+  measureCache ??= (async () => {
+    const fonts = await loadFonts();
+    const bytes = (b64: string) => Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+    const faces = await Promise.all(
+      (
+        [
+          [fonts.regular, '400'],
+          [fonts.bold, '700'],
+        ] as const
+      ).map(([b64, weight]) =>
+        new FontFace('PosterMeasure', bytes(b64), { weight }).load(),
+      ),
+    );
+    faces.forEach((face) => document.fonts.add(face));
+    const ctx = document.createElement('canvas').getContext('2d');
+    if (!ctx) throw new Error('canvas unavailable');
+    const measure: Measure = (text, size, weight) => {
+      ctx.font = `${weight} ${size}px PosterMeasure`;
+      return ctx.measureText(text).width;
+    };
+    return measure;
+  })().catch((): Measure => estimateWidth); // a rough estimate beats no file
+  return measureCache;
+}
+
 export type ExportInput = {
   data: PosterData;
   labels: PosterLabels;
@@ -55,7 +90,7 @@ export async function createPosterSvg({
   sky,
   watermark,
 }: ExportInput): Promise<string> {
-  const fonts = await loadFonts();
+  const [fonts, measure] = await Promise.all([loadFonts(), loadMeasure()]);
   const chartSvg = !sky
     ? ''
     : renderToStaticMarkup(
@@ -83,7 +118,7 @@ export async function createPosterSvg({
           />
         ),
       );
-  return buildPosterSvg({ data, labels, chartSvg, fonts, watermark });
+  return buildPosterSvg({ data, labels, chartSvg, fonts, watermark, measure });
 }
 
 export async function svgToPngBlob(svg: string, width: number): Promise<Blob> {
