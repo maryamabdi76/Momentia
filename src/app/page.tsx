@@ -1,3 +1,5 @@
+import type { Metadata } from 'next';
+import { getTranslations } from 'next-intl/server';
 import { HomeMotion } from '@/features/home/components/HomeMotion';
 import { SpaceBackdrop } from '@/features/home/components/SpaceBackdrop';
 import { HomeHeader } from '@/features/home/components/HomeHeader';
@@ -12,6 +14,19 @@ import { HomeFaq } from '@/features/home/components/HomeFaq';
 import { HomeFinalCta } from '@/features/home/components/HomeFinalCta';
 import { HomeFooter } from '@/features/home/components/HomeFooter';
 import { Separator } from '@/components/ui/separator';
+import { SHARE_IMAGES, shareMetadata } from '@/lib/share-metadata';
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('Metadata');
+  return shareMetadata({
+    title: t('title'),
+    description: t('description'),
+    image: SHARE_IMAGES.home,
+    imageAlt: t('shareImageAlt'),
+    siteName: t('title'),
+    path: '/',
+  });
+}
 
 export default function Home() {
   return (
