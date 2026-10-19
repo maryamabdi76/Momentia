@@ -46,31 +46,33 @@ export async function HomeHeader({ variant = 'home' }: HomeHeaderProps) {
       className="border-b border-[#33415B]"
     >
       <div className="mx-auto flex items-center justify-between px-4 text-sm text-white sm:px-6 md:px-20 h-16">
-        <Link
-          className="flex items-center gap-3 text-xl font-bold whitespace-nowrap text-white md:gap-4 md:text-2xl"
-          href={'/'}
-        >
-          <Sparkles className="size-4 text-[#CEB47B]" />
-          {t('brand')}
-        </Link>
+        <div className="flex items-center gap-8 lg:gap-12">
+          <Link
+            className="flex items-center gap-3 text-xl font-bold whitespace-nowrap text-white md:gap-4 md:text-2xl"
+            href={'/'}
+          >
+            <Sparkles className="size-4 text-[#CEB47B]" />
+            {t('brand')}
+          </Link>
 
-        <NavigationMenu viewport={false} className="hidden max-w-none md:flex">
-          <NavigationMenuList className="gap-6">
-            {navLinks.map(({ href, label, active }) => (
-              <NavigationMenuItem
-                key={href}
-                className={active ? 'bg-white/10 rounded-lg' : ''}
-              >
-                <NavigationMenuLink
-                  href={href}
-                  className={active ? 'text-[#CEB47B]' : navLinkClass}
+          <NavigationMenu viewport={false} className="hidden max-w-none md:flex">
+            <NavigationMenuList className="gap-6">
+              {navLinks.map(({ href, label, active }) => (
+                <NavigationMenuItem
+                  key={href}
+                  className={active ? 'bg-white/10 rounded-lg' : ''}
                 >
-                  {label}
-                </NavigationMenuLink>
-              </NavigationMenuItem>
-            ))}
-          </NavigationMenuList>
-        </NavigationMenu>
+                  <NavigationMenuLink
+                    href={href}
+                    className={active ? 'text-[#CEB47B]' : navLinkClass}
+                  >
+                    {label}
+                  </NavigationMenuLink>
+                </NavigationMenuItem>
+              ))}
+            </NavigationMenuList>
+          </NavigationMenu>
+        </div>
 
         <div className="flex items-center gap-2 md:gap-3">
           <Button
