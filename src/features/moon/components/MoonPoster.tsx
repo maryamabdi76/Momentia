@@ -17,19 +17,22 @@ export function MoonPoster({
   data,
   facts,
   labels,
+  watermark = false,
   className,
 }: {
   data: MoonPosterData;
   facts: MoonFacts;
   labels: MoonLabels;
+  /** Show the site name at the foot, as the free download does. */
+  watermark?: boolean;
   className?: string;
 }) {
   // several posters can share a page (home cards), so ids must be unique
   const idPrefix = `moon${useId().replace(/[^a-zA-Z0-9]/g, '')}`;
   const svg = useMemo(
     () =>
-      buildMoonPosterSvg({ data, facts, labels, watermark: false, idPrefix }),
-    [data, facts, labels, idPrefix],
+      buildMoonPosterSvg({ data, facts, labels, watermark, idPrefix }),
+    [data, facts, labels, watermark, idPrefix],
   );
   return (
     <div

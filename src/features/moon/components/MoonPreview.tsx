@@ -47,7 +47,7 @@ export function MoonPreview({ step, poster, sky, moment, onBack, exporter }: Pro
 
         <div className="mx-auto mt-6 max-w-[420px] shadow-xl">
           {facts ? (
-            <MoonPoster data={poster} facts={facts} labels={labels} />
+            <MoonPoster data={poster} facts={facts} labels={labels} watermark />
           ) : (
             <div className="aspect-[2/3] w-full animate-pulse bg-[#1c2540]/10" />
           )}

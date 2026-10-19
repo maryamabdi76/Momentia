@@ -21,7 +21,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default function MoonPage() {
   return (
     <div className="flex min-h-screen flex-col bg-[#080f28] text-[#f7f3e8]" dir="rtl">
-      <HomeHeader variant="create" />
+      <HomeHeader variant="moon" />
       <MoonCreateStepper />
       <HomeFooter variant="create" />
     </div>
