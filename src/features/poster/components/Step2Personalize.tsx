@@ -121,6 +121,7 @@ export function Step2Personalize({
     watched.showDate,
     watched.showCity,
     layers?.constellationLines,
+    layers?.constellationArt,
     layers?.moonAndPlanets,
     layers?.planetNames,
     layers?.ecliptic,
@@ -432,6 +433,7 @@ export function Step2Personalize({
         {(
           [
             'constellationLines',
+            'constellationArt',
             'moonAndPlanets',
             'planetNames',
             'ecliptic',

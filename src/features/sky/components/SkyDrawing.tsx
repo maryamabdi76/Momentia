@@ -110,6 +110,47 @@ function Stars({
   );
 }
 
+const artPath = (shapes: SkySnapshot['art'][number]['shapes']) =>
+  shapes
+    .map(
+      (shape) =>
+        shape.points.map(([x, y], i) => `${i ? 'L' : 'M'}${f(x * R)} ${f(y * R)}`).join('') +
+        (shape.closed ? 'Z' : ''),
+    )
+    .join('');
+
+/**
+ * Figures drawn around the constellations. The soft silhouette is one group, so
+ * where a limb overlaps the body the fill does not double up; a thin outline
+ * sits on top.
+ */
+function ConstellationArt({ art, palette }: { art: SkySnapshot['art']; palette: Palette }) {
+  return (
+    <g>
+      {art.map(({ id, shapes }) => (
+        <g key={id}>
+          <g opacity={0.13} fill={palette.figure}>
+            {shapes
+              .filter((s) => s.fill)
+              .map((s, i) => (
+                <path key={i} d={artPath([s])} />
+              ))}
+          </g>
+          <path
+            d={artPath(shapes)}
+            fill="none"
+            stroke={palette.figure}
+            strokeOpacity={f(Math.min(1, palette.figureOpacity * 0.75))}
+            strokeWidth={0.26}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </g>
+      ))}
+    </g>
+  );
+}
+
 /**
  * How much quieter the sky under the horizon is drawn. Enough that the visible
  * sky is still the subject, not so much that the page stops looking like sky.
@@ -205,6 +246,8 @@ export function SkyDrawing({
             strokeDasharray="3 1.6"
           />
         )}
+
+        {show.constellationArt && <ConstellationArt art={sky.art} palette={p} />}
 
         {show.constellationLines && (
           <path

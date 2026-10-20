@@ -24,9 +24,25 @@ export type ConstellationLines = {
   paths: readonly CatalogPath[];
 };
 
+/** One drawn part of a constellation figure, as [ra, dec] degree points (J2000). */
+export type CatalogArtShape = {
+  closed: boolean;
+  /** Filled silhouette (a body part) rather than a bare line. */
+  fill: boolean;
+  points: ReadonlyArray<readonly [ra: number, dec: number]>;
+};
+
+/** The artwork of one constellation: a figure drawn around its stars. */
+export type ConstellationArt = {
+  id: string;
+  shapes: readonly CatalogArtShape[];
+};
+
 export type SkyCatalog = {
   stars: readonly CatalogStar[];
   lines: readonly ConstellationLines[];
+  /** Optional figure artwork; without it the "figures" layer draws nothing. */
+  art?: readonly ConstellationArt[];
 };
 
 export type PlanetId = 'mercury' | 'venus' | 'mars' | 'jupiter' | 'saturn';
@@ -79,6 +95,15 @@ export type SkySnapshot = {
     stars: SkyStar[];
     lines: Array<Array<[x: number, y: number]>>;
   };
+  /**
+   * Constellation figures (the hunter, the swan …) for the constellations that
+   * have artwork and are at least partly above the horizon. Shapes are not
+   * clipped; the chart's horizon circle cuts them.
+   */
+  art: Array<{
+    id: string;
+    shapes: Array<{ closed: boolean; fill: boolean; points: Array<[x: number, y: number]> }>;
+  }>;
   /** The celestial equator and the ecliptic, clipped at the horizon like `lines`. */
   guides: {
     equator: Array<Array<[x: number, y: number]>>;

@@ -183,6 +183,31 @@ export function computeSky(options: ComputeSkyOptions): SkySnapshot {
     }
   }
 
+  // ── constellation figures ──────────────────────────────────────────────────
+  const art: SkySnapshot['art'] = [];
+  for (const figure of catalog.art ?? []) {
+    const placed = figure.shapes.map((shape) => ({
+      shape,
+      enu: shape.points.map(([ra, dec]) => applyMat3(j2000ToEnu, raDecToVector(ra, dec))),
+    }));
+    // nothing to draw once the whole figure is under the horizon
+    if (!placed.some(({ enu }) => enu.some((v) => v[2] > 0))) continue;
+    art.push({
+      id: figure.id,
+      shapes: placed
+        // a part far below the horizon would only project to huge, unseen numbers
+        .filter(({ enu }) => enu.every((v) => v[2] > -0.5))
+        .map(({ shape, enu }) => ({
+          closed: shape.closed,
+          fill: shape.fill,
+          points: enu.map((v): [number, number] => {
+            const p = chartPoint(v);
+            return [p.x, p.y];
+          }),
+        })),
+    });
+  }
+
   // ── celestial equator and ecliptic (both defined "of date", so no precession) ──
   const equator: SkySnapshot['lines'] = [];
   const ecliptic: SkySnapshot['lines'] = [];
@@ -262,6 +287,7 @@ export function computeSky(options: ComputeSkyOptions): SkySnapshot {
     sunAltitude: sunAlt,
     stars,
     lines,
+    art,
     guides: { equator, ecliptic },
     ...(depth > 0 ? { below: { stars: starsBelow, lines: linesBelow } } : {}),
     moon,

@@ -6,6 +6,8 @@
 export type SkyLayers = {
   /** Constellation outlines. */
   constellationLines: boolean;
+  /** Figures drawn over the constellations: the hunter, the swan, the bear… */
+  constellationArt: boolean;
   /** Moon and planets. */
   moonAndPlanets: boolean;
   /** Names next to the planets (only meaningful with `moonAndPlanets`). */
@@ -23,6 +25,7 @@ export const MAGNITUDE_PRESETS = [3.5, 4.6, 5.5] as const;
 
 export const DEFAULT_SKY_LAYERS: SkyLayers = {
   constellationLines: true,
+  constellationArt: false,
   moonAndPlanets: true,
   planetNames: true,
   ecliptic: false,
