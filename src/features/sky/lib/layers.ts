@@ -31,7 +31,8 @@ export const DEFAULT_SKY_LAYERS: SkyLayers = {
   planetNames: true,
   ecliptic: false,
   equator: false,
-  maxMagnitude: 4.6,
+  // Keep the artwork legible instead of burying it under a dense star field.
+  maxMagnitude: 3.5,
 };
 
 /** Fills in anything missing (older drafts, partial props). */

@@ -129,7 +129,7 @@ function ConstellationArt({ art, palette }: { art: SkySnapshot['art']; palette: 
     <g>
       {art.map(({ id, shapes }) => (
         <g key={id}>
-          <g opacity={0.24} fill={palette.figure}>
+          <g opacity={0.42} fill={palette.figure}>
             {shapes
               .filter((s) => s.fill)
               .map((s, i) => (
@@ -140,8 +140,8 @@ function ConstellationArt({ art, palette }: { art: SkySnapshot['art']; palette: 
             d={artPath(shapes)}
             fill="none"
             stroke={palette.figure}
-            strokeOpacity={f(Math.min(1, palette.figureOpacity * 0.75))}
-            strokeWidth={0.26}
+            strokeOpacity={f(Math.min(1, palette.figureOpacity * 1.15))}
+            strokeWidth={0.42}
             strokeLinecap="round"
             strokeLinejoin="round"
           />
