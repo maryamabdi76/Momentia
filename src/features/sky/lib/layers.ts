@@ -25,7 +25,8 @@ export const MAGNITUDE_PRESETS = [3.5, 4.6, 5.5] as const;
 
 export const DEFAULT_SKY_LAYERS: SkyLayers = {
   constellationLines: true,
-  constellationArt: false,
+  // Use the illustrated constellation figures by default for the watermark-like look.
+  constellationArt: true,
   moonAndPlanets: true,
   planetNames: true,
   ecliptic: false,

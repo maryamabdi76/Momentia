@@ -129,7 +129,7 @@ function ConstellationArt({ art, palette }: { art: SkySnapshot['art']; palette: 
     <g>
       {art.map(({ id, shapes }) => (
         <g key={id}>
-          <g opacity={0.13} fill={palette.figure}>
+          <g opacity={0.24} fill={palette.figure}>
             {shapes
               .filter((s) => s.fill)
               .map((s, i) => (
