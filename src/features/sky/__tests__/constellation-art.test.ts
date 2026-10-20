@@ -47,10 +47,10 @@ test('a figure that is wholly below the horizon is left out', () => {
   assert.equal(drawn.find((f) => f.id === 'Sco'), undefined);
 });
 
-test('without artwork in the catalog the snapshot has none, and the layer is on by default', () => {
+test('without artwork in the catalog the snapshot has none, and the layer is off by default', () => {
   const plain = computeSky({ ...TEHRAN, date: YALDA, catalog: { ...catalog, art: undefined } });
   assert.deepEqual(plain.art, []);
-  assert.equal(DEFAULT_SKY_LAYERS.constellationArt, true);
+  assert.equal(DEFAULT_SKY_LAYERS.constellationArt, false);
   // drafts saved before the option existed still resolve
-  assert.equal(resolveSkyLayers({ maxMagnitude: 3.5 }).constellationArt, true);
+  assert.equal(resolveSkyLayers({ maxMagnitude: 3.5 }).constellationArt, false);
 });

@@ -25,14 +25,12 @@ export const MAGNITUDE_PRESETS = [3.5, 4.6, 5.5] as const;
 
 export const DEFAULT_SKY_LAYERS: SkyLayers = {
   constellationLines: true,
-  // Use the illustrated constellation figures by default for the watermark-like look.
-  constellationArt: true,
+  constellationArt: false,
   moonAndPlanets: true,
   planetNames: true,
   ecliptic: false,
   equator: false,
-  // Keep the artwork legible instead of burying it under a dense star field.
-  maxMagnitude: 3.5,
+  maxMagnitude: 4.6,
 };
 
 /** Fills in anything missing (older drafts, partial props). */
