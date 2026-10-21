@@ -265,6 +265,26 @@ figure('Sco', ['Antares', 'Eps_Sco'], ({ S, shapes }) => {
   });
 });
 
+figure('UMi', ['Zeta_UMi', 'Kochab'], ({ shapes }) => {
+  // The Little Bear, walking toward the west with her long tail up to Polaris.
+  // Drawn in the flat sky plane (x east, y north; Zeta ≈ (1.4, 1.9), Kochab ≈ (−1.8, −1.7)).
+  // tail first: it grows out of the rump and tapers to a tuft at Polaris
+  shapes.push(ribbon([[4.5, 1.2], [4.6, 3.8], [3.1, 6.7], [2.2, 9.4], [1.9, 11.3], [0.15, 15.1]], 1.5, 0.35));
+  // body, head and legs as one outline
+  shapes.push(
+    blob([
+      [5.0, 0.4], [4.4, 2.1], [2.6, 3.0], [0.5, 3.0], [-1.3, 2.6], [-2.4, 1.9], [-3.5, 1.5],
+      [-4.8, 1.0], [-6.0, 0.0], [-6.9, -0.9], [-6.5, -1.9], [-5.3, -2.3], [-4.0, -2.2],
+      [-3.4, -3.0], [-3.6, -4.8], [-3.9, -6.3], [-3.0, -6.8], [-2.2, -6.2], [-2.1, -4.3],
+      [-1.2, -3.7], [-0.4, -4.4], [-0.5, -6.2], [0.3, -6.8], [1.1, -6.2], [1.1, -4.0],
+      [2.2, -3.3], [2.7, -4.6], [2.5, -6.2], [3.4, -6.8], [4.2, -6.2], [4.2, -4.4], [4.8, -2.0],
+    ]),
+  );
+  // ear, eye and mouth
+  shapes.push(blob([[-3.9, 1.6], [-3.4, 3.1], [-2.6, 2.4], [-3.0, 1.5]]));
+  shapes.push(line([[-6.7, -1.4], [-5.6, -1.7], [-4.7, -1.3]]));
+});
+
 figure('Gem', ['Mebsuta', 'Wasat'], ({ S, shapes }) => {
   const [cas, pol, alh, meb, tej, pro, mek, was] = [S('Castor'), S('Pollux'), S('Alhena'), S('Mebsuta'), S('Tejat'), S('Propus'), S('Mekbuda'), S('Wasat')];
   // Castor
@@ -337,9 +357,11 @@ console.log(`${out.length} figures, ${bytes} bytes`);
 
 // ── contact sheet for eyeballing ─────────────────────────────────────────────
 const flag = process.argv.indexOf('--preview');
+const onlyIdx = process.argv.indexOf('--only');
+const only = onlyIdx > 0 ? process.argv[onlyIdx + 1] : null;
 if (flag > 0) {
-  const SIZE = 560;
-  const panels = preview.map(({ id, centreRaDec, forward, shapes }) => {
+  const SIZE = only ? 900 : 560;
+  const panels = preview.filter((f) => !only || f.id === only).map(({ id, centreRaDec, forward, shapes }) => {
     const all = shapes.flatMap((s) => s.pts);
     const xs = all.map((p) => p[0]);
     const ys = all.map((p) => p[1]);
@@ -357,6 +379,19 @@ if (flag > 0) {
       .filter(({ p }) => Math.abs(p[0] - cx) < span / 2 && Math.abs(p[1] - cy) < span / 2)
       .map(({ s, p }) => `<circle cx="${px(p)}" cy="${py(p)}" r="${(0.7 + (5.4 - s[2]) * 0.9).toFixed(1)}" fill="#fff"/>`)
       .join('');
+    const grid = [];
+    if (only) {
+      for (let g = -40; g <= 40; g += 2) {
+        const x = SIZE / 2 - (g - cx) * k;
+        const y = SIZE / 2 - (g - cy) * k;
+        grid.push(`<line x1="${x}" y1="0" x2="${x}" y2="${SIZE}" stroke="#fff" stroke-opacity="${g % 10 === 0 ? 0.25 : 0.08}"/><line y1="${y}" x1="0" y2="${y}" x2="${SIZE}" stroke="#fff" stroke-opacity="${g % 10 === 0 ? 0.25 : 0.08}"/>`);
+        grid.push(`<text x="${x + 2}" y="12" fill="#fff" fill-opacity=".5" font-size="10">x${g}</text><text x="2" y="${y - 2}" fill="#fff" fill-opacity=".5" font-size="10">y${g}</text>`);
+      }
+      for (const [n, rd] of Object.entries(STARS)) {
+        const p = forward(rd);
+        if (Math.abs(p[0] - cx) < span / 2 && Math.abs(p[1] - cy) < span / 2) grid.push(`<text x="${+px(p) + 5}" y="${+py(p) - 4}" fill="#ffd27a" font-size="11">${n}</text>`);
+      }
+    }
     const lines = linesData
       .filter((l) => l.id === id)
       .flatMap((l) => l.paths)
@@ -368,7 +403,7 @@ if (flag > 0) {
     const art = shapes
       .map((s) => `<path d="${d(s.pts, s.closed)}" fill="${s.fill ? '#9db4ff' : 'none'}" fill-opacity=".14" stroke="#cdd9ff" stroke-opacity=".75" stroke-width="1.2"/>`)
       .join('');
-    return `<div><b>${id}</b><svg width="${SIZE}" height="${SIZE}" style="background:#0c142b"><defs><clipPath id="c${id}"><rect width="${SIZE}" height="${SIZE}"/></clipPath></defs><g clip-path="url(#c${id})">${art}${lines}${stars}</g></svg></div>`;
+    return `<div><b>${id}</b><svg width="${SIZE}" height="${SIZE}" style="background:#0c142b"><defs><clipPath id="c${id}"><rect width="${SIZE}" height="${SIZE}"/></clipPath></defs><g clip-path="url(#c${id})">${art}${lines}${stars}${grid.join('')}</g></svg></div>`;
   });
   writeFileSync(process.argv[flag + 1], `<!doctype html><meta charset=utf-8><body style="margin:0;background:#222;color:#fff;font:14px sans-serif;display:grid;grid-template-columns:repeat(3,${SIZE}px);gap:8px">${panels.join('')}`);
 }

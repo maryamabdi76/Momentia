@@ -119,6 +119,28 @@ const artPath = (shapes: SkySnapshot['art'][number]['shapes']) =>
     )
     .join('');
 
+/** Painted figures, each pinned to its stars by a matrix (chart units → ×R here). */
+function ArtImages({ images }: { images: SkySnapshot['artImages'] }) {
+  return (
+    <g>
+      {images.map(({ id, src, width, height, matrix, opacity }) => {
+        const [a, b, c, d, e, g] = matrix.map((n) => Number((n * R).toFixed(5)));
+        return (
+          <image
+            key={id}
+            href={src}
+            width={width}
+            height={height}
+            opacity={opacity}
+            transform={`matrix(${a} ${b} ${c} ${d} ${e} ${g})`}
+            preserveAspectRatio="none"
+          />
+        );
+      })}
+    </g>
+  );
+}
+
 /**
  * Figures drawn around the constellations. The soft silhouette is one group, so
  * where a limb overlaps the body the fill does not double up; a thin outline
@@ -247,7 +269,12 @@ export function SkyDrawing({
           />
         )}
 
-        {show.constellationArt && <ConstellationArt art={sky.art} palette={p} />}
+        {show.constellationArt && (
+          <>
+            <ConstellationArt art={sky.art} palette={p} />
+            <ArtImages images={sky.artImages} />
+          </>
+        )}
 
         {show.constellationLines && (
           <path

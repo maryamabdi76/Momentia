@@ -38,11 +38,37 @@ export type ConstellationArt = {
   shapes: readonly CatalogArtShape[];
 };
 
+/** One of the three stars an artwork image is pinned to: where it is in the picture, and on the sky. */
+export type ArtImageAnchor = {
+  /** Pixel position in the image (x right, y down). */
+  px: readonly [x: number, y: number];
+  /** The star's J2000 right ascension and declination, degrees. */
+  star: readonly [ra: number, dec: number];
+};
+
+/**
+ * A painted figure for a constellation, as an image pinned to three of its
+ * stars. The picture is stretched, rotated and moved so those three pixels land
+ * on those three stars.
+ */
+export type ConstellationArtImage = {
+  id: string;
+  /** Under `public/`, e.g. "/constellation-art/Ori.webp". */
+  src: string;
+  width: number;
+  height: number;
+  anchors: readonly [ArtImageAnchor, ArtImageAnchor, ArtImageAnchor];
+  /** How strongly it shows, 0–1. */
+  opacity?: number;
+};
+
 export type SkyCatalog = {
   stars: readonly CatalogStar[];
   lines: readonly ConstellationLines[];
   /** Optional figure artwork; without it the "figures" layer draws nothing. */
   art?: readonly ConstellationArt[];
+  /** Painted figures; they replace the drawn figure of the same constellation. */
+  images?: readonly ConstellationArtImage[];
 };
 
 export type PlanetId = 'mercury' | 'venus' | 'mars' | 'jupiter' | 'saturn';
@@ -95,6 +121,19 @@ export type SkySnapshot = {
     stars: SkyStar[];
     lines: Array<Array<[x: number, y: number]>>;
   };
+  /**
+   * Painted figures, each with the SVG matrix [a b c d e f] that takes its pixels
+   * to chart units (horizon radius 1). Their constellation's drawn figure is
+   * left out of `art`.
+   */
+  artImages: Array<{
+    id: string;
+    src: string;
+    width: number;
+    height: number;
+    matrix: [number, number, number, number, number, number];
+    opacity: number;
+  }>;
   /**
    * Constellation figures (the hunter, the swan …) for the constellations that
    * have artwork and are at least partly above the horizon. Shapes are not

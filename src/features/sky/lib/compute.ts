@@ -32,6 +32,31 @@ import type {
   SkyStar,
 } from './types.ts';
 
+/**
+ * The SVG matrix [a b c d e f] that carries three pixels onto three chart points
+ * (x' = a·u + c·v + e, y' = b·u + d·v + f), or null when the pixels are in a line.
+ */
+export function pinImage(
+  px: ReadonlyArray<readonly [number, number]>,
+  to: ReadonlyArray<readonly [number, number]>,
+): [number, number, number, number, number, number] | null {
+  const [[u1, v1], [u2, v2], [u3, v3]] = px as [
+    readonly [number, number],
+    readonly [number, number],
+    readonly [number, number],
+  ];
+  const det = u1 * (v2 - v3) - v1 * (u2 - u3) + (u2 * v3 - u3 * v2);
+  if (Math.abs(det) < 1e-9) return null;
+  const solve = (a1: number, a2: number, a3: number): [number, number, number] => [
+    (a1 * (v2 - v3) - v1 * (a2 - a3) + (a2 * v3 - a3 * v2)) / det,
+    (u1 * (a2 - a3) - a1 * (u2 - u3) + (u2 * a3 - u3 * a2)) / det,
+    (u1 * (v2 * a3 - v3 * a2) - v1 * (u2 * a3 - u3 * a2) + a1 * (u2 * v3 - u3 * v2)) / det,
+  ];
+  const [a, c, e] = solve(to[0]![0], to[1]![0], to[2]![0]);
+  const [b, d, f] = solve(to[0]![1], to[1]![1], to[2]![1]);
+  return [a, b, c, d, e, f];
+}
+
 export type ComputeSkyOptions = {
   /** Degrees north. */
   latitude: number;
@@ -183,9 +208,38 @@ export function computeSky(options: ComputeSkyOptions): SkySnapshot {
     }
   }
 
+  // ── painted constellation figures ──────────────────────────────────────────
+  const artImages: SkySnapshot['artImages'] = [];
+  const painted = new Set<string>();
+  for (const image of catalog.images ?? []) {
+    const enu = image.anchors.map(({ star }) =>
+      applyMat3(j2000ToEnu, raDecToVector(star[0], star[1])),
+    );
+    // partly in view, and not so far under the horizon that the pinning stretches
+    if (!enu.some((v) => v[2] > -0.1) || !enu.every((v) => v[2] > -0.6)) continue;
+    const matrix = pinImage(
+      image.anchors.map((a) => a.px),
+      enu.map((v) => {
+        const p = chartPoint(v);
+        return [p.x, p.y] as const;
+      }),
+    );
+    if (!matrix) continue;
+    painted.add(image.id);
+    artImages.push({
+      id: image.id,
+      src: image.src,
+      width: image.width,
+      height: image.height,
+      matrix,
+      opacity: image.opacity ?? 0.6,
+    });
+  }
+
   // ── constellation figures ──────────────────────────────────────────────────
   const art: SkySnapshot['art'] = [];
   for (const figure of catalog.art ?? []) {
+    if (painted.has(figure.id)) continue;
     const placed = figure.shapes.map((shape) => ({
       shape,
       enu: shape.points.map(([ra, dec]) => applyMat3(j2000ToEnu, raDecToVector(ra, dec))),
@@ -288,6 +342,7 @@ export function computeSky(options: ComputeSkyOptions): SkySnapshot {
     stars,
     lines,
     art,
+    artImages,
     guides: { equator, ecliptic },
     ...(depth > 0 ? { below: { stars: starsBelow, lines: linesBelow } } : {}),
     moon,

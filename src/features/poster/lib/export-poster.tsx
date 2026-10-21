@@ -3,6 +3,7 @@ import { SkyChart } from '@/features/sky/components/SkyChart';
 import { SkyField } from '@/features/sky/components/SkyField';
 import type { SkySnapshot } from '@/features/sky/lib/types';
 import type { PosterData, PosterLabels } from '../components/PosterPreview';
+import { inlineArtImages } from './inline-images';
 import { FULL_LAYOUT } from './templates';
 import { POSTER_THEMES } from './themes';
 import {
@@ -118,7 +119,14 @@ export async function createPosterSvg({
           />
         ),
       );
-  return buildPosterSvg({ data, labels, chartSvg, fonts, watermark, measure });
+  return buildPosterSvg({
+    data,
+    labels,
+    chartSvg: await inlineArtImages(chartSvg),
+    fonts,
+    watermark,
+    measure,
+  });
 }
 
 export async function svgToPngBlob(svg: string, width: number): Promise<Blob> {
