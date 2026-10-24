@@ -52,7 +52,8 @@ catalog stars (the build stops if an anchor is not within 0.5° of one) and stor
 chart moves them with the stars.
 
 **Painted figures.** A constellation can instead have a painted picture (transparent, light figure) pinned to
-three of its stars via `data/art-images.ts`; it replaces the line figure, and downloads embed it as a data URI.
+three of its stars via `data/art-images.json` (generated from Stellarium's western sky culture by
+`scripts/import-stellarium-art.py`); it replaces the line figure, and downloads embed it as a data URI.
 The format and the licence rule are in `public/constellation-art/README.md`. Add a line figure by adding a `figure('Abbr', …)` block there and re-running it.
 
 ## Data

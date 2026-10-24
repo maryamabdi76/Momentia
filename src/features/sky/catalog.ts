@@ -1,7 +1,7 @@
 import starsJson from './data/stars.json';
 import linesJson from './data/constellation-lines.json';
 import artJson from './data/constellation-art.json';
-import { ART_IMAGES } from './data/art-images.ts';
+import artImagesJson from './data/art-images.json';
 import type { SkyCatalog } from './lib/types';
 
 /**
@@ -14,5 +14,5 @@ export const skyCatalog: SkyCatalog = {
   stars: starsJson.stars as unknown as SkyCatalog['stars'],
   lines: linesJson.lines as unknown as SkyCatalog['lines'],
   art: artJson.figures as unknown as SkyCatalog['art'],
-  images: ART_IMAGES,
+  images: artImagesJson.images as unknown as SkyCatalog['images'],
 };
