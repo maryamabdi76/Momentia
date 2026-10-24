@@ -60,6 +60,8 @@ export type ConstellationArtImage = {
   anchors: readonly [ArtImageAnchor, ArtImageAnchor, ArtImageAnchor];
   /** How strongly it shows, 0–1. */
   opacity?: number;
+  /** `false` keeps the picture on disk but off the poster (default: shown). */
+  featured?: boolean;
 };
 
 export type SkyCatalog = {

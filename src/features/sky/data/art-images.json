@@ -36,7 +36,9 @@
       42.3297
      ]
     }
-   ]
+   ],
+   "featured": true,
+   "opacity": 0.4
   },
   {
    "id": "Ant",
@@ -74,7 +76,9 @@
       -35.891
      ]
     }
-   ]
+   ],
+   "featured": false,
+   "opacity": 0.4
   },
   {
    "id": "Aps",
@@ -112,7 +116,9 @@
       -79.0448
      ]
     }
-   ]
+   ],
+   "featured": false,
+   "opacity": 0.4
   },
   {
    "id": "Aql",
@@ -150,7 +156,9 @@
       -4.8826
      ]
     }
-   ]
+   ],
+   "featured": true,
+   "opacity": 0.4
   },
   {
    "id": "Aqr",
@@ -188,7 +196,9 @@
       -9.4958
      ]
     }
-   ]
+   ],
+   "featured": true,
+   "opacity": 0.4
   },
   {
    "id": "Ara",
@@ -226,7 +236,9 @@
       -50.0915
      ]
     }
-   ]
+   ],
+   "featured": false,
+   "opacity": 0.4
   },
   {
    "id": "Ari",
@@ -264,7 +276,9 @@
       19.2939
      ]
     }
-   ]
+   ],
+   "featured": false,
+   "opacity": 0.4
   },
   {
    "id": "Aur",
@@ -302,7 +316,9 @@
       33.1661
      ]
     }
-   ]
+   ],
+   "featured": true,
+   "opacity": 0.4
   },
   {
    "id": "Boo",
@@ -340,7 +356,9 @@
       18.3977
      ]
     }
-   ]
+   ],
+   "featured": true,
+   "opacity": 0.4
   },
   {
    "id": "CMa",
@@ -378,7 +396,9 @@
       -30.0634
      ]
     }
-   ]
+   ],
+   "featured": true,
+   "opacity": 0.4
   },
   {
    "id": "CMi",
@@ -416,7 +436,9 @@
       8.2893
      ]
     }
-   ]
+   ],
+   "featured": false,
+   "opacity": 0.4
   },
   {
    "id": "CVn",
@@ -454,7 +476,9 @@
       33.2476
      ]
     }
-   ]
+   ],
+   "featured": false,
+   "opacity": 0.4
   },
   {
    "id": "Cae",
@@ -492,7 +516,9 @@
       -37.1443
      ]
     }
-   ]
+   ],
+   "featured": false,
+   "opacity": 0.4
   },
   {
    "id": "Cam",
@@ -530,7 +556,9 @@
       59.9403
      ]
     }
-   ]
+   ],
+   "featured": false,
+   "opacity": 0.4
   },
   {
    "id": "Cap",
@@ -568,7 +596,9 @@
       -26.9191
      ]
     }
-   ]
+   ],
+   "featured": false,
+   "opacity": 0.4
   },
   {
    "id": "Car",
@@ -606,7 +636,9 @@
       -24.3043
      ]
     }
-   ]
+   ],
+   "featured": false,
+   "opacity": 0.4
   },
   {
    "id": "Cas",
@@ -644,7 +676,9 @@
       59.1498
      ]
     }
-   ]
+   ],
+   "featured": true,
+   "opacity": 0.4
   },
   {
    "id": "Cen",
@@ -682,7 +716,9 @@
       -63.0198
      ]
     }
-   ]
+   ],
+   "featured": true,
+   "opacity": 0.4
   },
   {
    "id": "Cep",
@@ -720,7 +756,9 @@
       58.2013
      ]
     }
-   ]
+   ],
+   "featured": false,
+   "opacity": 0.4
   },
   {
    "id": "Cet",
@@ -758,7 +796,9 @@
       -8.8239
      ]
     }
-   ]
+   ],
+   "featured": false,
+   "opacity": 0.4
   },
   {
    "id": "Cha",
@@ -796,7 +836,9 @@
       -76.9197
      ]
     }
-   ]
+   ],
+   "featured": false,
+   "opacity": 0.4
   },
   {
    "id": "Cir",
@@ -834,7 +876,9 @@
       -64.9751
      ]
     }
-   ]
+   ],
+   "featured": false,
+   "opacity": 0.4
   },
   {
    "id": "Cnc",
@@ -872,7 +916,9 @@
       27.2177
      ]
     }
-   ]
+   ],
+   "featured": false,
+   "opacity": 0.4
   },
   {
    "id": "Col",
@@ -910,7 +956,9 @@
       -35.4705
      ]
     }
-   ]
+   ],
+   "featured": false,
+   "opacity": 0.4
   },
   {
    "id": "Com",
@@ -948,7 +996,9 @@
       28.2684
      ]
     }
-   ]
+   ],
+   "featured": false,
+   "opacity": 0.4
   },
   {
    "id": "CrA",
@@ -986,7 +1036,9 @@
       -42.7107
      ]
     }
-   ]
+   ],
+   "featured": false,
+   "opacity": 0.4
   },
   {
    "id": "CrB",
@@ -1024,7 +1076,9 @@
       31.3591
      ]
     }
-   ]
+   ],
+   "featured": false,
+   "opacity": 0.4
   },
   {
    "id": "Crt",
@@ -1062,7 +1116,9 @@
       -22.8258
      ]
     }
-   ]
+   ],
+   "featured": false,
+   "opacity": 0.4
   },
   {
    "id": "Cru",
@@ -1100,7 +1156,9 @@
       -63.0991
      ]
     }
-   ]
+   ],
+   "featured": true,
+   "opacity": 0.4
   },
   {
    "id": "Crv",
@@ -1138,7 +1196,9 @@
       -22.6198
      ]
     }
-   ]
+   ],
+   "featured": false,
+   "opacity": 0.4
   },
   {
    "id": "Cyg",
@@ -1176,7 +1236,9 @@
       27.9597
      ]
     }
-   ]
+   ],
+   "featured": true,
+   "opacity": 0.4
   },
   {
    "id": "Del",
@@ -1214,7 +1276,9 @@
       11.3033
      ]
     }
-   ]
+   ],
+   "featured": false,
+   "opacity": 0.4
   },
   {
    "id": "Dor",
@@ -1252,7 +1316,9 @@
       -51.4866
      ]
     }
-   ]
+   ],
+   "featured": false,
+   "opacity": 0.4
   },
   {
    "id": "Dra",
@@ -1290,7 +1356,9 @@
       70.2679
      ]
     }
-   ]
+   ],
+   "featured": true,
+   "opacity": 0.4
   },
   {
    "id": "Equ",
@@ -1328,7 +1396,9 @@
       6.8111
      ]
     }
-   ]
+   ],
+   "featured": false,
+   "opacity": 0.4
   },
   {
    "id": "Eri",
@@ -1366,7 +1436,9 @@
       -57.2368
      ]
     }
-   ]
+   ],
+   "featured": false,
+   "opacity": 0.4
   },
   {
    "id": "For",
@@ -1404,7 +1476,9 @@
       -32.4059
      ]
     }
-   ]
+   ],
+   "featured": false,
+   "opacity": 0.4
   },
   {
    "id": "Gem",
@@ -1442,7 +1516,9 @@
       23.2633
      ]
     }
-   ]
+   ],
+   "featured": true,
+   "opacity": 0.4
   },
   {
    "id": "Gru",
@@ -1480,7 +1556,9 @@
       -37.3649
      ]
     }
-   ]
+   ],
+   "featured": false,
+   "opacity": 0.4
   },
   {
    "id": "Her",
@@ -1518,7 +1596,9 @@
       28.7625
      ]
     }
-   ]
+   ],
+   "featured": true,
+   "opacity": 0.4
   },
   {
    "id": "Hor",
@@ -1556,7 +1636,9 @@
       -59.7378
      ]
     }
-   ]
+   ],
+   "featured": false,
+   "opacity": 0.4
   },
   {
    "id": "Hya",
@@ -1594,7 +1676,9 @@
       5.9456
      ]
     }
-   ]
+   ],
+   "featured": false,
+   "opacity": 0.4
   },
   {
    "id": "Hyi",
@@ -1632,7 +1716,9 @@
       -74.239
      ]
     }
-   ]
+   ],
+   "featured": false,
+   "opacity": 0.4
   },
   {
    "id": "Ind",
@@ -1670,7 +1756,9 @@
       -53.4494
      ]
     }
-   ]
+   ],
+   "featured": false,
+   "opacity": 0.4
   },
   {
    "id": "LMi",
@@ -1708,7 +1796,9 @@
       29.3105
      ]
     }
-   ]
+   ],
+   "featured": false,
+   "opacity": 0.4
   },
   {
    "id": "Lac",
@@ -1746,7 +1836,9 @@
       37.7487
      ]
     }
-   ]
+   ],
+   "featured": false,
+   "opacity": 0.4
   },
   {
    "id": "Leo",
@@ -1784,7 +1876,9 @@
       23.7743
      ]
     }
-   ]
+   ],
+   "featured": true,
+   "opacity": 0.4
   },
   {
    "id": "Lep",
@@ -1822,7 +1916,9 @@
       -22.371
      ]
     }
-   ]
+   ],
+   "featured": false,
+   "opacity": 0.4
   },
   {
    "id": "Lib",
@@ -1860,7 +1956,9 @@
       -25.282
      ]
     }
-   ]
+   ],
+   "featured": false,
+   "opacity": 0.4
   },
   {
    "id": "Lup",
@@ -1898,7 +1996,9 @@
       -36.2614
      ]
     }
-   ]
+   ],
+   "featured": false,
+   "opacity": 0.4
   },
   {
    "id": "Lyn",
@@ -1936,7 +2036,9 @@
       59.011
      ]
     }
-   ]
+   ],
+   "featured": false,
+   "opacity": 0.4
   },
   {
    "id": "Lyr",
@@ -1974,7 +2076,9 @@
       33.3627
      ]
     }
-   ]
+   ],
+   "featured": true,
+   "opacity": 0.4
   },
   {
    "id": "Men",
@@ -2012,7 +2116,9 @@
       -68.8434
      ]
     }
-   ]
+   ],
+   "featured": false,
+   "opacity": 0.4
   },
   {
    "id": "Mic",
@@ -2050,7 +2156,9 @@
       -33.7797
      ]
     }
-   ]
+   ],
+   "featured": false,
+   "opacity": 0.4
   },
   {
    "id": "Mon",
@@ -2088,7 +2196,9 @@
       -6.2748
      ]
     }
-   ]
+   ],
+   "featured": false,
+   "opacity": 0.4
   },
   {
    "id": "Mus",
@@ -2126,7 +2236,9 @@
       -66.7288
      ]
     }
-   ]
+   ],
+   "featured": false,
+   "opacity": 0.4
   },
   {
    "id": "Nor",
@@ -2164,7 +2276,9 @@
       -47.5548
      ]
     }
-   ]
+   ],
+   "featured": false,
+   "opacity": 0.4
   },
   {
    "id": "Oct",
@@ -2202,7 +2316,9 @@
       -81.3816
      ]
     }
-   ]
+   ],
+   "featured": false,
+   "opacity": 0.4
   },
   {
    "id": "Oph",
@@ -2240,7 +2356,9 @@
       -23.9626
      ]
     }
-   ]
+   ],
+   "featured": false,
+   "opacity": 0.4
   },
   {
    "id": "Ori",
@@ -2278,7 +2396,9 @@
       6.9613
      ]
     }
-   ]
+   ],
+   "featured": true,
+   "opacity": 0.4
   },
   {
    "id": "Pav",
@@ -2316,7 +2436,9 @@
       -64.7239
      ]
     }
-   ]
+   ],
+   "featured": false,
+   "opacity": 0.4
   },
   {
    "id": "Peg",
@@ -2354,7 +2476,9 @@
       15.1836
      ]
     }
-   ]
+   ],
+   "featured": true,
+   "opacity": 0.4
   },
   {
    "id": "Per",
@@ -2392,7 +2516,9 @@
       38.3186
      ]
     }
-   ]
+   ],
+   "featured": true,
+   "opacity": 0.4
   },
   {
    "id": "Phe",
@@ -2430,7 +2556,9 @@
       -55.2458
      ]
     }
-   ]
+   ],
+   "featured": false,
+   "opacity": 0.4
   },
   {
    "id": "Pic",
@@ -2468,7 +2596,9 @@
       -51.0665
      ]
     }
-   ]
+   ],
+   "featured": false,
+   "opacity": 0.4
   },
   {
    "id": "PsA",
@@ -2506,7 +2636,9 @@
       -27.0436
      ]
     }
-   ]
+   ],
+   "featured": false,
+   "opacity": 0.4
   },
   {
    "id": "Psc",
@@ -2544,7 +2676,9 @@
       3.2823
      ]
     }
-   ]
+   ],
+   "featured": false,
+   "opacity": 0.4
   },
   {
    "id": "Pyx",
@@ -2582,7 +2716,9 @@
       -35.3084
      ]
     }
-   ]
+   ],
+   "featured": false,
+   "opacity": 0.4
   },
   {
    "id": "Ret",
@@ -2620,7 +2756,9 @@
       -59.3022
      ]
     }
-   ]
+   ],
+   "featured": false,
+   "opacity": 0.4
   },
   {
    "id": "Scl",
@@ -2658,7 +2796,9 @@
       -29.3574
      ]
     }
-   ]
+   ],
+   "featured": false,
+   "opacity": 0.4
   },
   {
    "id": "Sco",
@@ -2696,7 +2836,9 @@
       -42.3613
      ]
     }
-   ]
+   ],
+   "featured": true,
+   "opacity": 0.4
   },
   {
    "id": "Sct",
@@ -2734,7 +2876,9 @@
       -15.603
      ]
     }
-   ]
+   ],
+   "featured": false,
+   "opacity": 0.4
   },
   {
    "id": "Sex",
@@ -2772,7 +2916,9 @@
       -8.105
      ]
     }
-   ]
+   ],
+   "featured": false,
+   "opacity": 0.4
   },
   {
    "id": "Sge",
@@ -2810,7 +2956,9 @@
       17.476
      ]
     }
-   ]
+   ],
+   "featured": false,
+   "opacity": 0.4
   },
   {
    "id": "Sgr",
@@ -2848,7 +2996,9 @@
       -27.8308
      ]
     }
-   ]
+   ],
+   "featured": true,
+   "opacity": 0.4
   },
   {
    "id": "Tau",
@@ -2886,7 +3036,9 @@
       24.0534
      ]
     }
-   ]
+   ],
+   "featured": true,
+   "opacity": 0.4
   },
   {
    "id": "Tel",
@@ -2924,7 +3076,9 @@
       -49.0706
      ]
     }
-   ]
+   ],
+   "featured": false,
+   "opacity": 0.4
   },
   {
    "id": "Tra",
@@ -2962,7 +3116,9 @@
       -69.0277
      ]
     }
-   ]
+   ],
+   "featured": false,
+   "opacity": 0.4
   },
   {
    "id": "Tri",
@@ -3000,7 +3156,9 @@
       29.5788
      ]
     }
-   ]
+   ],
+   "featured": false,
+   "opacity": 0.4
   },
   {
    "id": "Tuc",
@@ -3038,7 +3196,9 @@
       -60.2596
      ]
     }
-   ]
+   ],
+   "featured": false,
+   "opacity": 0.4
   },
   {
    "id": "UMa",
@@ -3076,7 +3236,9 @@
       42.9144
      ]
     }
-   ]
+   ],
+   "featured": true,
+   "opacity": 0.4
   },
   {
    "id": "UMi",
@@ -3114,7 +3276,9 @@
       75.7553
      ]
     }
-   ]
+   ],
+   "featured": true,
+   "opacity": 0.4
   },
   {
    "id": "Vir",
@@ -3152,7 +3316,9 @@
       -11.1613
      ]
     }
-   ]
+   ],
+   "featured": true,
+   "opacity": 0.4
   },
   {
    "id": "Vol",
@@ -3190,7 +3356,9 @@
       -70.4989
      ]
     }
-   ]
+   ],
+   "featured": false,
+   "opacity": 0.4
   },
   {
    "id": "Vul",
@@ -3228,7 +3396,9 @@
       21.3904
      ]
     }
-   ]
+   ],
+   "featured": false,
+   "opacity": 0.4
   }
  ]
 }

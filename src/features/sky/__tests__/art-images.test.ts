@@ -57,6 +57,11 @@ test('a painted figure far under the horizon is left out', () => {
   assert.equal(sky.artImages.length, 0);
 });
 
+test('a picture marked featured: false is not drawn', () => {
+  const hidden = { ...base, images: [{ ...image, featured: false }] };
+  assert.equal(computeSky({ ...TEHRAN, date: YALDA, catalog: hidden }).artImages.length, 0);
+});
+
 test('inlineArtImages swaps picture URLs for data URIs and drops pictures that fail', async () => {
   const svg = '<g><image href="/constellation-art/A.webp" width="1"/><image href="/constellation-art/B.webp" width="1"/></g>';
   const out = await inlineArtImages(svg, async (url) => {

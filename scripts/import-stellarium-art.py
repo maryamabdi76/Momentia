@@ -37,6 +37,9 @@ for name in ("stars.6.json", "stars.8.json", "stars.14.json"):
         hip.setdefault(feature["id"], ((lon + 360) % 360, lat))
 
 index = json.loads((western / "index.json").read_text())
+# Well-known figures drawn on the poster; the rest stay on disk but are not shown,
+# so the sky keeps dark space between the pictures.
+FEATURED = set("Ori UMa UMi Cas Cyg Lyr Aql Sco Sgr Leo Tau Gem Vir Peg And Per Aur CMa Boo Her Dra Aqr Cru Cen".split())
 entries = []
 for c in index["constellations"]:
     image = c.get("image")
@@ -66,6 +69,8 @@ for c in index["constellations"]:
             "src": f"/constellation-art/{iau}.webp",
             "width": w,
             "height": h,
+            "featured": iau in FEATURED,
+            "opacity": 0.4,
             "anchors": [
                 {"px": a["pos"], "star": [round(hip[a["hip"]][0], 4), round(hip[a["hip"]][1], 4)]}
                 for a in anchors

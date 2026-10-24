@@ -212,6 +212,7 @@ export function computeSky(options: ComputeSkyOptions): SkySnapshot {
   const artImages: SkySnapshot['artImages'] = [];
   const painted = new Set<string>();
   for (const image of catalog.images ?? []) {
+    if (image.featured === false) continue;
     const enu = image.anchors.map(({ star }) =>
       applyMat3(j2000ToEnu, raDecToVector(star[0], star[1])),
     );
@@ -232,7 +233,7 @@ export function computeSky(options: ComputeSkyOptions): SkySnapshot {
       width: image.width,
       height: image.height,
       matrix,
-      opacity: image.opacity ?? 0.6,
+      opacity: image.opacity ?? 0.4,
     });
   }
 
