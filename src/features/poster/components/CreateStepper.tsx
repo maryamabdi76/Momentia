@@ -199,7 +199,11 @@ function StepperInner() {
                 exporter={exporter}
                 payResult={payResult}
                 onUseFreeLayout={() =>
-                  setPersonal((p) => ({ ...p, template: DEFAULT_TEMPLATE }))
+                  setPersonal((p) => ({
+                    ...p,
+                    template: DEFAULT_TEMPLATE,
+                    layers: { ...p.layers, constellationArt: false },
+                  }))
                 }
               />
             )}

@@ -14,7 +14,7 @@ type Props = {
   moment: MomentData;
   exporter: PosterExport;
   payResult: 'ok' | 'cancelled' | 'failed' | null;
-  /** Switch to the free round layout (offered when the chosen layout is premium-only). */
+  /** Drop the premium options (full-page sky, constellation figures) to get the free download. */
   onUseFreeLayout?: () => void;
 };
 
