@@ -23,6 +23,7 @@ export const personalizeSchema = z.object({
   showCity: z.boolean(),
   layers: z.object({
     constellationLines: z.boolean(),
+    constellationArt: z.boolean(),
     moonAndPlanets: z.boolean(),
     planetNames: z.boolean(),
     ecliptic: z.boolean(),

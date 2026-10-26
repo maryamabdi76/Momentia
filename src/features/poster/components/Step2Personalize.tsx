@@ -121,6 +121,7 @@ export function Step2Personalize({
     watched.showDate,
     watched.showCity,
     layers?.constellationLines,
+    layers?.constellationArt,
     layers?.moonAndPlanets,
     layers?.planetNames,
     layers?.ecliptic,
@@ -432,6 +433,7 @@ export function Step2Personalize({
         {(
           [
             'constellationLines',
+            'constellationArt',
             'moonAndPlanets',
             'planetNames',
             'ecliptic',
@@ -464,7 +466,15 @@ export function Step2Personalize({
                     htmlFor={`layers-${key}`}
                     className="flex-col items-start gap-0.5 text-sm font-normal text-white"
                   >
-                    {t(`sky.${key}.label`)}
+                    <span className="flex flex-wrap items-center gap-2">
+                      {t(`sky.${key}.label`)}
+                      {key === 'constellationArt' && (
+                        <PremiumMark
+                          label={t('premium.badge')}
+                          tooltip={t('sky.constellationArt.premiumTooltip')}
+                        />
+                      )}
+                    </span>
                     <span className="text-[11px] leading-5 text-[#AAB6CD]">
                       {t(`sky.${key}.hint`)}
                     </span>
@@ -474,6 +484,13 @@ export function Step2Personalize({
             }}
           />
         ))}
+
+        {layers?.constellationArt && (
+          <p className="flex items-start gap-2 rounded-xl border border-[#CEB47B]/30 bg-[#CEB47B]/5 p-3 text-[11px] leading-5 text-[#E8D9B8]">
+            <Crown aria-hidden className="mt-0.5 size-3.5 shrink-0 text-[#CEB47B]" />
+            {t('sky.constellationArt.premiumNote')}
+          </p>
+        )}
 
         <div className="space-y-2 pt-2">
           <p className="text-sm text-white">{t('sky.density.label')}</p>

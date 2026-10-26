@@ -16,7 +16,7 @@ import {
   subscribePremiumToken,
 } from '@/features/payments/lib/client';
 import type { PosterDraft } from '../lib/draft';
-import { isPremiumTemplate } from '../lib/templates';
+import { usesPremiumFeatures } from '../lib/premium-features';
 import { PremiumAccessError, ensurePremiumAccess } from '../lib/premium-access';
 
 export type ExportAction = 'png' | 'svg' | 'premium' | 'share';
@@ -25,7 +25,7 @@ export type PosterExport = {
   busy: ExportAction | null;
   /** Shown under the buttons. */
   notice: 'error' | 'copied' | 'payment' | null;
-  /** The chosen layout has no free download (PNG, SVG and share are locked). */
+  /** The poster uses a premium option, so it has no free download (PNG, SVG and share are locked). */
   freeLocked: boolean;
   /** A payment has been verified in this browser session. */
   premiumUnlocked: boolean;
@@ -64,7 +64,7 @@ export function usePosterExport(
     timeAt: tPoster('timeAt'),
   };
 
-  const freeLocked = isPremiumTemplate(draft.personal.template);
+  const freeLocked = usesPremiumFeatures(draft.personal);
 
   const run = useCallback(
     (action: ExportAction, job: () => Promise<void>) => {
