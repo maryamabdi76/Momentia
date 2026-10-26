@@ -32,7 +32,7 @@ const DEFAULT_MOMENT: MomentData = {
 
 const DEFAULT_PERSONAL: MoonPersonalizeValues = {
   title: 'ماهِ همان شب',
-  names: 'مریم و جلال',
+  names: 'شیرین و فرهاد',
   quote: 'همان ماه، همان شب؛ برای همیشه.',
   style: 'gold',
   showDate: true,

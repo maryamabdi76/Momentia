@@ -51,7 +51,7 @@ const DEFAULT_LABELS: PosterLabels = {
 
 const DEFAULT_DATA: PosterData = {
   title: 'بلندترین شب، کنار تو',
-  names: 'مریم و جلال',
+  names: 'شیرین و فرهاد',
   quote: 'از آن شب، هر ستاره نشانی از توست.',
   city: 'تهران',
   dateLabel: '۳۰ آذر ۱۴۰۵',
