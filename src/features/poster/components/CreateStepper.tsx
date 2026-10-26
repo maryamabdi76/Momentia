@@ -66,7 +66,7 @@ const DEFAULT_MOMENT: MomentData = {
 
 const DEFAULT_PERSONALIZE: PersonalizeData = {
   title: 'بلندترین شب، کنار تو',
-  names: 'مریم و جلال',
+  names: 'شیرین و فرهاد',
   quote: 'از آن شب، هر ستاره نشانی از توست.',
   style: 'gold',
   template: DEFAULT_TEMPLATE,

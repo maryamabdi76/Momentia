@@ -6,7 +6,7 @@ const labels = { headerLine: 'ماه آن شب', watermark: 'آسمان شب م�
 const facts = { illumination: 0.92, waxing: true, latitude: 35.7, phaseLine: 'ماه رو به بدر · ۹۲٪ روشن' };
 const data = {
   title: 'بلندترین شب، کنار تو',
-  names: 'مریم و جلال',
+  names: 'شیرین و فرهاد',
   quote: 'از آن شب، هر ستاره نشانی از توست.',
   style: 'violet' as const,
   showDate: true,

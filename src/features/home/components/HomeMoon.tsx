@@ -20,7 +20,7 @@ export async function HomeMoon() {
         ...BASE,
         style: 'gold',
         title: t('cardYalda'),
-        names: 'مریم و جلال',
+        names: 'شیرین و فرهاد',
         quote: '',
         dateLabel: '۳۰ آذر ۱۴۰۵',
       },

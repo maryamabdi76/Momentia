@@ -345,7 +345,7 @@ export function PostersGalleryClient({
         ...moonSample,
         style: styles.moon,
         title: 'بلندترین شب، کنار تو',
-        names: 'مریم و جلال',
+        names: 'شیرین و فرهاد',
         quote: '',
         dateLabel: '۳۰ آذر ۱۴۰۵',
       }}
