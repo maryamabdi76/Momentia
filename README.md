@@ -23,7 +23,7 @@
 
 Momentia takes a date and a place, computes the real sky of that night, and draws it as a poster you can download as PNG or SVG.
 
-✨ No accounts · 🖥️ The sky and the poster are computed in your browser · 💳 Optional premium download via Zarinpal
+✨ No accounts · 🖥️ The sky and the poster are computed in your browser · 💳 Optional premium download via Variza (card-to-card)
 
 ---
 
@@ -61,7 +61,7 @@ The same three steps (moment → personalize → receive) for a poster that is o
 - **[shadcn/ui](https://ui.shadcn.com/docs/components)** (Radix, RTL)
 - **[next-intl](https://next-intl.dev)** — Persian only for now
 - **react-hook-form** + **zod** for the forms
-- **Zarinpal** for the premium download (server routes under `src/app/api/payments`)
+- **Variza** (card-to-card with automatic confirmation) for the premium download, with **Upstash Redis** for payment status (server routes under `src/app/api/payments`)
 - **Vazirmatn** via `next/font`
 - Root RTL (`dir="rtl"` + `DirectionProvider`)
 
@@ -80,7 +80,7 @@ src/
   features/
     sky/                  # Sky math (projection, ephemeris) + SVG chart
     poster/               # Poster themes, layouts, preview + PNG/SVG export
-    payments/             # Zarinpal checkout and premium token
+    payments/             # Variza checkout, payment status store and premium token
     home/                 # Landing page sections and the posters gallery
   i18n/                   # next-intl config
   lib/                    # Shared utilities
@@ -109,15 +109,20 @@ Open [http://localhost:3000](http://localhost:3000) ✨
 
 ### Premium payments
 
-Copy `.env.example` to `.env.local` and fill it in. Without a payment secret the premium button reports that checkout is unavailable; everything else works.
+Copy `.env.example` to `.env.local` and fill it in. Without the payment settings the premium button reports that checkout is unavailable; everything else works.
 
-| Variable                        | Purpose                                              |
-| ------------------------------- | ---------------------------------------------------- |
-| `NEXT_PUBLIC_PREMIUM_PRICE_IRT` | Premium price in tomans                              |
-| `ZARINPAL_MERCHANT_ID`          | Merchant id (any UUID works in sandbox)              |
-| `ZARINPAL_SANDBOX`              | `true` to use the Zarinpal sandbox                   |
-| `PAYMENT_TOKEN_SECRET`          | 32+ random characters, signs the premium token       |
-| `SITE_URL`                      | Optional public origin used for the payment callback |
+| Variable                                         | Purpose                                                      |
+| ------------------------------------------------ | ------------------------------------------------------------ |
+| `NEXT_PUBLIC_PREMIUM_PRICE_IRT`                  | Premium price in tomans                                      |
+| `VARIZA_API_KEY`                                 | Variza API key (profile → API key)                           |
+| `VARIZA_WEBHOOK_SECRET`                          | Secret that signs Variza's webhook                           |
+| `UPSTASH_REDIS_REST_URL` / `_TOKEN`              | Upstash Redis REST credentials (`KV_REST_API_*` also work)   |
+| `PAYMENT_TOKEN_SECRET`                           | 32+ random characters, signs the premium token               |
+| `SITE_URL`                                       | Optional public origin; must be `https` for Variza           |
+
+**How a payment flows.** `POST /api/payments/start` creates a Variza link, records it as pending in Redis and sets an HttpOnly cookie with its slug. The buyer pays by card-to-card; Variza reads the bank SMS and calls `POST /api/payments/webhook` (signed, HMAC-SHA256), which marks the payment paid. Meanwhile the buyer returns to the create page, which polls `POST /api/payments/claim` until the payment is confirmed and then receives the signed premium token. Returning from Variza proves nothing on its own; only the signed webhook does.
+
+**Variza setup.** Register `https://<your-domain>/api/payments/webhook` as the callback URL in your Variza profile (required, otherwise link creation fails with 422). Variza needs an `https` return URL, so test against a deployed or tunnelled HTTPS origin rather than plain `localhost`.
 
 > The free files are generated in the browser, so the lock on the full-page layout is a product gate, not a security boundary. Only the watermark-free premium file is checked against the server-validated token.
 

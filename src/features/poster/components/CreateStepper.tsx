@@ -2,7 +2,10 @@
 
 import { Suspense, useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { storePremiumToken } from '@/features/payments/lib/client';
+import {
+  storePremiumToken,
+  waitForPremiumToken,
+} from '@/features/payments/lib/client';
 import { useTranslations } from 'next-intl';
 import {
   Stepper,
@@ -99,16 +102,13 @@ function StepperInner() {
     };
   });
 
-  // Coming back from the payment gateway: /create?step=3&pay=ok#pt=<token>.
-  // Keep the token, restore the poster that was being edited, then tidy the URL.
-  const [payResult, setPayResult] = useState<'ok' | 'cancelled' | 'failed' | null>(null);
+  // Coming back from the payment gateway: /create?step=3&pay=pending. The return
+  // itself proves nothing, so restore the poster that was being edited and wait
+  // for the server to confirm the payment, then keep the token it hands out.
+  const [payResult, setPayResult] = useState<'pending' | 'ok' | 'failed' | null>(null);
   useEffect(() => {
     const pay = new URLSearchParams(window.location.search).get('pay');
-    if (pay !== 'ok' && pay !== 'cancelled' && pay !== 'failed') return;
-
-    const token = new URLSearchParams(window.location.hash.slice(1)).get('pt');
-    const verified = pay === 'ok' && !!token;
-    if (verified) storePremiumToken(token);
+    if (pay !== 'pending') return;
 
     const draft = loadDraft();
     if (draft) {
@@ -120,8 +120,18 @@ function StepperInner() {
         template: draft.personal.template ?? DEFAULT_TEMPLATE,
       });
     }
-    setPayResult(verified || pay !== 'ok' ? pay : 'failed');
-    window.history.replaceState(null, '', '/create?step=3');
+    setPayResult('pending');
+
+    // The URL is tidied only once the wait is over, so a re-run of this effect
+    // (React strict mode in dev, or a reload while waiting) simply waits again.
+    const controller = new AbortController();
+    void waitForPremiumToken({ signal: controller.signal }).then((token) => {
+      if (controller.signal.aborted) return;
+      if (token) storePremiumToken(token);
+      setPayResult(token ? 'ok' : 'failed');
+      window.history.replaceState(null, '', '/create?step=3');
+    });
+    return () => controller.abort();
   }, []);
 
   function goTo(n: number) {

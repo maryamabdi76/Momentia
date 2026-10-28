@@ -1,25 +1,31 @@
+import { readStoreConfig, type StoreConfig } from './store.ts';
+
 /**
  * Payment settings, read from the environment on the server.
  *
- *   ZARINPAL_MERCHANT_ID            36-character merchant id (any UUID in sandbox)
- *   ZARINPAL_SANDBOX                "true" to use sandbox.zarinpal.com
+ *   VARIZA_API_KEY                  API key (Variza panel → profile → API key)
+ *   VARIZA_WEBHOOK_SECRET           webhook secret (same profile page)
+ *   UPSTASH_REDIS_REST_URL/_TOKEN   where payment status is kept; the Vercel
+ *                                   KV_REST_API_URL/_TOKEN names work too
  *   PAYMENT_TOKEN_SECRET            ≥ 32 random characters, signs the download token
  *   NEXT_PUBLIC_PREMIUM_PRICE_IRT   price in tomans (shown in the UI and charged)
- *   SITE_URL                        optional, e.g. https://example.ir — the callback
- *                                   origin; must match the domain registered with Zarinpal
+ *   SITE_URL                        optional, e.g. https://example.ir — the buyer's
+ *                                   return origin; must be https for Variza
+ *
+ * The webhook address (`<origin>/api/payments/webhook`) is registered once as the
+ * callback URL in the Variza profile; it is not an environment variable.
  */
 export type PaymentConfig = {
-  merchantId: string;
-  sandbox: boolean;
+  apiKey: string;
+  webhookSecret: string;
+  store: StoreConfig;
   secret: string;
-  /** Price in tomans. */
+  /** Price in tomans, the unit Variza charges in. */
   priceToman: number;
-  /** Price in rials — the unit Zarinpal's request and verify calls use here. */
-  amountRial: number;
   siteUrl: string | null;
 };
 
-// Zarinpal: at least 10,000 rials per payment, at most 100,000,000 tomans.
+// Variza: at least 1,000 tomans per link.
 const MIN_TOMAN = 1_000;
 const MAX_TOMAN = 100_000_000;
 
@@ -28,11 +34,14 @@ type Env = Record<string, string | undefined>;
 export function readPaymentConfig(
   env: Env = process.env,
 ): PaymentConfig | null {
-  const merchantId = env.ZARINPAL_MERCHANT_ID?.trim();
+  const apiKey = env.VARIZA_API_KEY?.trim();
+  const webhookSecret = env.VARIZA_WEBHOOK_SECRET?.trim();
   const secret = env.PAYMENT_TOKEN_SECRET?.trim();
+  const store = readStoreConfig(env);
   const priceToman = Number(env.NEXT_PUBLIC_PREMIUM_PRICE_IRT);
 
-  if (!merchantId || !secret || secret.length < 32) return null;
+  if (!apiKey || !webhookSecret || !store) return null;
+  if (!secret || secret.length < 32) return null;
   if (
     !Number.isInteger(priceToman) ||
     priceToman < MIN_TOMAN ||
@@ -42,14 +51,7 @@ export function readPaymentConfig(
   }
 
   const siteUrl = env.SITE_URL?.trim().replace(/\/+$/, '') || null;
-  return {
-    merchantId,
-    sandbox: env.ZARINPAL_SANDBOX === 'true',
-    secret,
-    priceToman,
-    amountRial: priceToman * 10,
-    siteUrl,
-  };
+  return { apiKey, webhookSecret, store, secret, priceToman, siteUrl };
 }
 
 /** Products with their own create page; the buyer returns there after paying. */
