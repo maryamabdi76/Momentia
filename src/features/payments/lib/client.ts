@@ -46,6 +46,56 @@ export async function validatePremiumToken(token: string): Promise<boolean> {
   return ((await res.json()) as { ok?: boolean }).ok === true;
 }
 
+export type ClaimResult =
+  | { status: 'paid'; token: string }
+  | { status: 'pending' | 'none' | 'unavailable' };
+
+/**
+ * Asks the server whether the payment this browser started has been confirmed. If so
+ * it returns the signed token. Which payment is decided by an HttpOnly cookie.
+ */
+export async function claimPremiumToken(): Promise<ClaimResult> {
+  try {
+    const res = await fetch('/api/payments/claim', { method: 'POST' });
+    const body = (await res.json().catch(() => null)) as {
+      status?: unknown;
+      token?: unknown;
+    } | null;
+    if (body?.status === 'paid' && typeof body.token === 'string') {
+      return { status: 'paid', token: body.token };
+    }
+    if (body?.status === 'pending' || body?.status === 'none') {
+      return { status: body.status };
+    }
+  } catch {
+    // offline or a server error: report it as unavailable below
+  }
+  return { status: 'unavailable' };
+}
+
+/**
+ * Right after the buyer comes back from the gateway, the confirmation (a webhook) may
+ * not have arrived yet, so ask every few seconds. Resolves with the token, or `null`
+ * if nothing was confirmed in time, there is no payment to wait for, or it was aborted.
+ */
+export async function waitForPremiumToken({
+  signal,
+  timeoutMs = 90_000,
+  intervalMs = 2_500,
+}: { signal?: AbortSignal; timeoutMs?: number; intervalMs?: number } = {}): Promise<
+  string | null
+> {
+  const deadline = Date.now() + timeoutMs;
+  for (;;) {
+    const result = await claimPremiumToken();
+    if (result.status === 'paid') return result.token;
+    if (result.status === 'none') return null;
+    if (signal?.aborted || Date.now() + intervalMs > deadline) return null;
+    await new Promise((resolve) => setTimeout(resolve, intervalMs));
+    if (signal?.aborted) return null;
+  }
+}
+
 /** Which product the buyer should be sent back to after paying. */
 export type PremiumProduct = 'moon';
 
