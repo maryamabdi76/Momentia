@@ -87,7 +87,7 @@ export function Step3Receive({
               type="button"
               variant="outline"
               onClick={onUseFreeLayout}
-              className="h-10 w-full border-[#33415B] bg-transparent text-xs text-white/80 hover:bg-white/5"
+              className="h-auto min-h-10 w-full whitespace-normal border-[#33415B] bg-transparent py-2 text-center text-xs leading-5 text-white/80 hover:bg-white/5"
             >
               {t('freeLocked.useFree')}
             </Button>

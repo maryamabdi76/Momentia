@@ -59,7 +59,7 @@ export function CreatePreview({
   );
 
   return (
-    <aside className="flex flex-col  gap-5 md:sticky md:top-8 w-full">
+    <aside className="flex w-full min-w-0 flex-col gap-5 md:sticky md:top-8">
       <div className="rounded-xl m-auto w-full bg-[#F4EFE6] p-6 text-[#1c2540]">
         <div className="flex items-center justify-between text-sm">
           <span className="font-medium">{t('preview.title')}</span>

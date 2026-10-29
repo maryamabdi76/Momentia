@@ -194,8 +194,8 @@ function StepperInner() {
 
       {/* Form on the start side (right in RTL), live preview on the other */}
       <div className="mx-auto px-6 py-10 md:px-20 md:py-16">
-        <div className="grid gap-10 md:grid-cols-2 md:items-start md:gap-16">
-          <section className="col-span-1">
+        <div className="grid grid-cols-1 gap-10 md:grid-cols-2 md:items-start md:gap-16">
+          <section className="col-span-1 min-w-0">
             {step === 1 && (
               <Step1Moment
                 data={moment}
