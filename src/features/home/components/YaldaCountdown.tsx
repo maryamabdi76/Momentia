@@ -1,0 +1,45 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
+import { toPersianDigits } from '@/features/poster/lib/digits';
+
+/** 30 Azar 1405, 21:00 in Tehran (UTC+3:30, no daylight saving) = 17:30 UTC on 21 Dec 2026. */
+const YALDA_AT = Date.UTC(2026, 11, 21, 17, 30);
+const HOUR = 3_600_000;
+
+/** Days and hours left until Yalda; renders nothing once it has passed. */
+export function YaldaCountdown() {
+  const t = useTranslations('YaldaPage');
+  // null until mounted, so the server and the first client render match
+  const [left, setLeft] = useState<number | null>(null);
+
+  useEffect(() => {
+    const tick = () => setLeft(YALDA_AT - Date.now());
+    tick();
+    const id = window.setInterval(tick, 60_000);
+    return () => window.clearInterval(id);
+  }, []);
+
+  if (left === null || left <= 0) return null;
+
+  const days = Math.floor(left / (24 * HOUR));
+  const hours = Math.floor((left % (24 * HOUR)) / HOUR);
+
+  return (
+    <div
+      className="inline-flex items-baseline gap-3 rounded-2xl border border-[#CEB47B]/40 bg-[#CEB47B]/5 px-5 py-3 text-[#E8D9B8]"
+      aria-live="off"
+    >
+      <span className="text-xs text-[#CEB47B]">{t('countdownLabel')}</span>
+      <span className="text-2xl font-bold text-white">
+        {toPersianDigits(String(days))}
+        <span className="ms-1 text-xs font-normal text-[#AAB6CD]">{t('days')}</span>
+      </span>
+      <span className="text-2xl font-bold text-white">
+        {toPersianDigits(String(hours))}
+        <span className="ms-1 text-xs font-normal text-[#AAB6CD]">{t('hours')}</span>
+      </span>
+    </div>
+  );
+}
