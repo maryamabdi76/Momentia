@@ -4,6 +4,7 @@ import { Suspense, useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { storePremiumToken } from '@/features/payments/lib/client';
 import { trackEvent } from '@/lib/track';
+import { giftUrl } from '../lib/gift-link';
 import { useTranslations } from 'next-intl';
 import {
   Stepper,
@@ -130,6 +131,20 @@ function StepperInner() {
     window.history.replaceState(null, '', '/create?step=3');
   }, []);
 
+  const [giftStatus, setGiftStatus] = useState<'copied' | 'error' | null>(null);
+
+  async function copyGiftLink() {
+    trackEvent('gift_link', { product: 'sky' });
+    try {
+      await navigator.clipboard.writeText(
+        giftUrl(window.location.origin, { moment, personal }),
+      );
+      setGiftStatus('copied');
+    } catch {
+      setGiftStatus('error');
+    }
+  }
+
   function goTo(n: number) {
     const params = new URLSearchParams(searchParams.toString());
     params.set('step', String(n));
@@ -222,6 +237,8 @@ function StepperInner() {
             moment={moment}
             onBack={() => goTo(2)}
             exporter={exporter}
+            onCopyGift={copyGiftLink}
+            giftStatus={giftStatus}
           />
         </div>
 

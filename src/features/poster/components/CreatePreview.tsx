@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { ArrowRight, Info, Share2 } from 'lucide-react';
+import { ArrowRight, Info, Link2, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { PosterPreview, type PosterData } from './PosterPreview';
 import { toPersianDigits } from '../lib/digits';
@@ -17,10 +17,22 @@ type Props = {
   moment: MomentData;
   onBack: () => void;
   exporter: PosterExport;
+  /** Copies a link that shows this poster to whoever opens it (step 3). */
+  onCopyGift: () => void;
+  giftStatus: 'copied' | 'error' | null;
 };
 
 /** Cream preview card + the per-step content shown beneath it. */
-export function CreatePreview({ step, poster, sky, moment, onBack, exporter }: Props) {
+export function CreatePreview({
+  step,
+  poster,
+  sky,
+  moment,
+  onBack,
+  exporter,
+  onCopyGift,
+  giftStatus,
+}: Props) {
   const t = useTranslations('CreatePage');
   const tPoster = useTranslations('Poster');
   const tMoment = useTranslations('CreatePage.step1');
@@ -125,6 +137,20 @@ export function CreatePreview({ step, poster, sky, moment, onBack, exporter }: P
               <Share2 className="size-4" />
             </Button>
           </div>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onCopyGift}
+            className="cursor-pointer p-7! gap-2 rounded-xl border-[#CEB47B]/50 bg-transparent text-sm font-bold text-[#E8D9B8] hover:bg-[#CEB47B]/10 hover:text-[#CEB47B]"
+          >
+            {giftStatus === 'copied'
+              ? tReceive('giftCopied')
+              : giftStatus === 'error'
+                ? tReceive('giftError')
+                : tReceive('giftLink')}
+            <Link2 className="size-4" />
+          </Button>
+          <p className="text-xs leading-6 text-[#AAB6CD]">{tReceive('giftNote')}</p>
           <p className="text-xs pb-8 leading-6 text-[#AAB6CD]">
             {t('preview.shareNote')}
           </p>
