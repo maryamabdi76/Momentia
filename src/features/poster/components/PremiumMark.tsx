@@ -27,7 +27,7 @@ export function PremiumMark({
       {label}
       <span
         role="tooltip"
-        className="pointer-events-none absolute start-0 bottom-full z-20 mb-2 w-52 rounded-lg border border-[#CEB47B]/40 bg-[#0c142b] px-3 py-2 text-[11px] font-normal leading-5 text-[#E8D9B8] opacity-0 shadow-lg transition-opacity group-hover/premium:opacity-100 group-focus-visible/premium:opacity-100"
+        className="pointer-events-none absolute start-0 bottom-full z-20 mb-2 hidden w-52 max-w-[calc(100vw-2rem)] rounded-lg border border-[#CEB47B]/40 bg-[#0c142b] px-3 py-2 text-[11px] font-normal leading-5 text-[#E8D9B8] shadow-lg group-hover/premium:block group-focus-visible/premium:block"
       >
         {tooltip}
       </span>
