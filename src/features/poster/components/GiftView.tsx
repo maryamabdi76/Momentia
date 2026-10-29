@@ -1,30 +1,53 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from 'react';
 import { useTranslations } from 'next-intl';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { resolveSkyLayers } from '@/features/sky/lib/layers';
 import { toPersianDigits } from '../lib/digits';
-import type { PosterDraft } from '../lib/draft';
 import { readGiftHash } from '../lib/gift-link';
 import { skyForMoment } from '../lib/sky-for-moment';
 import { DEFAULT_TEMPLATE, FULL_SKY_DEPTH } from '../lib/templates';
 import { PosterPreview, type PosterData } from './PosterPreview';
 
+function subscribeToHash(onChange: () => void) {
+  window.addEventListener('hashchange', onChange);
+  return () => window.removeEventListener('hashchange', onChange);
+}
+
+/** Fades and scales its children in one frame after they first appear (skipped for reduced motion). */
+function Reveal({ children }: { children: ReactNode }) {
+  const [shown, setShown] = useState(false);
+
+  useEffect(() => {
+    const id = window.requestAnimationFrame(() => setShown(true));
+    return () => window.cancelAnimationFrame(id);
+  }, []);
+
+  return (
+    <div
+      className={
+        'w-full motion-safe:transition-all motion-safe:duration-[1400ms] motion-safe:ease-out ' +
+        (shown ? 'opacity-100 motion-safe:scale-100' : 'opacity-0 motion-safe:scale-95')
+      }
+    >
+      {children}
+    </div>
+  );
+}
+
 /** What the person who received a gift link sees: the poster, revealed on screen. */
 export function GiftView() {
   const t = useTranslations('GiftPage');
   const tPoster = useTranslations('Poster');
-  // undefined until the fragment has been read in the browser
-  const [draft, setDraft] = useState<PosterDraft | null | undefined>(undefined);
-  const [shown, setShown] = useState(false);
-
-  useEffect(() => {
-    setDraft(readGiftHash(window.location.hash));
-    const id = window.requestAnimationFrame(() => setShown(true));
-    return () => window.cancelAnimationFrame(id);
-  }, []);
+  // null on the server: the fragment never leaves the browser
+  const hash = useSyncExternalStore(
+    subscribeToHash,
+    () => window.location.hash,
+    () => null,
+  );
+  const draft = useMemo(() => (hash === null ? undefined : readGiftHash(hash)), [hash]);
 
   const template = draft?.personal.template ?? DEFAULT_TEMPLATE;
   const depth = template === 'full' ? FULL_SKY_DEPTH : undefined;
@@ -79,12 +102,7 @@ export function GiftView() {
         <p className="mt-3 text-sm leading-7 text-[#AAB6CD]">{t('body')}</p>
       </div>
 
-      <div
-        className={
-          'w-full motion-safe:transition-all motion-safe:duration-[1400ms] motion-safe:ease-out ' +
-          (shown ? 'opacity-100 motion-safe:scale-100' : 'opacity-0 motion-safe:scale-95')
-        }
-      >
+      <Reveal>
         <PosterPreview
           data={poster}
           sky={moonSky?.sky ?? null}
@@ -101,7 +119,7 @@ export function GiftView() {
             timeAt: tPoster('timeAt'),
           }}
         />
-      </div>
+      </Reveal>
 
       {cta}
     </div>
