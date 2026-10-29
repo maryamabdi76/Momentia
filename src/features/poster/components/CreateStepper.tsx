@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { storePremiumToken } from '@/features/payments/lib/client';
+import { trackEvent } from '@/lib/track';
 import { useTranslations } from 'next-intl';
 import {
   Stepper,
@@ -87,6 +88,10 @@ function StepperInner() {
 
   const step = parseStep(searchParams.get('step'));
 
+  useEffect(() => {
+    trackEvent('create_step', { product: 'sky', step });
+  }, [step]);
+
   const [moment, setMoment] = useState<MomentData>(DEFAULT_MOMENT);
   // /create?style=violet&template=full (from the posters page) picks the starting look.
   const [personal, setPersonal] = useState<PersonalizeData>(() => {
@@ -121,6 +126,7 @@ function StepperInner() {
       });
     }
     setPayResult(verified || pay !== 'ok' ? pay : 'failed');
+    trackEvent('payment_return', { result: verified || pay !== 'ok' ? pay : 'failed' });
     window.history.replaceState(null, '', '/create?step=3');
   }, []);
 

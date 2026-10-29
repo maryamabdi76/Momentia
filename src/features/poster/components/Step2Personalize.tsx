@@ -38,6 +38,8 @@ import { MAGNITUDE_PRESETS } from '@/features/sky/lib/layers';
 import { cn } from 'cn';
 import { PremiumMark } from './PremiumMark';
 import { Separator } from '@/components/ui/separator';
+import { PREMIUM_PRICE_TOMAN } from '@/features/payments/lib/client';
+import { formatToman } from '../lib/digits';
 
 type Props = {
   data: PersonalizeData;
@@ -324,7 +326,14 @@ export function Step2Personalize({
         {isPremiumTemplate(watched.template as PosterTemplate) && (
           <p className="flex items-start gap-2 rounded-xl border border-[#CEB47B]/30 bg-[#CEB47B]/5 p-3 text-[11px] leading-5 text-[#E8D9B8]">
             <Crown aria-hidden className="mt-0.5 size-3.5 shrink-0 text-[#CEB47B]" />
-            {t('premium.note')}
+            <span>
+              {t('premium.note')}
+              {PREMIUM_PRICE_TOMAN ? (
+                <span className="mt-1 block font-semibold">
+                  {t('premium.priceHint', { price: formatToman(PREMIUM_PRICE_TOMAN) })}
+                </span>
+              ) : null}
+            </span>
           </p>
         )}
       </div>
@@ -488,7 +497,14 @@ export function Step2Personalize({
         {layers?.constellationArt && (
           <p className="flex items-start gap-2 rounded-xl border border-[#CEB47B]/30 bg-[#CEB47B]/5 p-3 text-[11px] leading-5 text-[#E8D9B8]">
             <Crown aria-hidden className="mt-0.5 size-3.5 shrink-0 text-[#CEB47B]" />
-            {t('sky.constellationArt.premiumNote')}
+            <span>
+              {t('sky.constellationArt.premiumNote')}
+              {PREMIUM_PRICE_TOMAN ? (
+                <span className="mt-1 block font-semibold">
+                  {t('premium.priceHint', { price: formatToman(PREMIUM_PRICE_TOMAN) })}
+                </span>
+              ) : null}
+            </span>
           </p>
         )}
 
