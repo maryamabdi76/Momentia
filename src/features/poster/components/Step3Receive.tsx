@@ -1,10 +1,17 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Check, Crown, Download, Loader2, Lock, ShieldCheck } from 'lucide-react';
 import { PREMIUM_PRICE_TOMAN } from '@/features/payments/lib/client';
-import { formatToman } from '../lib/digits';
+import { cn } from 'cn';
+import { formatToman, toPersianDigits } from '../lib/digits';
+import {
+  DEFAULT_FORMAT_ID,
+  EXPORT_FORMATS,
+  pdfDpi,
+  type ExportFormatId,
+} from '../lib/export-formats';
 import { Button } from '@/components/ui/button';
 import type { PosterExport } from '../hooks/use-poster-export';
 import type { MomentData, PersonalizeData } from './CreateStepper';
@@ -57,6 +64,8 @@ export function Step3Receive({
     );
 
   const locked = exporter.freeLocked;
+  const [format, setFormat] = useState<ExportFormatId>(DEFAULT_FORMAT_ID);
+  const printFormat = EXPORT_FORMATS.find((f) => f.id === format)?.kind === 'pdf';
 
   const description = occasionKeepsake
     ? t('descriptionOccasion', {
@@ -162,9 +171,52 @@ export function Step3Receive({
         ))}
       </ul>
 
+      <fieldset className="space-y-2">
+        <legend className="text-[12px] font-semibold text-[#E8D9B8]">
+          {t('formats.title')}
+        </legend>
+        <div role="radiogroup" className="grid grid-cols-2 gap-2">
+          {EXPORT_FORMATS.map((f) => {
+            const selected = f.id === format;
+            return (
+              <button
+                key={f.id}
+                type="button"
+                role="radio"
+                aria-checked={selected}
+                onClick={() => setFormat(f.id)}
+                className={cn(
+                  'flex cursor-pointer flex-col items-start gap-1 rounded-xl border p-3 text-start transition-colors focus-visible:ring-2 focus-visible:ring-[#CEB47B]/50 focus-visible:outline-none',
+                  selected
+                    ? 'border-[#CEB47B]/80 bg-[#CEB47B]/10'
+                    : 'border-[#33415B] hover:border-[#CEB47B]/40',
+                )}
+              >
+                <span
+                  className={cn(
+                    'text-[12px] font-semibold',
+                    selected ? 'text-white' : 'text-white/70',
+                  )}
+                >
+                  {t(`formats.items.${f.id}.label`)}
+                </span>
+                <span className="text-[10px] leading-4 text-[#AAB6CD]">
+                  {t(`formats.items.${f.id}.hint`, {
+                    dpi: f.kind === 'pdf' ? toPersianDigits(String(pdfDpi(f))) : '',
+                  })}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+        {printFormat && (
+          <p className="text-[11px] leading-5 text-[#AAB6CD]">{t('formats.printNote')}</p>
+        )}
+      </fieldset>
+
       <Button
         type="button"
-        onClick={exporter.downloadPremium}
+        onClick={() => exporter.downloadPremium(format)}
         disabled={exporter.busy !== null}
         className="h-11 w-full bg-[#CEB47B] text-sm font-bold text-[#0c142b] hover:bg-[#e0c180] gap-2"
       >

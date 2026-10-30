@@ -14,6 +14,9 @@ import {
   readPremiumToken,
   subscribePremiumToken,
 } from '@/features/payments/lib/client';
+import { getExportFormat } from '@/features/poster/lib/export-formats';
+import { formatColors } from '@/features/poster/lib/format-colors';
+import { renderFormat } from '@/features/poster/lib/render-format';
 import { createMoonSvg, svgToPngBlob } from '../lib/export-moon';
 import { saveMoonDraft, type MoonDraft } from '../lib/draft';
 import type { MoonPosterData } from '../lib/moon-svg';
@@ -73,14 +76,22 @@ export function useMoonExport(
       run('svg', async () => {
         downloadBlob(new Blob([await svg(true)], { type: 'image/svg+xml' }), `${BASENAME}.svg`);
       }),
-    downloadPremium: () =>
+    downloadPremium: (format = 'poster') =>
       run('premium', async () => {
         const ok = await ensurePremiumAccess(
           null,
           { product: 'moon', save: () => saveMoonDraft(draft) },
         );
         if (!ok) return;
-        downloadBlob(await png(false, PREMIUM_PNG_WIDTH), `${BASENAME}-premium.png`);
+        if (format === 'poster') {
+          downloadBlob(await png(false, PREMIUM_PNG_WIDTH), `${BASENAME}-premium.png`);
+          return;
+        }
+        const { extension } = getExportFormat(format);
+        downloadBlob(
+          await renderFormat(await svg(false), format, formatColors(data.style)),
+          `${BASENAME}-${format}.${extension}`,
+        );
       }),
     share: () =>
       run('share', async () => {
