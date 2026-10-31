@@ -11,3 +11,8 @@ export function formatToman(value: number): string {
     String(Math.round(value)).replace(/\B(?=(\d{3})+(?!\d))/g, '٬'),
   );
 }
+
+/** 18.73 → "۱۸٫۷" (Persian digits and decimal separator). */
+export function formatDecimal(value: number, fractionDigits = 1): string {
+  return toPersianDigits(value.toFixed(fractionDigits).replace('.', '٫'));
+}

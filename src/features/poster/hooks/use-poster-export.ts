@@ -19,6 +19,9 @@ import type { PosterDraft } from '../lib/draft';
 import { usesPremiumFeatures } from '../lib/premium-features';
 import { PremiumAccessError, ensurePremiumAccess } from '../lib/premium-access';
 import { trackEvent } from '@/lib/track';
+import { getExportFormat, type ExportFormatId } from '../lib/export-formats';
+import { formatColors } from '../lib/format-colors';
+import { renderFormat } from '../lib/render-format';
 
 export type ExportAction = 'png' | 'svg' | 'premium' | 'share';
 
@@ -32,7 +35,8 @@ export type PosterExport = {
   premiumUnlocked: boolean;
   downloadPng: () => void;
   downloadSvg: () => void;
-  downloadPremium: () => void;
+  /** The paid, watermark-free file in one of the export formats (the poster PNG by default). */
+  downloadPremium: (format?: ExportFormatId) => void;
   share: () => void;
 };
 
@@ -105,12 +109,18 @@ export function usePosterExport(
         const svg = await createPosterSvg({ data, labels, sky, watermark: true });
         downloadBlob(new Blob([svg], { type: 'image/svg+xml' }), `${BASENAME}.svg`);
       }),
-    downloadPremium: () =>
+    downloadPremium: (format = 'poster') =>
       run('premium', async () => {
         if (!(await ensurePremiumAccess(draft))) return;
+        if (format === 'poster') {
+          downloadBlob(await png(false, PREMIUM_PNG_WIDTH), `${BASENAME}-premium.png`);
+          return;
+        }
+        const svg = await createPosterSvg({ data, labels, sky, watermark: false });
+        const { extension } = getExportFormat(format);
         downloadBlob(
-          await png(false, PREMIUM_PNG_WIDTH),
-          `${BASENAME}-premium.png`,
+          await renderFormat(svg, format, formatColors(data.style)),
+          `${BASENAME}-${format}.${extension}`,
         );
       }),
     share: () =>

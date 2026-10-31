@@ -1,10 +1,12 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Check, Crown, Download, Loader2, Lock, ShieldCheck } from 'lucide-react';
 import { PREMIUM_PRICE_TOMAN } from '@/features/payments/lib/client';
 import { formatToman } from '../lib/digits';
+import { DEFAULT_FORMAT_ID, type ExportFormatId } from '../lib/export-formats';
+import { FormatPicker } from './FormatPicker';
 import { Button } from '@/components/ui/button';
 import type { PosterExport } from '../hooks/use-poster-export';
 import type { MomentData, PersonalizeData } from './CreateStepper';
@@ -57,6 +59,7 @@ export function Step3Receive({
     );
 
   const locked = exporter.freeLocked;
+  const [format, setFormat] = useState<ExportFormatId>(DEFAULT_FORMAT_ID);
 
   const description = occasionKeepsake
     ? t('descriptionOccasion', {
@@ -162,9 +165,11 @@ export function Step3Receive({
         ))}
       </ul>
 
+      <FormatPicker value={format} onChange={setFormat} />
+
       <Button
         type="button"
-        onClick={exporter.downloadPremium}
+        onClick={() => exporter.downloadPremium(format)}
         disabled={exporter.busy !== null}
         className="h-11 w-full bg-[#CEB47B] text-sm font-bold text-[#0c142b] hover:bg-[#e0c180] gap-2"
       >
@@ -173,6 +178,15 @@ export function Step3Receive({
           ? t('premiumPayBtn', { price: formatToman(PREMIUM_PRICE_TOMAN) })
           : t('premiumDownloadBtn')}
       </Button>
+      {/* The gateway error belongs next to the button that caused it */}
+      {exporter.notice === 'payment' && (
+        <p
+          role="alert"
+          className="rounded-lg border border-red-300/30 px-3 py-2 text-[12px] leading-6 text-red-300"
+        >
+          {t('pay.unavailable')}
+        </p>
+      )}
       <p className="text-center text-[11px] leading-5 text-[#AAB6CD]">
         {t('premiumNote')}
       </p>
@@ -209,7 +223,7 @@ export function Step3Receive({
         <ShieldCheck className="size-3.5 shrink-0" />
         {t('noAccount')}
       </p>
-      {exporter.notice && (
+      {exporter.notice && exporter.notice !== 'payment' && (
         <p
           role="status"
           className={
@@ -218,11 +232,7 @@ export function Step3Receive({
               : 'text-start text-xs text-[#CEB47B]'
           }
         >
-          {exporter.notice === 'error'
-            ? t('exportError')
-            : exporter.notice === 'payment'
-              ? t('pay.unavailable')
-              : t('shareCopied')}
+          {exporter.notice === 'error' ? t('exportError') : t('shareCopied')}
         </p>
       )}
     </div>
