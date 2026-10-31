@@ -94,7 +94,7 @@ export function Step2Personalize({
   const t = useTranslations('CreatePage.step2');
   const tStep1 = useTranslations('CreatePage.step1');
 
-  const { control, handleSubmit, watch } = useForm<PersonalizeValues>({
+  const { control, handleSubmit, watch, setValue } = useForm<PersonalizeValues>({
     resolver: zodResolver(personalizeSchema),
     defaultValues: {
       title: data.title,
@@ -167,6 +167,27 @@ export function Step2Personalize({
           <Pencil className="size-3" />
           {t('editLabel')}
         </Button>
+      </div>
+
+      {/* Starting ideas: an empty text box is the main place people stall */}
+      <div className="space-y-2">
+        <p className="text-sm font-medium text-[#E8D9B8]">{t('ideas.label')}</p>
+        <div className="flex flex-wrap gap-2">
+          {[0, 1, 2, 3, 4, 5].map((i) => (
+            <button
+              key={i}
+              type="button"
+              onClick={() => {
+                setValue('title', t(`ideas.items.${i}.title`), { shouldDirty: true });
+                setValue('quote', t(`ideas.items.${i}.quote`), { shouldDirty: true });
+              }}
+              className="cursor-pointer rounded-full border border-[#33415B] px-3 py-1.5 text-xs text-[#E8D9B8] transition-colors hover:border-[#CEB47B]/60 hover:bg-[#CEB47B]/10 focus-visible:ring-2 focus-visible:ring-[#CEB47B]/50 focus-visible:outline-none"
+            >
+              {t(`ideas.items.${i}.label`)}
+            </button>
+          ))}
+        </div>
+        <p className="text-[11px] leading-5 text-[#AAB6CD]">{t('ideas.hint')}</p>
       </div>
 
       {/* Title field */}
