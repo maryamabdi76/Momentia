@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/stepper';
 import { toPersianDigits } from '../lib/digits';
 import { usePosterExport } from '../hooks/use-poster-export';
-import { loadDraft } from '../lib/draft';
+import { loadDraft, saveDraft } from '../lib/draft';
 import {
   DEFAULT_SKY_LAYERS,
   resolveSkyLayers,
@@ -104,6 +104,33 @@ function StepperInner() {
       ...(isPosterTemplate(template) ? { template } : {}),
     };
   });
+
+  // A refresh keeps what was typed: restore the saved draft once, on the client, and
+  // keep saving every change after that. The step forms are only mounted once this
+  // has run, because they take their starting values from it. A look picked in the
+  // link (/create?style=…) wins over the saved one.
+  const [restored, setRestored] = useState(false);
+  useEffect(() => {
+    const draft = loadDraft();
+    if (draft) {
+      const style = searchParams.get('style');
+      const template = searchParams.get('template');
+      setMoment(draft.moment);
+      setPersonal({
+        ...draft.personal,
+        layers: resolveSkyLayers(draft.personal.layers),
+        template: isPosterTemplate(template)
+          ? template
+          : (draft.personal.template ?? DEFAULT_TEMPLATE),
+        ...(isPosterStyle(style) ? { style } : {}),
+      });
+    }
+    setRestored(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- run once on load
+  }, []);
+  useEffect(() => {
+    if (restored) saveDraft({ moment, personal });
+  }, [restored, moment, personal]);
 
   // Coming back from the payment gateway: /create?step=3&pay=ok#pt=<token>.
   // Keep the token, restore the poster that was being edited, then tidy the URL.
@@ -196,14 +223,14 @@ function StepperInner() {
       <div className="mx-auto px-6 py-10 md:px-20 md:py-16">
         <div className="grid grid-cols-1 gap-10 md:grid-cols-2 md:items-start md:gap-16">
           <section className="col-span-1 min-w-0">
-            {step === 1 && (
+            {restored && step === 1 && (
               <Step1Moment
                 data={moment}
                 onChange={setMoment}
                 onNext={() => goTo(2)}
               />
             )}
-            {step === 2 && (
+            {restored && step === 2 && (
               <Step2Personalize
                 data={personal}
                 moment={moment}
@@ -213,7 +240,7 @@ function StepperInner() {
                 onEditMoment={() => goTo(1)}
               />
             )}
-            {step === 3 && (
+            {restored && step === 3 && (
               <Step3Receive
                 personal={personal}
                 moment={moment}
