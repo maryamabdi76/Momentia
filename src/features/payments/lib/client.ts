@@ -36,6 +36,29 @@ export function subscribePremiumToken(onChange: () => void) {
   return () => window.removeEventListener(CHANGE_EVENT, onChange);
 }
 
+/** Same shape as AUTHORITY_PATTERN in zarinpal.ts (kept here so this file stays free of imports). */
+const AUTHORITY_SHAPE = /^[AS][0-9A-Za-z]{35}$/;
+
+/**
+ * The Zarinpal authority inside a premium token, shown to the buyer as a tracking
+ * code. The token payload is only base64url JSON (the signature is what protects
+ * it), so reading it in the browser reveals nothing that is not already theirs.
+ */
+export function paymentCodeFromToken(token: string | null): string | null {
+  if (!token) return null;
+  try {
+    const payload = token.split('.')[0];
+    if (!payload) return null;
+    const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
+    const padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4);
+    const bytes = Uint8Array.from(atob(padded), (c) => c.charCodeAt(0));
+    const data = JSON.parse(new TextDecoder().decode(bytes)) as { a?: unknown };
+    return typeof data.a === 'string' && AUTHORITY_SHAPE.test(data.a) ? data.a : null;
+  } catch {
+    return null;
+  }
+}
+
 export async function validatePremiumToken(token: string): Promise<boolean> {
   const res = await fetch('/api/payments/validate', {
     method: 'POST',

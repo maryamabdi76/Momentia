@@ -105,6 +105,7 @@ Open [http://localhost:3000](http://localhost:3000) ✨
 | `npm run build` | Production build             |
 | `npm run start` | Serve the production build   |
 | `npm run lint`  | Run ESLint                   |
+| `npm run typecheck` | Type-check with `tsc`    |
 | `npm test`      | Run the unit tests           |
 
 ### Premium payments
@@ -118,6 +119,21 @@ Copy `.env.example` to `.env.local` and fill it in. Without a payment secret the
 | `ZARINPAL_SANDBOX`              | `true` to use the Zarinpal sandbox                   |
 | `PAYMENT_TOKEN_SECRET`          | 32+ random characters, signs the premium token       |
 | `SITE_URL`                      | Optional public origin used for the payment callback |
+
+### Support, contact and donations
+
+`/contact` shows the contact channels and an optional card-to-card donation box; `/terms` explains what is sold and the refund rules. Both are filled from public env variables, so nothing personal is committed to the repository. Anything left empty is hidden, and the donation link in the footer only appears once a valid card is set.
+
+| Variable                        | Purpose                                                    |
+| ------------------------------- | ---------------------------------------------------------- |
+| `NEXT_PUBLIC_CONTACT_EMAIL`     | Support email                                              |
+| `NEXT_PUBLIC_CONTACT_TELEGRAM`  | Telegram username (with or without `@`)                    |
+| `NEXT_PUBLIC_CONTACT_INSTAGRAM` | Instagram username (with or without `@`)                   |
+| `NEXT_PUBLIC_DONATION_CARD`     | 16-digit card number for donations                         |
+| `NEXT_PUBLIC_DONATION_HOLDER`   | Card holder name shown under the number                    |
+| `NEXT_PUBLIC_DONATION_BANK`     | Bank name shown under the number                           |
+
+After a premium payment the create page shows the Zarinpal tracking code, so a buyer who loses the tab can still get help from `/contact`.
 
 > The free files are generated in the browser, so the lock on the full-page layout is a product gate, not a security boundary. Only the watermark-free premium file is checked against the server-validated token.
 

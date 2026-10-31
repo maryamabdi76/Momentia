@@ -1,9 +1,12 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { Check, Crown, Download, Loader2, Lock, ShieldCheck } from 'lucide-react';
+import { PaymentReceipt } from '@/features/payments/components/PaymentReceipt';
 import { PREMIUM_PRICE_TOMAN } from '@/features/payments/lib/client';
+import { DonateCard } from '@/features/support/components/DonateCard';
 import { formatToman } from '../lib/digits';
 import { DEFAULT_FORMAT_ID, type ExportFormatId } from '../lib/export-formats';
 import { FormatPicker } from './FormatPicker';
@@ -45,6 +48,7 @@ export function Step3Receive({
 }: Props) {
   const t = useTranslations('CreatePage.step3');
   const tMoment = useTranslations('CreatePage.step1');
+  const tSupport = useTranslations('Support');
 
   const occasionKeepsake = useMemo(
     () => occasionKeepsakeLabel(moment, tMoment),
@@ -150,6 +154,8 @@ export function Step3Receive({
           {t(`pay.${payResult}`)}
         </p>
       )}
+      {/* the tracking code, only while this tab holds the proof of payment */}
+      <PaymentReceipt />
       <p className="text-[12px] leading-6 text-[#AAB6CD]">
         {t('premiumDesc')}
       </p>
@@ -223,6 +229,17 @@ export function Step3Receive({
         <ShieldCheck className="size-3.5 shrink-0" />
         {t('noAccount')}
       </p>
+      <p className="text-xs leading-6 text-[#AAB6CD]">
+        {tSupport('help')}{' '}
+        <Link
+          href="/contact"
+          className="text-[#CEB47B] underline-offset-4 hover:underline"
+        >
+          {tSupport('contact.title')}
+        </Link>
+      </p>
+      {/* renders nothing until a donation card is configured */}
+      <DonateCard variant="compact" />
       {exporter.notice && exporter.notice !== 'payment' && (
         <p
           role="status"

@@ -7,6 +7,7 @@ import {
   NavigationMenuLink,
   NavigationMenuList,
 } from '@/components/ui/navigation-menu';
+import { readSupportConfig } from '@/lib/support';
 
 type HomeFooterProps = {
   /**
@@ -38,12 +39,18 @@ export async function HomeFooter({ variant = 'home' }: HomeFooterProps) {
     );
   }
 
-  const footerLinks = [
+  const footerLinks: Array<readonly [string, string]> = [
     ['/', t('footer.links.home')],
     ['/privacy', t('footer.links.privacy')],
+    ['/terms', t('footer.links.terms')],
+    ['/contact', t('footer.links.contact')],
     ['/#steps', t('footer.links.guide')],
     ['/#faq', t('footer.links.faq')],
-  ] as const;
+  ];
+  // the donation link only appears once a donation card is configured
+  if (readSupportConfig().card) {
+    footerLinks.push(['/contact#donate', t('footer.links.donate')]);
+  }
 
   return (
     <footer className="px-6 py-10">
