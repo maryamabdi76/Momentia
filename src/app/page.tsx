@@ -9,6 +9,7 @@ import { HomeStories } from '@/features/home/components/HomeStories';
 import { HomeSteps } from '@/features/home/components/HomeSteps';
 import { HomeGifts } from '@/features/home/components/HomeGifts';
 import { HomeMoon } from '@/features/home/components/HomeMoon';
+import { HomeYalda } from '@/features/home/components/HomeYalda';
 import { HomeCreate } from '@/features/home/components/HomeCreate';
 import { HomeFaq } from '@/features/home/components/HomeFaq';
 import { HomeFinalCta } from '@/features/home/components/HomeFinalCta';
@@ -43,6 +44,7 @@ export default function Home() {
       <HomeSteps />
       <HomeGifts />
       <HomeMoon />
+      <HomeYalda />
       <HomeCreate />
       <HomeFaq />
       <HomeFinalCta />
