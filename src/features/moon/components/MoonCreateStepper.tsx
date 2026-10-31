@@ -12,7 +12,7 @@ import { toPersianDigits } from '@/features/poster/lib/digits';
 import { skyForMoment } from '@/features/poster/lib/sky-for-moment';
 import { isPosterStyle } from '@/features/poster/lib/themes';
 import { useMoonExport } from '../hooks/use-moon-export';
-import { loadMoonDraft } from '../lib/draft';
+import { loadMoonDraft, saveMoonDraft } from '../lib/draft';
 import type { MoonPosterData } from '../lib/moon-svg';
 import type { MoonPersonalizeValues } from '../lib/schemas';
 import { MoonPreview } from './MoonPreview';
@@ -58,6 +58,26 @@ function StepperInner() {
     const style = searchParams.get('style');
     return { ...DEFAULT_PERSONAL, ...(isPosterStyle(style) ? { style } : {}) };
   });
+
+  // A refresh keeps what was typed (see the poster stepper); a look picked in the link wins.
+  const [restored, setRestored] = useState(false);
+  useEffect(() => {
+    const draft = loadMoonDraft();
+    if (draft) {
+      const style = searchParams.get('style');
+      setMoment(draft.moment);
+      setPersonal({
+        ...DEFAULT_PERSONAL,
+        ...draft.personal,
+        ...(isPosterStyle(style) ? { style } : {}),
+      });
+    }
+    setRestored(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- run once on load
+  }, []);
+  useEffect(() => {
+    if (restored) saveMoonDraft({ moment, personal });
+  }, [restored, moment, personal]);
 
   // Coming back from the payment gateway: /moon?step=3&pay=ok#pt=<token>.
   const [payResult, setPayResult] = useState<'ok' | 'cancelled' | 'failed' | null>(null);
@@ -116,10 +136,10 @@ function StepperInner() {
       <div className="mx-auto px-6 py-10 md:px-20 md:py-16">
         <div className="grid gap-10 md:grid-cols-2 md:items-start md:gap-16">
           <section className="col-span-1">
-            {step === 1 && (
+            {restored && step === 1 && (
               <Step1Moment data={moment} onChange={setMoment} onNext={() => goTo(2)} />
             )}
-            {step === 2 && (
+            {restored && step === 2 && (
               <MoonStep2
                 data={personal}
                 moment={moment}
@@ -128,7 +148,7 @@ function StepperInner() {
                 onBack={() => goTo(1)}
               />
             )}
-            {step === 3 && (
+            {restored && step === 3 && (
               <Step3Receive
                 personal={personal}
                 moment={moment}
