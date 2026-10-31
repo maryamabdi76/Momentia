@@ -119,10 +119,38 @@ const artPath = (shapes: SkySnapshot['art'][number]['shapes']) =>
     )
     .join('');
 
-/** Painted figures, each pinned to its stars by a matrix (chart units → ×R here). */
-function ArtImages({ images }: { images: SkySnapshot['artImages'] }) {
+const ART_INK_FILTER = 'sky-art-ink';
+
+/**
+ * Painted figures, each pinned to its stars by a matrix (chart units → ×R here).
+ * On light papers (`palette.artInk`) they are redrawn in ink: a flood of the ink
+ * colour, kept only where the painting has any opacity.
+ */
+function ArtImages({
+  images,
+  palette,
+}: {
+  images: SkySnapshot['artImages'];
+  palette: Palette;
+}) {
+  const ink = palette.artInk;
   return (
     <g>
+      {ink && (
+        <defs>
+          <filter
+            id={ART_INK_FILTER}
+            x="0%"
+            y="0%"
+            width="100%"
+            height="100%"
+            colorInterpolationFilters="sRGB"
+          >
+            <feFlood floodColor={ink} result="ink" />
+            <feComposite in="ink" in2="SourceGraphic" operator="in" />
+          </filter>
+        </defs>
+      )}
       {images.map(({ id, src, width, height, matrix, opacity }) => {
         const [a, b, c, d, e, g] = matrix.map((n) => Number((n * R).toFixed(5)));
         return (
@@ -131,7 +159,8 @@ function ArtImages({ images }: { images: SkySnapshot['artImages'] }) {
             href={src}
             width={width}
             height={height}
-            opacity={opacity}
+            opacity={Math.min(1, opacity * palette.artBoost)}
+            filter={ink ? `url(#${ART_INK_FILTER})` : undefined}
             transform={`matrix(${a} ${b} ${c} ${d} ${e} ${g})`}
             preserveAspectRatio="none"
           />
@@ -272,7 +301,7 @@ export function SkyDrawing({
         {show.constellationArt && (
           <>
             <ConstellationArt art={sky.art} palette={p} />
-            <ArtImages images={sky.artImages} />
+            <ArtImages images={sky.artImages} palette={p} />
           </>
         )}
 
