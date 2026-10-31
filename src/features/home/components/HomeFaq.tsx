@@ -10,7 +10,7 @@ export async function HomeFaq() {
   const t = await getTranslations('HomePage.faq');
   const [line1, line2] = t('title').split('\n');
 
-  const items = [0, 1, 2, 3, 4].map((i) => ({
+  const items = [0, 1, 2, 3, 4, 5, 6].map((i) => ({
     question: t(`items.${i}.question`),
     answer: t(`items.${i}.answer`),
   }));

@@ -40,9 +40,9 @@ export async function HomeFooter({ variant = 'home' }: HomeFooterProps) {
 
   const footerLinks = [
     ['/', t('footer.links.home')],
-    ['#privacy', t('footer.links.privacy')],
-    ['#guide', t('footer.links.guide')],
-    ['#faq', t('footer.links.faq')],
+    ['/privacy', t('footer.links.privacy')],
+    ['/#steps', t('footer.links.guide')],
+    ['/#faq', t('footer.links.faq')],
   ] as const;
 
   return (

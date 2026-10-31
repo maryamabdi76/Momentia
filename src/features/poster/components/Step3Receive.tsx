@@ -65,6 +65,120 @@ export function Step3Receive({
       })
     : t('description', { names: personal.names });
 
+  const digitalCard = (
+    <div
+      className={`rounded-2xl border border-[#33415B] bg-[#142039] p-5 space-y-4 ${locked ? 'opacity-90' : ''}`}
+    >
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-base font-bold text-white">{t('digitalTitle')}</p>
+        <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-[#CEB47B]/40 px-2.5 py-0.5 text-[11px] text-[#CEB47B]">
+          {locked && <Lock aria-hidden className="size-3" />}
+          {locked ? t('freeLocked.badge') : t('digitalBadge')}
+        </span>
+      </div>
+      {locked ? (
+        <div className="space-y-3 rounded-xl border border-[#CEB47B]/30 bg-[#CEB47B]/5 p-3.5">
+          <p className="flex items-start gap-2 text-[12px] leading-6 text-[#E8D9B8]">
+            <Crown aria-hidden className="mt-1 size-3.5 shrink-0 text-[#CEB47B]" />
+            {t('freeLocked.body')}
+          </p>
+          {onUseFreeLayout && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onUseFreeLayout}
+              className="h-auto min-h-10 w-full whitespace-normal border-[#33415B] bg-transparent py-2 text-center text-xs leading-5 text-white/80 hover:bg-white/5"
+            >
+              {t('freeLocked.useFree')}
+            </Button>
+          )}
+        </div>
+      ) : (
+        <p className="text-[12px] leading-6 text-[#AAB6CD]">
+          {t('digitalDesc')}
+        </p>
+      )}
+      <div className="flex flex-col gap-2.5">
+        <Button
+          type="button"
+          onClick={exporter.downloadPng}
+          disabled={locked || exporter.busy !== null}
+          className="h-11 w-full bg-[#CEB47B] text-sm font-bold text-[#0c142b] hover:bg-[#e0c180] gap-2"
+        >
+          {icon('png')}
+          {t('downloadPng')}
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={exporter.downloadSvg}
+          disabled={locked || exporter.busy !== null}
+          className="h-11 w-full border-[#33415B] bg-transparent text-sm text-white/70 hover:bg-white/5 gap-2"
+        >
+          {icon('svg', 'size-4 opacity-70')}
+          {t('downloadSvg')}
+        </Button>
+      </div>
+      {!locked && (
+        <p className="text-[11px] leading-5 text-[#AAB6CD]">{t('svgNote')}</p>
+      )}
+    </div>
+  );
+
+  const premiumCard = (
+    <div className="rounded-2xl border border-[#CEB47B] bg-[#142039] p-5 space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="text-base font-bold text-[#CEB47B]">
+          {t('premiumTitle')}
+        </p>
+        <span className="rounded-full border border-[#CEB47B] px-2.5 py-0.5 text-[10px] text-[#CEB47B]">
+          {t('premiumBadge')}
+        </span>
+      </div>
+      {payResult && (
+        <p
+          role="status"
+          className={
+            payResult === 'ok'
+              ? 'rounded-lg border border-[#CEB47B]/40 px-3 py-2 text-[12px] text-[#CEB47B]'
+              : 'rounded-lg border border-red-300/30 px-3 py-2 text-[12px] text-red-300'
+          }
+        >
+          {t(`pay.${payResult}`)}
+        </p>
+      )}
+      <p className="text-[12px] leading-6 text-[#AAB6CD]">
+        {t('premiumDesc')}
+      </p>
+      <ul className="space-y-1.5">
+        {([0, 1, 2, 3] as const).map((i) => (
+          <li
+            key={i}
+            className="flex items-center gap-2 text-[12px] text-[#E8D9B8]"
+          >
+            <Check className="size-3.5 shrink-0 text-[#CEB47B]" />
+            {t(`premiumFeatures.${i}`)}
+          </li>
+        ))}
+      </ul>
+
+      <Button
+        type="button"
+        onClick={exporter.downloadPremium}
+        disabled={exporter.busy !== null}
+        className="h-11 w-full bg-[#CEB47B] text-sm font-bold text-[#0c142b] hover:bg-[#e0c180] gap-2"
+      >
+        {icon('premium')}
+        {!exporter.premiumUnlocked && PREMIUM_PRICE_TOMAN
+          ? t('premiumPayBtn', { price: formatToman(PREMIUM_PRICE_TOMAN) })
+          : t('premiumDownloadBtn')}
+      </Button>
+      <p className="text-center text-[11px] leading-5 text-[#AAB6CD]">
+        {t('premiumNote')}
+      </p>
+    </div>
+  );
+
   return (
     <div className="space-y-7">
       {/* Step label + title */}
@@ -77,120 +191,18 @@ export function Step3Receive({
         </p>
       </div>
 
-      {/* Digital — free */}
-      <div
-        className={`rounded-2xl border border-[#33415B] bg-[#142039] p-5 space-y-4 ${locked ? 'opacity-90' : ''}`}
-      >
-        <div className="flex items-center justify-between gap-3">
-          <p className="text-base font-bold text-white">{t('digitalTitle')}</p>
-          <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-[#CEB47B]/40 px-2.5 py-0.5 text-[11px] text-[#CEB47B]">
-            {locked && <Lock aria-hidden className="size-3" />}
-            {locked ? t('freeLocked.badge') : t('digitalBadge')}
-          </span>
-        </div>
-        {locked ? (
-          <div className="space-y-3 rounded-xl border border-[#CEB47B]/30 bg-[#CEB47B]/5 p-3.5">
-            <p className="flex items-start gap-2 text-[12px] leading-6 text-[#E8D9B8]">
-              <Crown aria-hidden className="mt-1 size-3.5 shrink-0 text-[#CEB47B]" />
-              {t('freeLocked.body')}
-            </p>
-            {onUseFreeLayout && (
-              <Button
-                type="button"
-                variant="outline"
-                onClick={onUseFreeLayout}
-                className="h-auto min-h-10 w-full whitespace-normal border-[#33415B] bg-transparent py-2 text-center text-xs leading-5 text-white/80 hover:bg-white/5"
-              >
-                {t('freeLocked.useFree')}
-              </Button>
-            )}
-          </div>
-        ) : (
-          <p className="text-[12px] leading-6 text-[#AAB6CD]">
-            {t('digitalDesc')}
-          </p>
-        )}
-        <div className="flex flex-col gap-2.5">
-          <Button
-            type="button"
-            onClick={exporter.downloadPng}
-            disabled={locked || exporter.busy !== null}
-            className="h-11 w-full bg-[#CEB47B] text-sm font-bold text-[#0c142b] hover:bg-[#e0c180] gap-2"
-          >
-            {icon('png')}
-            {t('downloadPng')}
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={exporter.downloadSvg}
-            disabled={locked || exporter.busy !== null}
-            className="h-11 w-full border-[#33415B] bg-transparent text-sm text-white/70 hover:bg-white/5 gap-2"
-          >
-            {icon('svg', 'size-4 opacity-70')}
-            {t('downloadSvg')}
-          </Button>
-        </div>
-        {!locked && (
-          <p className="text-[11px] leading-5 text-[#AAB6CD]">{t('svgNote')}</p>
-        )}
-      </div>
-
-      {/* Premium digital — no watermark */}
-      <div className="rounded-2xl border border-[#CEB47B] bg-[#142039] p-5 space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <p className="text-base font-bold text-[#CEB47B]">
-            {t('premiumTitle')}
-          </p>
-          <span className="rounded-full border border-[#CEB47B] px-2.5 py-0.5 text-[10px] text-[#CEB47B]">
-            {t('premiumBadge')}
-          </span>
-        </div>
-        <p className="text-[12px] leading-6 text-white/45">
-          {t('premiumDesc')}
-        </p>
-        {payResult && (
-          <p
-            role="status"
-            className={
-              payResult === 'ok'
-                ? 'rounded-lg border border-[#CEB47B]/40 px-3 py-2 text-[12px] text-[#CEB47B]'
-                : 'rounded-lg border border-red-300/30 px-3 py-2 text-[12px] text-red-300'
-            }
-          >
-            {t(`pay.${payResult}`)}
-          </p>
-        )}
-        <p className="text-[12px] leading-6 text-[#AAB6CD]">
-          {t('premiumDesc')}
-        </p>
-        <ul className="space-y-1.5">
-          {([0, 1, 2] as const).map((i) => (
-            <li
-              key={i}
-              className="flex items-center gap-2 text-[12px] text-[#E8D9B8]"
-            >
-              <Check className="size-3.5 shrink-0 text-[#CEB47B]" />
-              {t(`premiumFeatures.${i}`)}
-            </li>
-          ))}
-        </ul>
-
-        <Button
-          type="button"
-          onClick={exporter.downloadPremium}
-          disabled={exporter.busy !== null}
-          className="h-11 w-full bg-[#CEB47B] text-sm font-bold text-[#0c142b] hover:bg-[#e0c180] gap-2"
-        >
-          {icon('premium')}
-          {!exporter.premiumUnlocked && PREMIUM_PRICE_TOMAN
-            ? t('premiumPayBtn', { price: formatToman(PREMIUM_PRICE_TOMAN) })
-            : t('premiumDownloadBtn')}
-        </Button>
-        <p className="text-center text-[11px] leading-5 text-[#AAB6CD]">
-          {t('premiumNote')}
-        </p>
-      </div>
+      {/* When the layout is premium the free card is locked, so the way forward comes first. */}
+      {locked ? (
+        <>
+          {premiumCard}
+          {digitalCard}
+        </>
+      ) : (
+        <>
+          {digitalCard}
+          {premiumCard}
+        </>
+      )}
 
       {/* No account note */}
       <p className="flex items-center justify-start gap-1.5 text-xs text-[#AAB6CD]">

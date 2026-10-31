@@ -18,6 +18,7 @@ import {
 import type { PosterDraft } from '../lib/draft';
 import { usesPremiumFeatures } from '../lib/premium-features';
 import { PremiumAccessError, ensurePremiumAccess } from '../lib/premium-access';
+import { trackEvent } from '@/lib/track';
 
 export type ExportAction = 'png' | 'svg' | 'premium' | 'share';
 
@@ -71,6 +72,7 @@ export function usePosterExport(
       if (busy) return;
       setBusy(action);
       setNotice(null);
+      trackEvent('export', { product: 'sky', action });
       job()
         .catch((err: unknown) => {
           if (err instanceof DOMException && err.name === 'AbortError') return;
