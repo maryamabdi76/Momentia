@@ -4,6 +4,8 @@ import {
   EXPORT_FORMATS,
   POSTER_ASPECT,
   fitPoster,
+  formatGeometry,
+  formatSpec,
   getExportFormat,
   hexToRgb01,
   isExportFormatId,
@@ -85,4 +87,34 @@ test('format ids and hex colours are validated', () => {
   assert.deepEqual(hexToRgb01('#ff0000'), [1, 0, 0]);
   assert.equal(hexToRgb01('rgba(1,2,3,0.4)'), null);
   assert.equal(hexToRgb01('#fff'), null);
+});
+
+test('the spec of each format states the sizes a buyer is shown', () => {
+  const a4 = formatSpec(getExportFormat('print-a4'));
+  assert.equal(a4.kind, 'pdf');
+  if (a4.kind !== 'pdf') return;
+  assert.deepEqual(a4.page, { w: 210, h: 297 });
+  near(a4.poster.h, 281, 0.01); // 297 − 2 × 8 mm margin
+  near(a4.poster.w, 281 * POSTER_ASPECT, 0.01);
+  near(a4.gapY, 8, 0.01);
+  near(a4.gapX, (210 - a4.poster.w) / 2, 0.01);
+  assert.equal(a4.dpi, 407);
+
+  const big = formatSpec(getExportFormat('print-40x60'));
+  if (big.kind === 'pdf') {
+    near(big.gapX, 0);
+    near(big.gapY, 0);
+    near(big.poster.w, 400, 0.01);
+  }
+
+  const story = formatSpec(getExportFormat('story'));
+  assert.deepEqual(story.kind === 'raster' && story.page, { w: 1080, h: 1920 });
+  assert.deepEqual(story.kind === 'raster' && story.poster, { w: 883, h: 1325 });
+});
+
+test('thumbnail geometry matches the placement', () => {
+  const g = formatGeometry(getExportFormat('wallpaper'));
+  assert.equal(g.pageW, 1290);
+  assert.equal(g.pageH, 2796);
+  near(g.poster.w / g.poster.h, POSTER_ASPECT, 1e-6);
 });

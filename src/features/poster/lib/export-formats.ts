@@ -152,3 +152,57 @@ export function hexToRgb01(hex: string): [number, number, number] | null {
   if (!m) return null;
   return [parseInt(m[1]!, 16) / 255, parseInt(m[2]!, 16) / 255, parseInt(m[3]!, 16) / 255];
 }
+
+const MM_PER_PT = MM_PER_INCH / PT_PER_INCH;
+
+/** Page and poster rectangles in one shared unit (pixels or points), for drawing a thumbnail. */
+export function formatGeometry(format: ExportFormat): { pageW: number; pageH: number; poster: Box } {
+  if (format.kind === 'raster') {
+    return { pageW: format.width, pageH: format.height, poster: rasterPlacement(format) };
+  }
+  const layout = pdfLayout(format);
+  return { pageW: layout.widthPt, pageH: layout.heightPt, poster: layout.image };
+}
+
+/** What a person needs to know before choosing: every size, in its own unit. */
+export type FormatSpec =
+  | {
+      kind: 'raster';
+      /** The whole image, in pixels. */
+      page: { w: number; h: number };
+      /** The poster inside it, in pixels. */
+      poster: { w: number; h: number };
+    }
+  | {
+      kind: 'pdf';
+      /** The sheet, in millimetres. */
+      page: { w: number; h: number };
+      /** The poster on the sheet, in millimetres. */
+      poster: { w: number; h: number };
+      /** White space on each side (left/right) and at the top and bottom, in millimetres. */
+      gapX: number;
+      gapY: number;
+      dpi: number;
+    };
+
+export function formatSpec(format: ExportFormat): FormatSpec {
+  if (format.kind === 'raster') {
+    const p = rasterPlacement(format);
+    return {
+      kind: 'raster',
+      page: { w: format.width, h: format.height },
+      poster: { w: Math.round(p.w), h: Math.round(p.h) },
+    };
+  }
+  const { image } = pdfLayout(format);
+  const poster = { w: image.w * MM_PER_PT, h: image.h * MM_PER_PT };
+  const [pageW, pageH] = format.pageMm;
+  return {
+    kind: 'pdf',
+    page: { w: pageW, h: pageH },
+    poster,
+    gapX: (pageW - poster.w) / 2,
+    gapY: (pageH - poster.h) / 2,
+    dpi: pdfDpi(format),
+  };
+}
