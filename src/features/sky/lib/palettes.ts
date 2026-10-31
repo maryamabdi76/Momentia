@@ -18,6 +18,15 @@ export type Palette = {
   label: string;
   /** Ecliptic and equator. */
   guide: string;
+  /**
+   * The painted constellation figures are light on a transparent ground, so on a
+   * light paper they vanish. For those papers: the ink to redraw them in (their
+   * brightness stays as opacity, so the brush detail survives). null keeps the
+   * painted colours.
+   */
+  artInk: string | null;
+  /** Multiplies each figure's own opacity; light papers need more than dark skies. */
+  artBoost: number;
 };
 
 type RGB = [number, number, number];
@@ -57,6 +66,8 @@ export const PALETTES: Record<SkyChartVariant, Palette> = {
     planet: '#FFD9A0',
     label: '#E8D9B8',
     guide: '#E3C88A',
+    artInk: null,
+    artBoost: 1,
   },
   mono: {
     ring: '#2a2a28',
@@ -68,6 +79,8 @@ export const PALETTES: Record<SkyChartVariant, Palette> = {
     planet: '#1c1c1a',
     label: '#2a2a28',
     guide: '#2a2a28',
+    artInk: '#2a2a28',
+    artBoost: 1.9,
   },
   black: {
     ring: '#C9CDD6',
@@ -79,6 +92,8 @@ export const PALETTES: Record<SkyChartVariant, Palette> = {
     planet: '#FFF1D6',
     label: '#E4E6EB',
     guide: '#BFC4CE',
+    artInk: null,
+    artBoost: 1,
   },
   parchment: {
     ring: '#6b4a2b',
@@ -91,6 +106,8 @@ export const PALETTES: Record<SkyChartVariant, Palette> = {
     planet: '#8a3a1c',
     label: '#4a321b',
     guide: '#7a4a1e',
+    artInk: '#3d2510',
+    artBoost: 2.1,
   },
   violet: {
     ring: '#E2A9A0',
@@ -102,5 +119,7 @@ export const PALETTES: Record<SkyChartVariant, Palette> = {
     planet: '#FFD3C4',
     label: '#F1D3CC',
     guide: '#EDB9AE',
+    artInk: null,
+    artBoost: 1,
   },
 };
