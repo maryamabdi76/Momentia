@@ -18,14 +18,19 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+      # pnpm-lock.yaml is the lockfile that matches package.json; package-lock.json
+      # is out of date (it lacks @base-ui/react and cmdk), so `npm ci` cannot be used.
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
-      - run: npm ci
-      - run: npm run lint
-      - run: npm run typecheck
-      - run: npm test
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm test
       # Payments are not configured here, so the build also checks that the app
       # compiles and prerenders without any secrets.
-      - run: npm run build
+      - run: pnpm build
