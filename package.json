@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "next typegen && tsc --noEmit",
     "test": "node --test --experimental-strip-types \"src/**/__tests__/*.test.ts\"",
     "build:sky-data": "node scripts/build-sky-data.mjs"
   },
