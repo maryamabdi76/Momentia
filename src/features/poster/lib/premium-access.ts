@@ -1,8 +1,10 @@
 import {
   type PremiumProduct,
+  claimPremiumToken,
   clearPremiumToken,
   readPremiumToken,
   startCheckout,
+  storePremiumToken,
   validatePremiumToken,
 } from '@/features/payments/lib/client';
 import { saveDraft, type PosterDraft } from './draft';
@@ -18,9 +20,11 @@ export class PremiumAccessError extends Error {
  * Gate for the premium (watermark-free, 3000px) download.
  *
  * - With a valid payment token it resolves `true` and the file is built.
- * - Without one it saves the draft and sends the buyer to Zarinpal, then
- *   resolves `false`; the page leaves, and the callback brings them back to
- *   step 3 with a token.
+ * - If this browser already paid but never picked up the token (tab closed, slow
+ *   confirmation), the token is claimed first, so nobody pays twice.
+ * - Otherwise it saves the draft and sends the buyer to Variza, then resolves
+ *   `false`; the page leaves, and the return route brings them back to step 3,
+ *   which waits for the payment to be confirmed and picks up the token.
  * - It throws `PremiumAccessError` when checkout can't be started.
  */
 export async function ensurePremiumAccess(
@@ -31,6 +35,12 @@ export async function ensurePremiumAccess(
   if (token) {
     if (await validatePremiumToken(token).catch(() => false)) return true;
     clearPremiumToken();
+  }
+
+  const claimed = await claimPremiumToken();
+  if (claimed.status === 'paid') {
+    storePremiumToken(claimed.token);
+    return true;
   }
 
   if (options.save) options.save();

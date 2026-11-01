@@ -18,7 +18,7 @@ type Props = {
   personal: Pick<PersonalizeData, 'names'>;
   moment: MomentData;
   exporter: PosterExport;
-  payResult: 'ok' | 'cancelled' | 'failed' | null;
+  payResult: 'pending' | 'ok' | 'failed' | null;
   /** Drop the premium options (full-page sky, constellation figures) to get the free download. */
   onUseFreeLayout?: () => void;
 };
@@ -148,7 +148,9 @@ export function Step3Receive({
           className={
             payResult === 'ok'
               ? 'rounded-lg border border-[#CEB47B]/40 px-3 py-2 text-[12px] text-[#CEB47B]'
-              : 'rounded-lg border border-red-300/30 px-3 py-2 text-[12px] text-red-300'
+              : payResult === 'pending'
+                ? 'rounded-lg border border-white/15 px-3 py-2 text-[12px] text-white/70'
+                : 'rounded-lg border border-red-300/30 px-3 py-2 text-[12px] text-red-300'
           }
         >
           {t(`pay.${payResult}`)}

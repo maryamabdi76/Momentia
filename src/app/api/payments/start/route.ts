@@ -1,8 +1,9 @@
 import { pendingCookie } from '@/features/payments/lib/cookie';
 import { readPaymentConfig, RETURN_PATHS } from '@/features/payments/lib/config';
-import { requestPayment, startPayUrl } from '@/features/payments/lib/zarinpal';
+import { savePending } from '@/features/payments/lib/store';
+import { createPaymentLink } from '@/features/payments/lib/variza';
 
-/** Creates a Zarinpal payment for the premium poster and returns the gateway URL. */
+/** Creates a Variza payment link for the premium poster and returns its URL. */
 export async function POST(request: Request) {
   const config = readPaymentConfig();
   if (!config) {
@@ -16,21 +17,24 @@ export async function POST(request: Request) {
 
   const origin = config.siteUrl ?? new URL(request.url).origin;
   try {
-    const { authority } = await requestPayment(config, {
-      amountRial: config.amountRial,
-      description: 'Momentia premium night-sky poster',
-      callbackUrl: `${origin}/api/payments/callback${product}`,
+    const { slug, payUrl } = await createPaymentLink(config, {
+      amountToman: config.priceToman,
+      title: 'دانلود بدون نشان Momentia',
+      returnUrl: `${origin}/api/payments/return${product}`,
+      expiresIn: '1h',
     });
+    // Recorded before the buyer leaves, so the webhook always finds it.
+    await savePending(config.store, slug, config.priceToman);
     return Response.json(
-      { url: startPayUrl(config, authority) },
+      { url: payUrl },
       {
         headers: {
-          'Set-Cookie': pendingCookie(authority, origin.startsWith('https:')),
+          'Set-Cookie': pendingCookie(slug, origin.startsWith('https:')),
         },
       },
     );
   } catch (err) {
-    console.error('zarinpal request failed', err);
+    console.error('variza request failed', err);
     return Response.json({ error: 'gateway' }, { status: 502 });
   }
 }
