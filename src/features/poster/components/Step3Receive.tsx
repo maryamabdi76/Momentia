@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { Check, Crown, Download, Loader2, Lock, ShieldCheck } from 'lucide-react';
-import { PaymentReceipt } from '@/features/payments/components/PaymentReceipt';
+import { PaymentDialog } from '@/features/payments/components/PaymentDialog';
 import { PREMIUM_PRICE_TOMAN } from '@/features/payments/lib/client';
 import { DonateCard } from '@/features/support/components/DonateCard';
 import { formatToman } from '../lib/digits';
@@ -18,7 +18,6 @@ type Props = {
   personal: Pick<PersonalizeData, 'names'>;
   moment: MomentData;
   exporter: PosterExport;
-  payResult: 'pending' | 'ok' | 'failed' | null;
   /** Drop the premium options (full-page sky, constellation figures) to get the free download. */
   onUseFreeLayout?: () => void;
 };
@@ -43,7 +42,6 @@ export function Step3Receive({
   personal,
   moment,
   exporter,
-  payResult,
   onUseFreeLayout,
 }: Props) {
   const t = useTranslations('CreatePage.step3');
@@ -142,22 +140,8 @@ export function Step3Receive({
           {t('premiumBadge')}
         </span>
       </div>
-      {payResult && (
-        <p
-          role="status"
-          className={
-            payResult === 'ok'
-              ? 'rounded-lg border border-[#CEB47B]/40 px-3 py-2 text-[12px] text-[#CEB47B]'
-              : payResult === 'pending'
-                ? 'rounded-lg border border-white/15 px-3 py-2 text-[12px] text-white/70'
-                : 'rounded-lg border border-red-300/30 px-3 py-2 text-[12px] text-red-300'
-          }
-        >
-          {t(`pay.${payResult}`)}
-        </p>
-      )}
-      {/* the tracking code, only while this tab holds the proof of payment */}
-      <PaymentReceipt />
+      {/* where the card-to-card payment stands, and the window to pay in */}
+      <PaymentDialog />
       <p className="text-[12px] leading-6 text-[#AAB6CD]">
         {t('premiumDesc')}
       </p>

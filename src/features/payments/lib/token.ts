@@ -2,7 +2,7 @@ import { createHmac, timingSafeEqual } from 'node:crypto';
 
 /**
  * A stateless proof of payment: `base64url(json).hmac`. It carries the payment's
- * reference (the Variza slug) and an expiry, and is signed with a server secret, so
+ * reference (the order id) and an expiry, and is signed with a server secret, so
  * checking it needs no storage lookup.
  */
 export const PREMIUM_TOKEN_TTL_MS = 2 * 60 * 60 * 1000;

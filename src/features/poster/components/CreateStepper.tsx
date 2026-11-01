@@ -2,10 +2,6 @@
 
 import { Suspense, useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import {
-  storePremiumToken,
-  waitForPremiumToken,
-} from '@/features/payments/lib/client';
 import { trackEvent } from '@/lib/track';
 import { giftUrl } from '../lib/gift-link';
 import { useTranslations } from 'next-intl';
@@ -135,39 +131,6 @@ function StepperInner() {
     if (restored) saveDraft({ moment, personal });
   }, [restored, moment, personal]);
 
-  // Coming back from the payment gateway: /create?step=3&pay=pending. The return
-  // itself proves nothing, so restore the poster that was being edited and wait
-  // for the server to confirm the payment, then keep the token it hands out.
-  const [payResult, setPayResult] = useState<'pending' | 'ok' | 'failed' | null>(null);
-  useEffect(() => {
-    const pay = new URLSearchParams(window.location.search).get('pay');
-    if (pay !== 'pending') return;
-
-    const draft = loadDraft();
-    if (draft) {
-      setMoment(draft.moment);
-      // drafts saved before the sky options existed have no `layers`
-      setPersonal({
-        ...draft.personal,
-        layers: resolveSkyLayers(draft.personal.layers),
-        template: draft.personal.template ?? DEFAULT_TEMPLATE,
-      });
-    }
-    setPayResult('pending');
-
-    // The URL is tidied only once the wait is over, so a re-run of this effect
-    // (React strict mode in dev, or a reload while waiting) simply waits again.
-    const controller = new AbortController();
-    void waitForPremiumToken({ signal: controller.signal }).then((token) => {
-      if (controller.signal.aborted) return;
-      if (token) storePremiumToken(token);
-      setPayResult(token ? 'ok' : 'failed');
-      trackEvent('payment_return', { result: token ? 'ok' : 'failed' });
-      window.history.replaceState(null, '', '/create?step=3');
-    });
-    return () => controller.abort();
-  }, []);
-
   const [giftStatus, setGiftStatus] = useState<'copied' | 'error' | null>(null);
 
   async function copyGiftLink() {
@@ -255,7 +218,6 @@ function StepperInner() {
                 personal={personal}
                 moment={moment}
                 exporter={exporter}
-                payResult={payResult}
                 onUseFreeLayout={() =>
                   setPersonal((p) => ({
                     ...p,

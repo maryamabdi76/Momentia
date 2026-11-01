@@ -4,10 +4,6 @@ import { Suspense, useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { Stepper, type StepItem, type StepStatus } from '@/components/ui/stepper';
-import {
-  storePremiumToken,
-  waitForPremiumToken,
-} from '@/features/payments/lib/client';
 import { Step1Moment } from '@/features/poster/components/Step1Moment';
 import { Step3Receive, Step3ReceiveInfo } from '@/features/poster/components/Step3Receive';
 import type { MomentData } from '@/features/poster/components/CreateStepper';
@@ -82,31 +78,6 @@ function StepperInner() {
     if (restored) saveMoonDraft({ moment, personal });
   }, [restored, moment, personal]);
 
-  // Coming back from the payment gateway: /moon?step=3&pay=pending. The return
-  // itself proves nothing, so wait for the server to confirm the payment.
-  const [payResult, setPayResult] = useState<'pending' | 'ok' | 'failed' | null>(null);
-  useEffect(() => {
-    const pay = new URLSearchParams(window.location.search).get('pay');
-    if (pay !== 'pending') return;
-
-    const draft = loadMoonDraft();
-    if (draft) {
-      setMoment(draft.moment);
-      setPersonal({ ...DEFAULT_PERSONAL, ...draft.personal });
-    }
-    setPayResult('pending');
-
-    // The URL is tidied only once the wait is over (see CreateStepper).
-    const controller = new AbortController();
-    void waitForPremiumToken({ signal: controller.signal }).then((token) => {
-      if (controller.signal.aborted) return;
-      if (token) storePremiumToken(token);
-      setPayResult(token ? 'ok' : 'failed');
-      window.history.replaceState(null, '', '/moon?step=3');
-    });
-    return () => controller.abort();
-  }, []);
-
   function goTo(n: number) {
     const params = new URLSearchParams(searchParams.toString());
     params.set('step', String(n));
@@ -162,7 +133,6 @@ function StepperInner() {
                 personal={personal}
                 moment={moment}
                 exporter={exporter}
-                payResult={payResult}
               />
             )}
           </section>

@@ -1,21 +1,21 @@
 /**
- * The slug of the payment this browser just started. Only the browser that holds it
- * can claim the paid status, so a stranger can't pick up someone else's payment.
- * It outlives the payment link (1 hour) so a payment made at the last minute, with
- * a slightly late webhook, can still be claimed.
+ * The id of the order this browser started. Only the browser that holds it can see the
+ * order's status or claim the paid file, so a stranger can't pick up someone else's payment.
+ * It lasts as long as a submitted order does, so a buyer who comes back the next day, after
+ * the owner has approved, can still get the file.
  */
-export const PENDING_COOKIE = 'vz_pending';
-const MAX_AGE_SECONDS = 2 * 60 * 60;
+export const ORDER_COOKIE = 'mm_order';
+const MAX_AGE_SECONDS = 24 * 60 * 60;
 
-export function pendingCookie(slug: string, secure: boolean): string {
-  return `${PENDING_COOKIE}=${slug}; Path=/api/payments; Max-Age=${MAX_AGE_SECONDS}; HttpOnly; SameSite=Lax${secure ? '; Secure' : ''}`;
+export function orderCookie(orderId: string, secure: boolean): string {
+  return `${ORDER_COOKIE}=${orderId}; Path=/api/payments; Max-Age=${MAX_AGE_SECONDS}; HttpOnly; SameSite=Lax${secure ? '; Secure' : ''}`;
 }
 
-export function readPendingCookie(header: string | null): string | null {
+export function readOrderCookie(header: string | null): string | null {
   if (!header) return null;
   for (const part of header.split(';')) {
     const [name, ...value] = part.trim().split('=');
-    if (name === PENDING_COOKIE) return value.join('=') || null;
+    if (name === ORDER_COOKIE) return value.join('=') || null;
   }
   return null;
 }
