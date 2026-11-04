@@ -49,3 +49,29 @@ export function jalaliToGregorian(
   const d = new Date(ANCHOR_UTC_MS + days * DAY_MS);
   return { year: d.getUTCFullYear(), month: d.getUTCMonth() + 1, day: d.getUTCDate() };
 }
+
+/** The inverse of `jalaliToGregorian`: the Jalali date of a Gregorian one (same 33-year rule). */
+export function gregorianToJalali(
+  year: number,
+  month: number,
+  day: number,
+): { year: number; month: number; day: number } {
+  let days = Math.round((Date.UTC(year, month - 1, day) - ANCHOR_UTC_MS) / DAY_MS);
+
+  let y = ANCHOR_YEAR;
+  while (days < 0) {
+    y--;
+    days += yearLength(y);
+  }
+  while (days >= yearLength(y)) {
+    days -= yearLength(y);
+    y++;
+  }
+
+  let m = 1;
+  while (days >= jalaliMonthLength(y, m)) {
+    days -= jalaliMonthLength(y, m);
+    m++;
+  }
+  return { year: y, month: m, day: days + 1 };
+}

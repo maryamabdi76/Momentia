@@ -10,6 +10,7 @@ import { Step3Receive, Step3ReceiveInfo } from '@/features/poster/components/Ste
 import type { MomentData } from '@/features/poster/components/CreateStepper';
 import { toPersianDigits } from '@/features/poster/lib/digits';
 import { skyForMoment } from '@/features/poster/lib/sky-for-moment';
+import { todayJalali } from '@/features/poster/lib/today';
 import { DEFAULT_FORMAT_ID, type ExportFormatId } from '@/features/poster/lib/export-formats';
 import { isPosterStyle } from '@/features/poster/lib/themes';
 import { useMoonExport } from '../hooks/use-moon-export';
@@ -72,6 +73,9 @@ function StepperInner() {
         ...draft.personal,
         ...(isPosterStyle(style) ? { style } : {}),
       });
+    } else {
+      // first visit: start on today's date (the browser's day, so not in the static default)
+      setMoment((m) => ({ ...m, ...todayJalali() }));
     }
     setRestored(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- run once on load
