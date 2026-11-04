@@ -1,14 +1,21 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { Check, Crown, Download, Loader2, Lock, ShieldCheck } from 'lucide-react';
+import {
+  Check,
+  Crown,
+  Download,
+  Loader2,
+  Lock,
+  ShieldCheck,
+} from 'lucide-react';
 import { PaymentDialog } from '@/features/payments/components/PaymentDialog';
 import { PREMIUM_PRICE_TOMAN } from '@/features/payments/lib/client';
 import { DonateCard } from '@/features/support/components/DonateCard';
 import { formatToman } from '../lib/digits';
-import { DEFAULT_FORMAT_ID, type ExportFormatId } from '../lib/export-formats';
+import type { ExportFormatId } from '../lib/export-formats';
 import { FormatPicker } from './FormatPicker';
 import { Button } from '@/components/ui/button';
 import type { PosterExport } from '../hooks/use-poster-export';
@@ -18,6 +25,9 @@ type Props = {
   personal: Pick<PersonalizeData, 'names'>;
   moment: MomentData;
   exporter: PosterExport;
+  /** The file that will be downloaded; the preview beside the form shows the same one. */
+  format: ExportFormatId;
+  onFormatChange: (id: ExportFormatId) => void;
   /** Drop the premium options (full-page sky, constellation figures) to get the free download. */
   onUseFreeLayout?: () => void;
 };
@@ -42,6 +52,8 @@ export function Step3Receive({
   personal,
   moment,
   exporter,
+  format,
+  onFormatChange,
   onUseFreeLayout,
 }: Props) {
   const t = useTranslations('CreatePage.step3');
@@ -61,7 +73,6 @@ export function Step3Receive({
     );
 
   const locked = exporter.freeLocked;
-  const [format, setFormat] = useState<ExportFormatId>(DEFAULT_FORMAT_ID);
 
   const description = occasionKeepsake
     ? t('descriptionOccasion', {
@@ -84,7 +95,10 @@ export function Step3Receive({
       {locked ? (
         <div className="space-y-3 rounded-xl border border-[#CEB47B]/30 bg-[#CEB47B]/5 p-3.5">
           <p className="flex items-start gap-2 text-[12px] leading-6 text-[#E8D9B8]">
-            <Crown aria-hidden className="mt-1 size-3.5 shrink-0 text-[#CEB47B]" />
+            <Crown
+              aria-hidden
+              className="mt-1 size-3.5 shrink-0 text-[#CEB47B]"
+            />
             {t('freeLocked.body')}
           </p>
           {onUseFreeLayout && (
@@ -142,9 +156,7 @@ export function Step3Receive({
       </div>
       {/* where the card-to-card payment stands, and the window to pay in */}
       <PaymentDialog />
-      <p className="text-[12px] leading-6 text-[#AAB6CD]">
-        {t('premiumDesc')}
-      </p>
+      <p className="text-[12px] leading-6 text-[#AAB6CD]">{t('premiumDesc')}</p>
       <ul className="space-y-1.5">
         {([0, 1, 2, 3] as const).map((i) => (
           <li
@@ -157,7 +169,7 @@ export function Step3Receive({
         ))}
       </ul>
 
-      <FormatPicker value={format} onChange={setFormat} />
+      <FormatPicker value={format} onChange={onFormatChange} />
 
       <Button
         type="button"

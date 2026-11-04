@@ -4,7 +4,14 @@ import { useTranslations } from 'next-intl';
 import { ArrowRight, Info, Link2, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { PosterPreview, type PosterData } from './PosterPreview';
+import { Dims } from './FormatPicker';
+import { FormatPreviewFrame } from './FormatPreviewFrame';
 import { toPersianDigits } from '../lib/digits';
+import {
+  getExportFormat,
+  formatSpec,
+  type ExportFormatId,
+} from '../lib/export-formats';
 import type { SkySnapshot } from '@/features/sky/lib/types';
 import type { PosterExport } from '../hooks/use-poster-export';
 import type { MomentData } from './CreateStepper';
@@ -17,6 +24,8 @@ type Props = {
   moment: MomentData;
   onBack: () => void;
   exporter: PosterExport;
+  /** The file chosen in step 3; the preview shows the poster on that file's page. */
+  format: ExportFormatId;
   /** Copies a link that shows this poster to whoever opens it (step 3). */
   onCopyGift: () => void;
   giftStatus: 'copied' | 'error' | null;
@@ -30,10 +39,12 @@ export function CreatePreview({
   moment,
   onBack,
   exporter,
+  format,
   onCopyGift,
   giftStatus,
 }: Props) {
   const t = useTranslations('CreatePage');
+  const tFormats = useTranslations('CreatePage.step3.formats');
   const tPoster = useTranslations('Poster');
   const tMoment = useTranslations('CreatePage.step1');
   const tReceive = useTranslations('CreatePage.step3');
@@ -58,6 +69,11 @@ export function CreatePreview({
       .join(' · '),
   );
 
+  // Only step 3 chooses a file, so only there does the preview show its page.
+  const shown: ExportFormatId = step === 3 ? format : 'poster';
+  const shownFormat = getExportFormat(shown);
+  const shownSpec = formatSpec(shownFormat);
+
   return (
     <aside className="flex w-full min-w-0 flex-col gap-5 md:sticky md:top-8">
       <div className="rounded-xl m-auto w-full bg-[#F4EFE6] p-6 text-[#1c2540]">
@@ -67,23 +83,37 @@ export function CreatePreview({
         </div>
 
         <div className="mt-6 flex justify-center">
-          <PosterPreview
-            data={poster}
-            sky={sky}
-            showDisclaimer={false}
-            labels={{
-              headerLine: tPoster('headerLine'),
-              north: tPoster('north'),
-              south: tPoster('south'),
-              east: tPoster('east'),
-              west: tPoster('west'),
-              mapAlt: tPoster('mapAlt'),
-              watermark: tPoster('watermark'),
-              disclaimer: tPoster('disclaimer'),
-              timeAt: tPoster('timeAt'),
-            }}
-          />
+          <FormatPreviewFrame format={shown} style={poster.style ?? 'gold'}>
+            <PosterPreview
+              data={poster}
+              sky={sky}
+              showDisclaimer={false}
+              labels={{
+                headerLine: tPoster('headerLine'),
+                north: tPoster('north'),
+                south: tPoster('south'),
+                east: tPoster('east'),
+                west: tPoster('west'),
+                mapAlt: tPoster('mapAlt'),
+                watermark: tPoster('watermark'),
+                disclaimer: tPoster('disclaimer'),
+                timeAt: tPoster('timeAt'),
+              }}
+            />
+          </FormatPreviewFrame>
         </div>
+
+        {step === 3 && shown !== 'poster' && (
+          <p className="mt-4 text-center text-xs text-[#1c2540]/70">
+            {t('preview.formatCaption', { label: tFormats(`items.${shown}.label`) })}{' '}
+            <Dims
+              w={shownSpec.page.w}
+              h={shownSpec.page.h}
+              cm={shownSpec.kind === 'pdf'}
+            />{' '}
+            {shownSpec.kind === 'pdf' ? tFormats('units.cm') : tFormats('units.px')}
+          </p>
+        )}
 
         <p className="mt-6 text-center text-sm font-medium">{caption}</p>
         <p className="mt-3 text-center text-xs text-[#1c2540]/70">

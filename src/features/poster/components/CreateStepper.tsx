@@ -20,6 +20,8 @@ import {
 } from '@/features/sky/lib/layers';
 import { isPosterStyle } from '../lib/themes';
 import { skyForMoment } from '../lib/sky-for-moment';
+import { DEFAULT_FORMAT_ID, type ExportFormatId } from '../lib/export-formats';
+import { DEFAULT_FRAME, type PosterFrame } from '../lib/frames';
 import {
   DEFAULT_TEMPLATE,
   FULL_SKY_DEPTH,
@@ -48,6 +50,7 @@ export type PersonalizeData = {
   quote: string;
   style: PosterStyle;
   template: PosterTemplate;
+  frame: PosterFrame;
   showDate: boolean;
   showCity: boolean;
   layers: SkyLayers;
@@ -71,6 +74,7 @@ const DEFAULT_PERSONALIZE: PersonalizeData = {
   quote: 'از آن شب، هر ستاره نشانی از توست.',
   style: 'gold',
   template: DEFAULT_TEMPLATE,
+  frame: DEFAULT_FRAME,
   showDate: true,
   showCity: true,
   layers: DEFAULT_SKY_LAYERS,
@@ -118,6 +122,7 @@ function StepperInner() {
       setPersonal({
         ...draft.personal,
         layers: resolveSkyLayers(draft.personal.layers),
+        frame: draft.personal.frame ?? DEFAULT_FRAME,
         template: isPosterTemplate(template)
           ? template
           : (draft.personal.template ?? DEFAULT_TEMPLATE),
@@ -132,6 +137,8 @@ function StepperInner() {
   }, [restored, moment, personal]);
 
   const [giftStatus, setGiftStatus] = useState<'copied' | 'error' | null>(null);
+  // Which file step 3 will download. Kept here so the preview can show that same file.
+  const [format, setFormat] = useState<ExportFormatId>(DEFAULT_FORMAT_ID);
 
   async function copyGiftLink() {
     trackEvent('gift_link', { product: 'sky' });
@@ -218,6 +225,8 @@ function StepperInner() {
                 personal={personal}
                 moment={moment}
                 exporter={exporter}
+                format={format}
+                onFormatChange={setFormat}
                 onUseFreeLayout={() =>
                   setPersonal((p) => ({
                     ...p,
@@ -236,6 +245,7 @@ function StepperInner() {
             moment={moment}
             onBack={() => goTo(2)}
             exporter={exporter}
+            format={format}
             onCopyGift={copyGiftLink}
             giftStatus={giftStatus}
           />

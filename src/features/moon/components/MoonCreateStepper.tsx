@@ -3,12 +3,23 @@
 import { Suspense, useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { Stepper, type StepItem, type StepStatus } from '@/components/ui/stepper';
+import {
+  Stepper,
+  type StepItem,
+  type StepStatus,
+} from '@/components/ui/stepper';
 import { Step1Moment } from '@/features/poster/components/Step1Moment';
-import { Step3Receive, Step3ReceiveInfo } from '@/features/poster/components/Step3Receive';
+import {
+  Step3Receive,
+  Step3ReceiveInfo,
+} from '@/features/poster/components/Step3Receive';
 import type { MomentData } from '@/features/poster/components/CreateStepper';
 import { toPersianDigits } from '@/features/poster/lib/digits';
 import { skyForMoment } from '@/features/poster/lib/sky-for-moment';
+import {
+  DEFAULT_FORMAT_ID,
+  type ExportFormatId,
+} from '@/features/poster/lib/export-formats';
 import { isPosterStyle } from '@/features/poster/lib/themes';
 import { useMoonExport } from '../hooks/use-moon-export';
 import { loadMoonDraft, saveMoonDraft } from '../lib/draft';
@@ -78,6 +89,9 @@ function StepperInner() {
     if (restored) saveMoonDraft({ moment, personal });
   }, [restored, moment, personal]);
 
+  // Which file step 3 will download (shared with Step3Receive).
+  const [format, setFormat] = useState<ExportFormatId>(DEFAULT_FORMAT_ID);
+
   function goTo(n: number) {
     const params = new URLSearchParams(searchParams.toString());
     params.set('step', String(n));
@@ -101,7 +115,8 @@ function StepperInner() {
   const exporter = useMoonExport(poster, sky, { moment, personal });
 
   const stepItems: StepItem[] = [1, 2, 3].map((n) => {
-    const status: StepStatus = step === n ? 'active' : step > n ? 'done' : 'upcoming';
+    const status: StepStatus =
+      step === n ? 'active' : step > n ? 'done' : 'upcoming';
     return { label: t(`steps.${n}`), status };
   });
 
@@ -109,7 +124,11 @@ function StepperInner() {
     <main className="flex-1">
       <div className="border-b border-[#33415B]">
         <div className="mx-auto flex items-center px-6 py-2 md:px-20">
-          <Stepper steps={stepItems} onStepClick={(i) => goTo(i + 1)} ariaLabel={t('stepsNav')} />
+          <Stepper
+            steps={stepItems}
+            onStepClick={(i) => goTo(i + 1)}
+            ariaLabel={t('stepsNav')}
+          />
         </div>
       </div>
 
@@ -117,7 +136,11 @@ function StepperInner() {
         <div className="grid gap-10 md:grid-cols-2 md:items-start md:gap-16">
           <section className="col-span-1">
             {restored && step === 1 && (
-              <Step1Moment data={moment} onChange={setMoment} onNext={() => goTo(2)} />
+              <Step1Moment
+                data={moment}
+                onChange={setMoment}
+                onNext={() => goTo(2)}
+              />
             )}
             {restored && step === 2 && (
               <MoonStep2
@@ -133,6 +156,8 @@ function StepperInner() {
                 personal={personal}
                 moment={moment}
                 exporter={exporter}
+                format={format}
+                onFormatChange={setFormat}
               />
             )}
           </section>
