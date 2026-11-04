@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { Check, Crown, Download, Loader2, Lock, ShieldCheck } from 'lucide-react';
@@ -8,7 +8,7 @@ import { PaymentReceipt } from '@/features/payments/components/PaymentReceipt';
 import { PREMIUM_PRICE_TOMAN } from '@/features/payments/lib/client';
 import { DonateCard } from '@/features/support/components/DonateCard';
 import { formatToman } from '../lib/digits';
-import { DEFAULT_FORMAT_ID, type ExportFormatId } from '../lib/export-formats';
+import type { ExportFormatId } from '../lib/export-formats';
 import { FormatPicker } from './FormatPicker';
 import { Button } from '@/components/ui/button';
 import type { PosterExport } from '../hooks/use-poster-export';
@@ -18,6 +18,9 @@ type Props = {
   personal: Pick<PersonalizeData, 'names'>;
   moment: MomentData;
   exporter: PosterExport;
+  /** The file that will be downloaded; the preview beside the form shows the same one. */
+  format: ExportFormatId;
+  onFormatChange: (id: ExportFormatId) => void;
   payResult: 'ok' | 'cancelled' | 'failed' | null;
   /** Drop the premium options (full-page sky, constellation figures) to get the free download. */
   onUseFreeLayout?: () => void;
@@ -43,6 +46,8 @@ export function Step3Receive({
   personal,
   moment,
   exporter,
+  format,
+  onFormatChange,
   payResult,
   onUseFreeLayout,
 }: Props) {
@@ -63,7 +68,6 @@ export function Step3Receive({
     );
 
   const locked = exporter.freeLocked;
-  const [format, setFormat] = useState<ExportFormatId>(DEFAULT_FORMAT_ID);
 
   const description = occasionKeepsake
     ? t('descriptionOccasion', {
@@ -171,7 +175,7 @@ export function Step3Receive({
         ))}
       </ul>
 
-      <FormatPicker value={format} onChange={setFormat} />
+      <FormatPicker value={format} onChange={onFormatChange} />
 
       <Button
         type="button"

@@ -10,6 +10,7 @@ import { Step3Receive, Step3ReceiveInfo } from '@/features/poster/components/Ste
 import type { MomentData } from '@/features/poster/components/CreateStepper';
 import { toPersianDigits } from '@/features/poster/lib/digits';
 import { skyForMoment } from '@/features/poster/lib/sky-for-moment';
+import { DEFAULT_FORMAT_ID, type ExportFormatId } from '@/features/poster/lib/export-formats';
 import { isPosterStyle } from '@/features/poster/lib/themes';
 import { useMoonExport } from '../hooks/use-moon-export';
 import { loadMoonDraft, saveMoonDraft } from '../lib/draft';
@@ -78,6 +79,9 @@ function StepperInner() {
   useEffect(() => {
     if (restored) saveMoonDraft({ moment, personal });
   }, [restored, moment, personal]);
+
+  // Which file step 3 will download (shared with Step3Receive).
+  const [format, setFormat] = useState<ExportFormatId>(DEFAULT_FORMAT_ID);
 
   // Coming back from the payment gateway: /moon?step=3&pay=ok#pt=<token>.
   const [payResult, setPayResult] = useState<'ok' | 'cancelled' | 'failed' | null>(null);
@@ -153,6 +157,8 @@ function StepperInner() {
                 personal={personal}
                 moment={moment}
                 exporter={exporter}
+                format={format}
+                onFormatChange={setFormat}
                 payResult={payResult}
               />
             )}

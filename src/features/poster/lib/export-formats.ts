@@ -164,6 +164,27 @@ export function formatGeometry(format: ExportFormat): { pageW: number; pageH: nu
   return { pageW: layout.widthPt, pageH: layout.heightPt, poster: layout.image };
 }
 
+/**
+ * The page's width ÷ height, and where the poster sits on it as fractions (0…1) of
+ * the page's width and height. This is what an on-screen preview needs to show
+ * exactly the file that will be downloaded, at any size.
+ */
+export function formatFrame(format: ExportFormat): {
+  aspect: number;
+  poster: { left: number; top: number; width: number; height: number };
+} {
+  const { pageW, pageH, poster } = formatGeometry(format);
+  return {
+    aspect: pageW / pageH,
+    poster: {
+      left: poster.x / pageW,
+      top: poster.y / pageH,
+      width: poster.w / pageW,
+      height: poster.h / pageH,
+    },
+  };
+}
+
 /** What a person needs to know before choosing: every size, in its own unit. */
 export type FormatSpec =
   | {
