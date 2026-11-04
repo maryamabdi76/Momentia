@@ -20,7 +20,7 @@ type Group = (typeof GROUPS)[number];
 const groupOf = (format: ExportFormat): Group => (format.kind === 'pdf' ? 'print' : 'digital');
 
 /** A width × height pair; kept left-to-right so it reads the same in any script. */
-function Dims({ w, h, cm }: { w: number; h: number; cm?: boolean }) {
+export function Dims({ w, h, cm }: { w: number; h: number; cm?: boolean }) {
   const text = cm
     ? `${formatDecimal(w / 10)}×${formatDecimal(h / 10)}`
     : `${toPersianDigits(String(Math.round(w)))}×${toPersianDigits(String(Math.round(h)))}`;

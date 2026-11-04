@@ -4,6 +4,7 @@ import {
   EXPORT_FORMATS,
   POSTER_ASPECT,
   fitPoster,
+  formatFrame,
   formatGeometry,
   formatSpec,
   getExportFormat,
@@ -110,6 +111,27 @@ test('the spec of each format states the sizes a buyer is shown', () => {
   const story = formatSpec(getExportFormat('story'));
   assert.deepEqual(story.kind === 'raster' && story.page, { w: 1080, h: 1920 });
   assert.deepEqual(story.kind === 'raster' && story.poster, { w: 883, h: 1325 });
+});
+
+test('the preview frame places the poster exactly where the file does', () => {
+  for (const f of EXPORT_FORMATS) {
+    const { aspect, poster } = formatFrame(f);
+    const g = formatGeometry(f);
+    near(aspect, g.pageW / g.pageH, 1e-9);
+    near(poster.left * g.pageW, g.poster.x, 1e-6);
+    near(poster.top * g.pageH, g.poster.y, 1e-6);
+    near((poster.width * g.pageW) / (poster.height * g.pageH), POSTER_ASPECT, 1e-6);
+    assert.ok(poster.left >= 0 && poster.top >= 0, `${f.id} starts on the page`);
+    assert.ok(poster.left + poster.width <= 1 + 1e-9, `${f.id} fits sideways`);
+    assert.ok(poster.top + poster.height <= 1 + 1e-9, `${f.id} fits vertically`);
+  }
+  // the plain poster is the whole frame
+  assert.deepEqual(formatFrame(getExportFormat('poster')).poster, {
+    left: 0,
+    top: 0,
+    width: 1,
+    height: 1,
+  });
 });
 
 test('thumbnail geometry matches the placement', () => {
