@@ -3,8 +3,15 @@
 import { useMemo } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { Check, Crown, Download, Loader2, Lock, ShieldCheck } from 'lucide-react';
-import { PaymentReceipt } from '@/features/payments/components/PaymentReceipt';
+import {
+  Check,
+  Crown,
+  Download,
+  Loader2,
+  Lock,
+  ShieldCheck,
+} from 'lucide-react';
+import { PaymentDialog } from '@/features/payments/components/PaymentDialog';
 import { PREMIUM_PRICE_TOMAN } from '@/features/payments/lib/client';
 import { DonateCard } from '@/features/support/components/DonateCard';
 import { formatToman } from '../lib/digits';
@@ -21,7 +28,6 @@ type Props = {
   /** The file that will be downloaded; the preview beside the form shows the same one. */
   format: ExportFormatId;
   onFormatChange: (id: ExportFormatId) => void;
-  payResult: 'ok' | 'cancelled' | 'failed' | null;
   /** Drop the premium options (full-page sky, constellation figures) to get the free download. */
   onUseFreeLayout?: () => void;
 };
@@ -48,7 +54,6 @@ export function Step3Receive({
   exporter,
   format,
   onFormatChange,
-  payResult,
   onUseFreeLayout,
 }: Props) {
   const t = useTranslations('CreatePage.step3');
@@ -90,7 +95,10 @@ export function Step3Receive({
       {locked ? (
         <div className="space-y-3 rounded-xl border border-[#CEB47B]/30 bg-[#CEB47B]/5 p-3.5">
           <p className="flex items-start gap-2 text-[12px] leading-6 text-[#E8D9B8]">
-            <Crown aria-hidden className="mt-1 size-3.5 shrink-0 text-[#CEB47B]" />
+            <Crown
+              aria-hidden
+              className="mt-1 size-3.5 shrink-0 text-[#CEB47B]"
+            />
             {t('freeLocked.body')}
           </p>
           {onUseFreeLayout && (
@@ -146,23 +154,9 @@ export function Step3Receive({
           {t('premiumBadge')}
         </span>
       </div>
-      {payResult && (
-        <p
-          role="status"
-          className={
-            payResult === 'ok'
-              ? 'rounded-lg border border-[#CEB47B]/40 px-3 py-2 text-[12px] text-[#CEB47B]'
-              : 'rounded-lg border border-red-300/30 px-3 py-2 text-[12px] text-red-300'
-          }
-        >
-          {t(`pay.${payResult}`)}
-        </p>
-      )}
-      {/* the tracking code, only while this tab holds the proof of payment */}
-      <PaymentReceipt />
-      <p className="text-[12px] leading-6 text-[#AAB6CD]">
-        {t('premiumDesc')}
-      </p>
+      {/* where the card-to-card payment stands, and the window to pay in */}
+      <PaymentDialog />
+      <p className="text-[12px] leading-6 text-[#AAB6CD]">{t('premiumDesc')}</p>
       <ul className="space-y-1.5">
         {([0, 1, 2, 3] as const).map((i) => (
           <li

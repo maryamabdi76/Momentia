@@ -2,7 +2,6 @@
 
 import { Suspense, useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { storePremiumToken } from '@/features/payments/lib/client';
 import { trackEvent } from '@/lib/track';
 import { giftUrl } from '../lib/gift-link';
 import { useTranslations } from 'next-intl';
@@ -137,33 +136,6 @@ function StepperInner() {
     if (restored) saveDraft({ moment, personal });
   }, [restored, moment, personal]);
 
-  // Coming back from the payment gateway: /create?step=3&pay=ok#pt=<token>.
-  // Keep the token, restore the poster that was being edited, then tidy the URL.
-  const [payResult, setPayResult] = useState<'ok' | 'cancelled' | 'failed' | null>(null);
-  useEffect(() => {
-    const pay = new URLSearchParams(window.location.search).get('pay');
-    if (pay !== 'ok' && pay !== 'cancelled' && pay !== 'failed') return;
-
-    const token = new URLSearchParams(window.location.hash.slice(1)).get('pt');
-    const verified = pay === 'ok' && !!token;
-    if (verified) storePremiumToken(token);
-
-    const draft = loadDraft();
-    if (draft) {
-      setMoment(draft.moment);
-      // drafts saved before the sky options existed have no `layers`
-      setPersonal({
-        ...draft.personal,
-        layers: resolveSkyLayers(draft.personal.layers),
-        frame: draft.personal.frame ?? DEFAULT_FRAME,
-        template: draft.personal.template ?? DEFAULT_TEMPLATE,
-      });
-    }
-    setPayResult(verified || pay !== 'ok' ? pay : 'failed');
-    trackEvent('payment_return', { result: verified || pay !== 'ok' ? pay : 'failed' });
-    window.history.replaceState(null, '', '/create?step=3');
-  }, []);
-
   const [giftStatus, setGiftStatus] = useState<'copied' | 'error' | null>(null);
   // Which file step 3 will download. Kept here so the preview can show that same file.
   const [format, setFormat] = useState<ExportFormatId>(DEFAULT_FORMAT_ID);
@@ -255,7 +227,6 @@ function StepperInner() {
                 exporter={exporter}
                 format={format}
                 onFormatChange={setFormat}
-                payResult={payResult}
                 onUseFreeLayout={() =>
                   setPersonal((p) => ({
                     ...p,

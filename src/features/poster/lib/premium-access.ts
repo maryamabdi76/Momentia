@@ -1,11 +1,15 @@
 import {
-  type PremiumProduct,
+  claimPremiumToken,
   clearPremiumToken,
+  openPaymentDialog,
   readPremiumToken,
-  startCheckout,
+  storePremiumToken,
   validatePremiumToken,
 } from '@/features/payments/lib/client';
 import { saveDraft, type PosterDraft } from './draft';
+
+/** Which Momentia product is requesting the watermark-free export (for callers / future analytics). */
+export type PremiumProduct = 'moon' | 'sky';
 
 export class PremiumAccessError extends Error {
   constructor() {
@@ -18,10 +22,12 @@ export class PremiumAccessError extends Error {
  * Gate for the premium (watermark-free, 3000px) download.
  *
  * - With a valid payment token it resolves `true` and the file is built.
- * - Without one it saves the draft and sends the buyer to Zarinpal, then
- *   resolves `false`; the page leaves, and the callback brings them back to
- *   step 3 with a token.
- * - It throws `PremiumAccessError` when checkout can't be started.
+ * - If this browser's order has already been approved but the token was never picked up
+ *   (tab closed, approval came later), the token is claimed first, so nobody pays twice.
+ * - Otherwise it opens the card-to-card payment window and resolves `false`. The buyer
+ *   stays on the page; when the owner approves, the window stores the token and the
+ *   download button works.
+ * - It throws `PremiumAccessError` if the page has no payment window to open.
  */
 export async function ensurePremiumAccess(
   draft: PosterDraft | null,
@@ -33,14 +39,16 @@ export async function ensurePremiumAccess(
     clearPremiumToken();
   }
 
+  const claimed = await claimPremiumToken();
+  if (claimed.status === 'paid') {
+    storePremiumToken(claimed.token);
+    return true;
+  }
+
+  // The draft survives a reload while the buyer pays in their bank app.
   if (options.save) options.save();
   else if (draft) saveDraft(draft);
-  let url: string;
-  try {
-    url = await startCheckout(options.product);
-  } catch {
-    throw new PremiumAccessError();
-  }
-  window.location.assign(url);
+
+  if (!openPaymentDialog()) throw new PremiumAccessError();
   return false;
 }

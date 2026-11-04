@@ -23,7 +23,7 @@
 
 Momentia takes a date and a place, computes the real sky of that night, and draws it as a poster you can download as PNG or SVG.
 
-✨ No accounts · 🖥️ The sky and the poster are computed in your browser · 💳 Optional premium download via Zarinpal
+✨ No accounts · 🖥️ The sky and the poster are computed in your browser · 💳 Optional premium download, paid card-to-card and approved by hand on Telegram
 
 ---
 
@@ -61,7 +61,7 @@ The same three steps (moment → personalize → receive) for a poster that is o
 - **[shadcn/ui](https://ui.shadcn.com/docs/components)** (Radix, RTL)
 - **[next-intl](https://next-intl.dev)** — Persian only for now
 - **react-hook-form** + **zod** for the forms
-- **Zarinpal** for the premium download (server routes under `src/app/api/payments`)
+- Card-to-card checkout for the premium download: orders in **Upstash Redis**, approval through a **Telegram bot** (server routes under `src/app/api/payments`)
 - **Vazirmatn** via `next/font`
 - Root RTL (`dir="rtl"` + `DirectionProvider`)
 
@@ -80,7 +80,7 @@ src/
   features/
     sky/                  # Sky math (projection, ephemeris) + SVG chart
     poster/               # Poster themes, layouts, preview + PNG/SVG export
-    payments/             # Zarinpal checkout and premium token
+    payments/             # Card-to-card orders, Telegram approval and premium token
     home/                 # Landing page sections and the posters gallery
   i18n/                   # next-intl config
   lib/                    # Shared utilities
@@ -110,15 +110,42 @@ Open [http://localhost:3000](http://localhost:3000) ✨
 
 ### Premium payments
 
-Copy `.env.example` to `.env.local` and fill it in. Without a payment secret the premium button reports that checkout is unavailable; everything else works.
+The watermark-free download is paid **card-to-card** and approved **by hand on Telegram**. No payment gateway is involved: banks give no API to see a deposit on a personal card, so the owner checks the deposit and confirms it.
 
-| Variable                        | Purpose                                              |
-| ------------------------------- | ---------------------------------------------------- |
-| `NEXT_PUBLIC_PREMIUM_PRICE_IRT` | Premium price in tomans                              |
-| `ZARINPAL_MERCHANT_ID`          | Merchant id (any UUID works in sandbox)              |
-| `ZARINPAL_SANDBOX`              | `true` to use the Zarinpal sandbox                   |
-| `PAYMENT_TOKEN_SECRET`          | 32+ random characters, signs the premium token       |
-| `SITE_URL`                      | Optional public origin used for the payment callback |
+Copy `.env.example` to `.env.local` and fill it in. Without the payment settings the premium button reports that checkout is unavailable; everything else works.
+
+| Variable                                         | Purpose                                                      |
+| ------------------------------------------------ | ------------------------------------------------------------ |
+| `NEXT_PUBLIC_PREMIUM_PRICE_IRT`                  | Premium price in tomans (each order adds 1 to 99 tomans)     |
+| `PAYMENT_CARD`                                   | 16-digit card buyers pay into                                |
+| `PAYMENT_CARD_HOLDER` / `PAYMENT_CARD_BANK`      | Optional, shown next to the number                           |
+| `TELEGRAM_BOT_TOKEN`                             | Bot token from @BotFather                                    |
+| `TELEGRAM_CHAT_ID`                               | Your own numeric chat id; only you can approve               |
+| `TELEGRAM_WEBHOOK_SECRET`                        | 16+ random characters (`A-Za-z0-9_-`), given to `setWebhook` |
+| `UPSTASH_REDIS_REST_URL` / `_TOKEN`              | Upstash Redis REST credentials (`KV_REST_API_*` also work)   |
+| `PAYMENT_TOKEN_SECRET`                           | 32+ random characters, signs the premium token               |
+
+**How a payment flows.**
+
+1. The buyer taps the premium button. `POST /api/payments/start` creates an order in Redis with an exact amount (the price plus 1 to 99 tomans, reserved so no two open orders share it) and sets an HttpOnly `mm_order` cookie. The window shows the amount and the card.
+2. After paying in their bank app the buyer taps "I paid" (optionally typing the last 4 digits of their card). `POST /api/payments/submit` sends you a Telegram message with the amount, the order code and ✅ / ❌ buttons.
+3. You check the deposit in your bank app and press a button. Telegram calls `POST /api/payments/telegram` (checked with the secret token, and only your account counts); the order becomes `paid` or `rejected`, and the buttons are replaced by the outcome.
+4. The page asks `POST /api/payments/claim` every few seconds while it waits. On `paid` it receives the signed premium token (2 hours) that unlocks the download. An unpaid order and its amount are held for 1 hour, a submitted one for 24 hours, so a buyer can come back the next day in the same browser.
+
+**One-time Telegram setup.**
+
+1. Create a bot with @BotFather and copy its token. Send the bot any message so it can write to you.
+2. Get your numeric chat id (for example from @userinfobot) and set it as `TELEGRAM_CHAT_ID`.
+3. After deploying, register the webhook once (replace the three values):
+
+   ```bash
+   curl "https://api.telegram.org/bot<TELEGRAM_BOT_TOKEN>/setWebhook" \
+     -d "url=https://<your-domain>/api/payments/telegram" \
+     -d "secret_token=<TELEGRAM_WEBHOOK_SECRET>" \
+     -d 'allowed_updates=["callback_query"]'
+   ```
+
+On Vercel, add the Upstash Redis integration from the Marketplace for the store. Because the owner approves each payment by hand, payments are as quick as you are; a buyer whose deposit is rejected is pointed to `/contact`.
 
 ### Support, contact and donations
 
@@ -133,7 +160,7 @@ Copy `.env.example` to `.env.local` and fill it in. Without a payment secret the
 | `NEXT_PUBLIC_DONATION_HOLDER`   | Card holder name shown under the number                    |
 | `NEXT_PUBLIC_DONATION_BANK`     | Bank name shown under the number                           |
 
-After a premium payment the create page shows the Zarinpal tracking code, so a buyer who loses the tab can still get help from `/contact`.
+After a premium payment the create page shows the payment's tracking code, so a buyer who loses the tab can still get help from `/contact`.
 
 > The free files are generated in the browser, so the lock on the full-page layout is a product gate, not a security boundary. Only the watermark-free premium file is checked against the server-validated token.
 
