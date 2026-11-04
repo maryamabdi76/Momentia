@@ -20,10 +20,6 @@ import {
   DEFAULT_FORMAT_ID,
   type ExportFormatId,
 } from '@/features/poster/lib/export-formats';
-import {
-  DEFAULT_FORMAT_ID,
-  type ExportFormatId,
-} from '@/features/poster/lib/export-formats';
 import { isPosterStyle } from '@/features/poster/lib/themes';
 import { useMoonExport } from '../hooks/use-moon-export';
 import { loadMoonDraft, saveMoonDraft } from '../lib/draft';
