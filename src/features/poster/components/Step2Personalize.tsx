@@ -36,6 +36,7 @@ import {
 } from '@/features/poster/lib/themes';
 import { MAGNITUDE_PRESETS } from '@/features/sky/lib/layers';
 import { cn } from 'cn';
+import { FramePicker } from './FramePicker';
 import { PremiumMark } from './PremiumMark';
 import { Separator } from '@/components/ui/separator';
 import { PREMIUM_PRICE_TOMAN } from '@/features/payments/lib/client';
@@ -102,6 +103,7 @@ export function Step2Personalize({
       quote: data.quote,
       style: data.style,
       template: data.template,
+      frame: data.frame,
       showDate: data.showDate,
       showCity: data.showCity,
       layers: data.layers,
@@ -120,6 +122,7 @@ export function Step2Personalize({
     watched.quote,
     watched.style,
     watched.template,
+    watched.frame,
     watched.showDate,
     watched.showCity,
     layers?.constellationLines,
@@ -358,6 +361,19 @@ export function Step2Personalize({
           </p>
         )}
       </div>
+
+      {/* Frame picker: the border around the poster */}
+      <Controller
+        control={control}
+        name="frame"
+        render={({ field }) => (
+          <FramePicker
+            value={field.value}
+            onChange={field.onChange}
+            style={(watched.style ?? data.style) as PersonalizeValues['style']}
+          />
+        )}
+      />
 
       {/* Style picker */}
       <div className="space-y-3">

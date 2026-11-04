@@ -4,8 +4,10 @@ import { SkyChart } from '@/features/sky/components/SkyChart';
 import { SkyField } from '@/features/sky/components/SkyField';
 import type { SkyLayers } from '@/features/sky/lib/layers';
 import type { SkySnapshot } from '@/features/sky/lib/types';
+import { DEFAULT_FRAME, frameSvg, type PosterFrame } from '../lib/frames';
 import { FULL_LAYOUT, type PosterTemplate } from '../lib/templates';
 import { POSTER_THEMES, paperCss, type PosterStyle } from '../lib/themes';
+import { POSTER_HEIGHT, POSTER_WIDTH } from '../lib/poster-svg';
 
 export type { PosterStyle };
 
@@ -21,6 +23,8 @@ export type PosterData = {
   style: PosterStyle;
   /** `circle` (default): a round chart with the text below. `full`: the whole page is sky. */
   template?: PosterTemplate;
+  /** The border around the poster; the classic double line when missing. */
+  frame?: PosterFrame;
   /** Which parts of the sky are drawn; missing fields take their defaults. */
   layers?: Partial<SkyLayers>;
 };
@@ -84,23 +88,6 @@ function Divider({ color }: { color: string }) {
         style={{ background: `linear-gradient(270deg,transparent,${color})` }}
       />
     </div>
-  );
-}
-
-/** Small ornament that sits on each corner of the inner frame. */
-function Corner({ color, className }: { color: string; className: string }) {
-  return (
-    <svg
-      aria-hidden
-      viewBox="0 0 20 20"
-      className={cn('absolute size-[5cqw]', className)}
-      fill="none"
-      stroke={color}
-      strokeWidth={0.9}
-    >
-      <path d="M1 19 V6 Q1 1 6 1 H19" />
-      <circle cx="6" cy="6" r="1.3" fill={color} stroke="none" />
-    </svg>
   );
 }
 
@@ -185,29 +172,12 @@ export function PosterPreview({
           </>
         )}
 
-        {/* outer and inner frame */}
-        <div
+        {/* the border: the same SVG fragment the exported file uses */}
+        <svg
           aria-hidden
-          className="pointer-events-none absolute inset-[2.4cqw] border"
-          style={{ borderColor: t.frame }}
-        />
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-[3.7cqw] border"
-          style={{ borderColor: t.frameSoft }}
-        />
-        <Corner color={t.frame} className="left-[4.6cqw] top-[4.6cqw]" />
-        <Corner
-          color={t.frame}
-          className="right-[4.6cqw] top-[4.6cqw] -scale-x-100"
-        />
-        <Corner
-          color={t.frame}
-          className="bottom-[4.6cqw] left-[4.6cqw] -scale-y-100"
-        />
-        <Corner
-          color={t.frame}
-          className="bottom-[4.6cqw] right-[4.6cqw] scale-[-1]"
+          viewBox={`0 0 ${POSTER_WIDTH} ${POSTER_HEIGHT}`}
+          className="pointer-events-none absolute inset-0 size-full"
+          dangerouslySetInnerHTML={{ __html: frameSvg(p.frame ?? DEFAULT_FRAME, t, POSTER_WIDTH, POSTER_HEIGHT) }}
         />
 
         <div

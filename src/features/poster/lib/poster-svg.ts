@@ -1,4 +1,5 @@
 import type { PosterData, PosterLabels } from '../components/PosterPreview';
+import { DEFAULT_FRAME, frameSvg } from './frames.ts';
 import { POSTER_THEMES } from './themes.ts';
 
 /**
@@ -207,11 +208,6 @@ function balancedLines(
     j = i;
   }
   return out;
-}
-
-function corner(color: string, x: number, y: number, sx: 1 | -1, sy: 1 | -1) {
-  const k = 2.25; // the 20-unit icon becomes 45 units
-  return `<g transform="translate(${x} ${y}) scale(${sx * k} ${sy * k}) translate(-1 -1)" fill="none" stroke="${color}" stroke-width="0.9"><path d="M1 19 V6 Q1 1 6 1 H19"/><circle cx="6" cy="6" r="1.3" fill="${color}" stroke="none"/></g>`;
 }
 
 /** Fades from clear into the paper's edge colour, so text sits on a calm ground. */
@@ -449,12 +445,7 @@ export function buildPosterSvg(opts: PosterSvgOptions): string {
     `</defs>` +
     `<rect width="${W}" height="${H}" fill="url(#paper)"/>` +
     under.join('') +
-    `<rect x="21.6" y="21.6" width="${W - 43.2}" height="${H - 43.2}" fill="none" stroke="${t.frame}" stroke-width="1.4"/>` +
-    `<rect x="33.3" y="33.3" width="${W - 66.6}" height="${H - 66.6}" fill="none" stroke="${t.frameSoft}" stroke-width="1.4"/>` +
-    corner(t.frame, 41, 41, 1, 1) +
-    corner(t.frame, W - 41, 41, -1, 1) +
-    corner(t.frame, 41, H - 41, 1, -1) +
-    corner(t.frame, W - 41, H - 41, -1, -1) +
+    frameSvg(p.frame ?? DEFAULT_FRAME, t, W, H) +
     parts.join('') +
     `</svg>`
   );

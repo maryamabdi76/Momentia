@@ -1,3 +1,4 @@
+import { isPosterFrame } from './frames.ts';
 import { isPosterTemplate } from './templates.ts';
 import { isPosterStyle } from './themes.ts';
 import type { MomentData, PersonalizeData } from '../components/CreateStepper';
@@ -30,6 +31,8 @@ export function parseDraft(parsed: unknown): PosterDraft | null {
   if (!isPosterStyle(p.style)) return null;
   // drafts saved before templates existed have none; the stepper fills in the default
   if (p.template !== undefined && !isPosterTemplate(p.template)) return null;
+  // drafts saved before frames existed have none; the stepper fills in the default
+  if (p.frame !== undefined && !isPosterFrame(p.frame)) return null;
   return parsed as unknown as PosterDraft;
 }
 
