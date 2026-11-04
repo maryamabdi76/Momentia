@@ -1,5 +1,4 @@
 import {
-  type PremiumProduct,
   claimPremiumToken,
   clearPremiumToken,
   openPaymentDialog,
@@ -8,6 +7,9 @@ import {
   validatePremiumToken,
 } from '@/features/payments/lib/client';
 import { saveDraft, type PosterDraft } from './draft';
+
+/** Which Momentia product is requesting the watermark-free export (for callers / future analytics). */
+export type PremiumProduct = 'moon' | 'sky';
 
 export class PremiumAccessError extends Error {
   constructor() {
