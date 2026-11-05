@@ -3,10 +3,16 @@
 import { Suspense, useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { Stepper, type StepItem, type StepStatus } from '@/components/ui/stepper';
-import { storePremiumToken } from '@/features/payments/lib/client';
+import {
+  Stepper,
+  type StepItem,
+  type StepStatus,
+} from '@/components/ui/stepper';
 import { Step1Moment } from '@/features/poster/components/Step1Moment';
-import { Step3Receive, Step3ReceiveInfo } from '@/features/poster/components/Step3Receive';
+import {
+  Step3Receive,
+  Step3ReceiveInfo,
+} from '@/features/poster/components/Step3Receive';
 import type { MomentData } from '@/features/poster/components/CreateStepper';
 import { toPersianDigits } from '@/features/poster/lib/digits';
 import { skyForMoment } from '@/features/poster/lib/sky-for-moment';
@@ -89,25 +95,6 @@ function StepperInner() {
   // Which file step 3 will download (shared with Step3Receive).
   const [format, setFormat] = useState<ExportFormatId>(DEFAULT_FORMAT_ID);
 
-  // Coming back from the payment gateway: /moon?step=3&pay=ok#pt=<token>.
-  const [payResult, setPayResult] = useState<'ok' | 'cancelled' | 'failed' | null>(null);
-  useEffect(() => {
-    const pay = new URLSearchParams(window.location.search).get('pay');
-    if (pay !== 'ok' && pay !== 'cancelled' && pay !== 'failed') return;
-
-    const token = new URLSearchParams(window.location.hash.slice(1)).get('pt');
-    const verified = pay === 'ok' && !!token;
-    if (verified) storePremiumToken(token);
-
-    const draft = loadMoonDraft();
-    if (draft) {
-      setMoment(draft.moment);
-      setPersonal({ ...DEFAULT_PERSONAL, ...draft.personal });
-    }
-    setPayResult(verified || pay !== 'ok' ? pay : 'failed');
-    window.history.replaceState(null, '', '/moon?step=3');
-  }, []);
-
   function goTo(n: number) {
     const params = new URLSearchParams(searchParams.toString());
     params.set('step', String(n));
@@ -131,7 +118,8 @@ function StepperInner() {
   const exporter = useMoonExport(poster, sky, { moment, personal });
 
   const stepItems: StepItem[] = [1, 2, 3].map((n) => {
-    const status: StepStatus = step === n ? 'active' : step > n ? 'done' : 'upcoming';
+    const status: StepStatus =
+      step === n ? 'active' : step > n ? 'done' : 'upcoming';
     return { label: t(`steps.${n}`), status };
   });
 
@@ -139,7 +127,11 @@ function StepperInner() {
     <main className="flex-1">
       <div className="border-b border-[#33415B]">
         <div className="mx-auto flex items-center px-6 py-2 md:px-20">
-          <Stepper steps={stepItems} onStepClick={(i) => goTo(i + 1)} ariaLabel={t('stepsNav')} />
+          <Stepper
+            steps={stepItems}
+            onStepClick={(i) => goTo(i + 1)}
+            ariaLabel={t('stepsNav')}
+          />
         </div>
       </div>
 
@@ -147,7 +139,11 @@ function StepperInner() {
         <div className="grid gap-10 md:grid-cols-2 md:items-start md:gap-16">
           <section className="col-span-1">
             {restored && step === 1 && (
-              <Step1Moment data={moment} onChange={setMoment} onNext={() => goTo(2)} />
+              <Step1Moment
+                data={moment}
+                onChange={setMoment}
+                onNext={() => goTo(2)}
+              />
             )}
             {restored && step === 2 && (
               <MoonStep2
@@ -165,7 +161,6 @@ function StepperInner() {
                 exporter={exporter}
                 format={format}
                 onFormatChange={setFormat}
-                payResult={payResult}
               />
             )}
           </section>

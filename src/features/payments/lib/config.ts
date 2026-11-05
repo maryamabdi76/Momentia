@@ -1,62 +1,67 @@
+import { readStoreConfig, type StoreConfig } from './store.ts';
+import { readTelegramConfig, type TelegramConfig } from './telegram.ts';
+
 /**
- * Payment settings, read from the environment on the server.
+ * Payment settings, read from the environment on the server. The buyer transfers the
+ * price to the owner's card; the owner confirms each payment from Telegram.
  *
- *   ZARINPAL_MERCHANT_ID            36-character merchant id (any UUID in sandbox)
- *   ZARINPAL_SANDBOX                "true" to use sandbox.zarinpal.com
+ *   PAYMENT_CARD                    16-digit card the buyers pay into
+ *   PAYMENT_CARD_HOLDER             optional, shown with the number so buyers can check the name
+ *   PAYMENT_CARD_BANK               optional, e.g. "بلو"
+ *   TELEGRAM_BOT_TOKEN / _CHAT_ID / _WEBHOOK_SECRET   see telegram.ts
+ *   UPSTASH_REDIS_REST_URL/_TOKEN   where orders are kept; the Vercel KV_REST_API_URL/_TOKEN
+ *                                   names work too
  *   PAYMENT_TOKEN_SECRET            ≥ 32 random characters, signs the download token
- *   NEXT_PUBLIC_PREMIUM_PRICE_IRT   price in tomans (shown in the UI and charged)
- *   SITE_URL                        optional, e.g. https://example.ir — the callback
- *                                   origin; must match the domain registered with Zarinpal
+ *   NEXT_PUBLIC_PREMIUM_PRICE_IRT   price in tomans (shown in the UI; a few tomans are added per order)
  */
+export type PaymentCard = { number: string; holder: string | null; bank: string | null };
+
 export type PaymentConfig = {
-  merchantId: string;
-  sandbox: boolean;
+  card: PaymentCard;
+  store: StoreConfig;
+  telegram: TelegramConfig;
   secret: string;
-  /** Price in tomans. */
+  /** The advertised price in tomans. Each order adds 1 to 99 tomans on top. */
   priceToman: number;
-  /** Price in rials — the unit Zarinpal's request and verify calls use here. */
-  amountRial: number;
-  siteUrl: string | null;
 };
 
-// Zarinpal: at least 10,000 rials per payment, at most 100,000,000 tomans.
 const MIN_TOMAN = 1_000;
 const MAX_TOMAN = 100_000_000;
 
 type Env = Record<string, string | undefined>;
 
-export function readPaymentConfig(
-  env: Env = process.env,
-): PaymentConfig | null {
-  const merchantId = env.ZARINPAL_MERCHANT_ID?.trim();
+const PERSIAN = '۰۱۲۳۴۵۶۷۸۹';
+const ARABIC = '٠١٢٣٤٥٦٧٨٩';
+
+/** A card number as 16 plain digits (spaces, dashes and Persian digits are fine), or null. */
+export function normalizeCardNumber(raw: string | undefined): string | null {
+  const digits = (raw ?? '')
+    .replace(/[۰-۹]/g, (d) => String(PERSIAN.indexOf(d)))
+    .replace(/[٠-٩]/g, (d) => String(ARABIC.indexOf(d)))
+    .replace(/[\s-]/g, '');
+  return /^\d{16}$/.test(digits) ? digits : null;
+}
+
+const text = (raw: string | undefined) => raw?.trim().slice(0, 80) || null;
+
+export function readPaymentConfig(env: Env = process.env): PaymentConfig | null {
+  const number = normalizeCardNumber(env.PAYMENT_CARD);
+  const store = readStoreConfig(env);
+  const telegram = readTelegramConfig(env);
   const secret = env.PAYMENT_TOKEN_SECRET?.trim();
   const priceToman = Number(env.NEXT_PUBLIC_PREMIUM_PRICE_IRT);
 
-  if (!merchantId || !secret || secret.length < 32) return null;
-  if (
-    !Number.isInteger(priceToman) ||
-    priceToman < MIN_TOMAN ||
-    priceToman > MAX_TOMAN
-  ) {
+  if (!number || !store || !telegram) return null;
+  if (!secret || secret.length < 32) return null;
+  if (!Number.isInteger(priceToman) || priceToman < MIN_TOMAN || priceToman > MAX_TOMAN) {
     return null;
   }
 
-  const siteUrl = env.SITE_URL?.trim().replace(/\/+$/, '') || null;
   return {
-    merchantId,
-    sandbox: env.ZARINPAL_SANDBOX === 'true',
+    card: { number, holder: text(env.PAYMENT_CARD_HOLDER), bank: text(env.PAYMENT_CARD_BANK) },
+    store,
+    telegram,
     secret,
     priceToman,
-    amountRial: priceToman * 10,
-    siteUrl,
   };
-}
-
-/** Products with their own create page; the buyer returns there after paying. */
-export const RETURN_PATHS = { moon: '/moon' } as const;
-
-export function returnPath(product: string | null): string {
-  return product && Object.hasOwn(RETURN_PATHS, product)
-    ? RETURN_PATHS[product as keyof typeof RETURN_PATHS]
-    : '/create';
 }
