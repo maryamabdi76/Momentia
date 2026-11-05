@@ -2,7 +2,7 @@ import { DEFAULT_FRAME, frameSvg, type PosterFrame } from '../../poster/lib/fram
 import { POSTER_THEMES, type PosterStyle } from '../../poster/lib/themes.ts';
 import { wrapText, type PosterFonts } from '../../poster/lib/poster-svg.ts';
 import { MOON_PALETTES } from './palettes.ts';
-import { litPath, moonRotation } from './phase.ts';
+import { limbShade, litPath, moonRotation } from './phase.ts';
 import { mulberry32 } from './random.ts';
 
 /**
@@ -47,6 +47,11 @@ export type MoonFacts = {
   /** 0 (new) … 1 (full) */
   illumination: number;
   waxing: boolean;
+  /**
+   * Degrees clockwise to turn the lit side from upright (see `litAxisRotation`) so it
+   * faces the Sun; 0 when missing, which keeps the terminator vertical.
+   */
+  litRotation?: number;
   /** Decides whether the Moon is drawn upside down. */
   latitude: number;
   /** Already worded, e.g. "هلال نوین · ۱۲٪ روشن". */
@@ -124,6 +129,7 @@ export function buildMoonPosterSvg(opts: MoonSvgOptions): string {
   // The Moon is collected first, not drawn yet: it gives way to the text below when
   // a long title or quote needs the room (see `moonScale`).
   const rot = moonRotation(facts.latitude);
+  const shade = limbShade(facts.illumination);
   const moonParts: string[] = [];
   if (pal.halo) {
     moonParts.push(
@@ -138,7 +144,9 @@ export function buildMoonPosterSvg(opts: MoonSvgOptions): string {
       `<circle r="${R}" fill="#9a9a9a"/><image href="${esc(href)}" x="${-R}" y="${-R}" width="${R * 2}" height="${R * 2}" preserveAspectRatio="xMidYMid slice"/>` +
       `</g>` +
       // the unlit side: the shadow is drawn upright, the surface above is what turns
-      `<g filter="url(#${id}-edge)" transform="rotate(${rot})"><path d="${shadowDisc(R * 1.06)}${litPath(R, facts.illumination, facts.waxing)}" fill="${pal.shadow}" fill-opacity="${pal.shadowOpacity}" fill-rule="evenodd"/></g>` +
+      `<g filter="url(#${id}-edge)" transform="rotate(${n(rot + (facts.litRotation ?? 0))})">` +
+      (shade ? `<path d="${litPath(R, facts.illumination, facts.waxing)}" fill="url(#${id}-shade)"/>` : '') +
+      `<path d="${shadowDisc(R * 1.06)}${litPath(R, facts.illumination, facts.waxing)}" fill="${pal.shadow}" fill-opacity="${pal.shadowOpacity}" fill-rule="evenodd"/></g>` +
       `</g>` +
       `<circle r="${R}" fill="none" stroke="${pal.ring}" stroke-opacity="${pal.halo ? 0.35 : 0.8}" stroke-width="${pal.halo ? 1 : 1.6}"/>` +
       `</g>`,
@@ -233,6 +241,14 @@ export function buildMoonPosterSvg(opts: MoonSvgOptions): string {
     `<clipPath id="${id}-disc"><circle r="${R}"/></clipPath>` +
     (pal.halo
       ? `<radialGradient id="${id}-halo"><stop offset="0.35" stop-color="${pal.halo}" stop-opacity="0.32"/><stop offset="1" stop-color="${pal.halo}" stop-opacity="0"/></radialGradient>`
+      : '') +
+    (shade
+      ? // the lit side dims towards the terminator, to the shadow's own strength where it meets the dark side
+        `<linearGradient id="${id}-shade" gradientUnits="userSpaceOnUse" x1="${n((facts.waxing ? 1 : -1) * shade.from * R)}" y1="0" x2="${facts.waxing ? R : -R}" y2="0">` +
+        shade.stops
+          .map((st) => `<stop offset="${n(st.offset)}" stop-color="${pal.shadow}" stop-opacity="${n(st.alpha * pal.shadowOpacity)}"/>`)
+          .join('') +
+        `</linearGradient>`
       : '') +
     `<filter id="${id}-edge" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="${n(R * 0.014)}"/></filter>` +
     `<linearGradient id="${id}-divL" x1="0" x2="1"><stop offset="0" stop-color="${t.frame}" stop-opacity="0"/><stop offset="1" stop-color="${t.frame}"/></linearGradient>` +

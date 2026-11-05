@@ -43,3 +43,24 @@ test('every frame reaches the exported Moon poster, and each one is different', 
   }
   assert.equal(new Set(files).size, POSTER_FRAMES.length);
 });
+
+test('the lit side tilts with litRotation, on top of the hemisphere turn', () => {
+  const upright = build({ ...data });
+  const tilted = buildMoonPosterSvg({ data, facts: { ...facts, litRotation: 20 }, labels, watermark: true });
+  const south = buildMoonPosterSvg({ data, facts: { ...facts, litRotation: 20, latitude: -34 }, labels, watermark: true });
+  assert.ok(upright.includes('transform="rotate(0)"'));
+  assert.ok(tilted.includes('transform="rotate(20)"'));
+  assert.ok(south.includes('transform="rotate(200)"'), 'tilt plus the 180° of the southern sky');
+});
+
+test('the lit side is shaded towards the terminator, except at new and full Moon', () => {
+  const at = (illumination: number) =>
+    buildMoonPosterSvg({ data, facts: { ...facts, illumination }, labels, watermark: true });
+  assert.ok(at(0.5).includes('id="moon-shade"') && at(0.5).includes('fill="url(#moon-shade)"'));
+  assert.ok(!at(0).includes('moon-shade'));
+  assert.ok(!at(1).includes('moon-shade'));
+  // the gradient runs from the terminator to the limb on the lit side: right for a waxing Moon, left for a waning one
+  assert.match(at(0.5), /id="moon-shade"[^>]* x1="0" y1="0" x2="280"/);
+  const waning = buildMoonPosterSvg({ data, facts: { ...facts, illumination: 0.5, waxing: false }, labels, watermark: true });
+  assert.match(waning, /id="moon-shade"[^>]* x1="0" y1="0" x2="-280"/);
+});

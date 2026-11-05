@@ -172,6 +172,7 @@ function StepperInner() {
             moment={moment}
             onBack={() => goTo(2)}
             exporter={exporter}
+            format={format}
           />
         </div>
 
