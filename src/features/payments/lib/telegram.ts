@@ -24,10 +24,27 @@ export function readTelegramConfig(env: Env = process.env): TelegramConfig | nul
 }
 
 export class TelegramError extends Error {
-  constructor(message: string) {
+  /** HTTP status Telegram answered with; 0 when it could not be reached at all. */
+  status: number;
+  constructor(message: string, status = 0) {
     super(message);
     this.name = 'TelegramError';
+    this.status = status;
   }
+}
+
+/** What the owner should check, in plain words, for the server log. Never shown to the buyer. */
+export function describeTelegramFailure(err: unknown): string {
+  if (!(err instanceof TelegramError)) return 'unexpected error while contacting Telegram';
+  const d = err.message.toLowerCase();
+  if (err.status === 0) return `Telegram could not be reached (${err.message}); network or timeout`;
+  if (err.status === 401 || d.includes('unauthorized'))
+    return 'TELEGRAM_BOT_TOKEN is wrong or revoked (Unauthorized)';
+  if (d.includes('chat not found'))
+    return 'TELEGRAM_CHAT_ID is wrong, or you never pressed Start on the bot (chat not found)';
+  if (d.includes('blocked')) return 'the bot was blocked by the owner; unblock it and press Start';
+  if (err.status === 429) return 'Telegram is rate limiting the bot (429)';
+  return `Telegram refused the message: ${err.message}`;
 }
 
 async function call(
@@ -36,13 +53,19 @@ async function call(
   body: Record<string, unknown>,
   fetchImpl: Fetch,
 ): Promise<Record<string, unknown>> {
-  const res = await fetchImpl(`https://api.telegram.org/bot${config.botToken}/${method}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-    cache: 'no-store',
-    signal: AbortSignal.timeout(10_000),
-  });
+  let res: Response;
+  try {
+    res = await fetchImpl(`https://api.telegram.org/bot${config.botToken}/${method}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+      cache: 'no-store',
+      signal: AbortSignal.timeout(10_000),
+    });
+  } catch (err) {
+    // never include the URL: it contains the bot token
+    throw new TelegramError(err instanceof Error ? err.name : 'network error', 0);
+  }
   const data = (await res.json().catch(() => null)) as {
     ok?: unknown;
     result?: Record<string, unknown>;
@@ -52,6 +75,7 @@ async function call(
     // The description never contains the token, but keep the message short anyway.
     throw new TelegramError(
       typeof data?.description === 'string' ? data.description.slice(0, 200) : `telegram answered ${res.status}`,
+      res.status,
     );
   }
   return data.result ?? {};
@@ -83,10 +107,29 @@ export function approvalText(input: {
 export const approveData = (orderId: string) => `ok:${orderId}`;
 export const rejectData = (orderId: string) => `no:${orderId}`;
 
+/** Network trouble, a timeout, a 429 or a 5xx may pass on a second try; a wrong token or chat id will not. */
+const isTransient = (err: unknown) =>
+  err instanceof TelegramError && (err.status === 0 || err.status === 429 || err.status >= 500);
+
 export async function sendApprovalRequest(
   config: TelegramConfig,
   input: { orderId: string; amountToman: number; payerLast4: string | null },
   fetchImpl: Fetch = fetch,
+  retryDelayMs = 600,
+): Promise<void> {
+  try {
+    await sendOnce(config, input, fetchImpl);
+  } catch (err) {
+    if (!isTransient(err)) throw err;
+    await new Promise((resolve) => setTimeout(resolve, retryDelayMs));
+    await sendOnce(config, input, fetchImpl);
+  }
+}
+
+async function sendOnce(
+  config: TelegramConfig,
+  input: { orderId: string; amountToman: number; payerLast4: string | null },
+  fetchImpl: Fetch,
 ): Promise<void> {
   await call(
     config,

@@ -6,8 +6,9 @@ import {
   allow,
   markSubmitted,
   readOrder,
+  releaseLock,
 } from '@/features/payments/lib/store';
-import { sendApprovalRequest } from '@/features/payments/lib/telegram';
+import { describeTelegramFailure, sendApprovalRequest } from '@/features/payments/lib/telegram';
 
 /**
  * "I paid". Tells the owner on Telegram (with ✅ / ❌ buttons) and marks the order submitted.
@@ -37,10 +38,14 @@ export async function POST(request: Request) {
     if (order.status !== 'pending') return Response.json({ status: order.status });
 
     // One message per order even if the button is pressed twice, and a cap per order.
-    if (!(await acquireLock(config.store, `submit:${orderId}`, 30))) {
-      return Response.json({ status: 'submitted' });
+    // The order is still pending here, so a held lock means another request is sending right
+    // now; it must not be reported as submitted (nothing may have reached the owner yet).
+    const lock = `submit:${orderId}`;
+    if (!(await acquireLock(config.store, lock, 30))) {
+      return Response.json({ error: 'busy' }, { status: 409 });
     }
-    if (!(await allow(config.store, `submit:${orderId}`, 5, 60 * 60))) {
+    if (!(await allow(config.store, lock, 5, 60 * 60))) {
+      await releaseLock(config.store, lock).catch(() => {});
       return Response.json({ error: 'rate_limited' }, { status: 429 });
     }
 
@@ -52,7 +57,9 @@ export async function POST(request: Request) {
         payerLast4: last4 || null,
       });
     } catch (err) {
-      console.error('telegram notify failed', err);
+      // Without this the lock would stay for 30 seconds and a retry would be turned away.
+      await releaseLock(config.store, lock).catch(() => {});
+      console.error(`telegram notify failed: ${describeTelegramFailure(err)}`);
       return Response.json({ error: 'notify_failed' }, { status: 502 });
     }
     await markSubmitted(config.store, orderId);
