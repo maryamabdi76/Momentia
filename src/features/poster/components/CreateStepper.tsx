@@ -4,6 +4,7 @@ import { Suspense, useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { trackEvent } from '@/lib/track';
 import { giftUrl } from '../lib/gift-link';
+import { shareLink, type ShareApp } from '../lib/share-links';
 import { useTranslations } from 'next-intl';
 import {
   Stepper,
@@ -23,6 +24,7 @@ import { skyForMoment } from '../lib/sky-for-moment';
 import { DEFAULT_FORMAT_ID, type ExportFormatId } from '../lib/export-formats';
 import { DEFAULT_FRAME, type PosterFrame } from '../lib/frames';
 import { todayJalali } from '../lib/today';
+import { YALDA_FIELDS, YALDA_TIME, isYaldaPreset } from '../lib/presets';
 import {
   DEFAULT_TEMPLATE,
   FULL_SKY_DEPTH,
@@ -133,6 +135,10 @@ function StepperInner() {
       // first visit: start on today's date (the browser's day, so not in the static default)
       setMoment((m) => ({ ...m, ...todayJalali() }));
     }
+    // /create?moment=yalda (from the Yalda page) starts on Yalda night, whatever was saved
+    if (isYaldaPreset(searchParams.get('moment'))) {
+      setMoment((m) => ({ ...m, ...YALDA_FIELDS, time: YALDA_TIME, noExactTime: false }));
+    }
     setRestored(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- run once on load
   }, []);
@@ -154,6 +160,12 @@ function StepperInner() {
     } catch {
       setGiftStatus('error');
     }
+  }
+
+  function shareGift(app: ShareApp) {
+    trackEvent('gift_share', { product: 'sky', app });
+    const url = giftUrl(window.location.origin, { moment, personal });
+    window.open(shareLink(app, t('step3.giftMessage'), url), '_blank', 'noopener,noreferrer');
   }
 
   function goTo(n: number) {
@@ -251,6 +263,7 @@ function StepperInner() {
             exporter={exporter}
             format={format}
             onCopyGift={copyGiftLink}
+            onShareGift={shareGift}
             giftStatus={giftStatus}
           />
         </div>

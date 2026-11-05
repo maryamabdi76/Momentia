@@ -29,6 +29,8 @@ type Props = {
   /** Copies a link that shows this poster to whoever opens it (step 3). */
   onCopyGift: () => void;
   giftStatus: 'copied' | 'error' | null;
+  /** Opens Telegram or WhatsApp with the gift link ready to send. */
+  onShareGift?: (app: 'telegram' | 'whatsapp') => void;
 };
 
 /** Cream preview card + the per-step content shown beneath it. */
@@ -42,6 +44,7 @@ export function CreatePreview({
   format,
   onCopyGift,
   giftStatus,
+  onShareGift,
 }: Props) {
   const t = useTranslations('CreatePage');
   const tFormats = useTranslations('CreatePage.step3.formats');
@@ -180,6 +183,21 @@ export function CreatePreview({
                 : tReceive('giftLink')}
             <Link2 className="size-4" />
           </Button>
+          {onShareGift && (
+            <div className="grid grid-cols-2 gap-3">
+              {(['telegram', 'whatsapp'] as const).map((app) => (
+                <Button
+                  key={app}
+                  type="button"
+                  variant="outline"
+                  onClick={() => onShareGift(app)}
+                  className="h-11 cursor-pointer rounded-xl border-[#33415B] bg-transparent text-xs font-bold text-[#E8D9B8] hover:bg-white/5 hover:text-[#E8D9B8]"
+                >
+                  {tReceive(app === 'telegram' ? 'giftShareTelegram' : 'giftShareWhatsapp')}
+                </Button>
+              ))}
+            </div>
+          )}
           <p className="text-xs leading-6 text-[#AAB6CD]">{tReceive('giftNote')}</p>
           <p className="text-xs pb-8 leading-6 text-[#AAB6CD]">
             {t('preview.shareNote')}
