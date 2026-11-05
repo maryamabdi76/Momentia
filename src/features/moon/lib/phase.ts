@@ -53,3 +53,75 @@ export function shadowPath(r: number, illumination: number, waxing: boolean): st
 export function moonRotation(latitude: number): 0 | 180 {
   return latitude < 0 ? 180 : 0;
 }
+
+const RAD = 180 / Math.PI;
+const DEG = Math.PI / 180;
+
+/**
+ * Where the bright limb points on the sky, as a position angle in degrees: 0 is
+ * celestial north, 90 east, 270 west (Meeus, Astronomical Algorithms, ch. 48).
+ * It is the direction from the Moon towards the Sun, so it changes through the
+ * year as the Sun–Moon line tilts against the celestial poles.
+ */
+export function brightLimbPositionAngle(
+  moon: { ra: number; dec: number },
+  sun: { ra: number; dec: number },
+): number {
+  const dRa = (sun.ra - moon.ra) * DEG;
+  const dm = moon.dec * DEG;
+  const ds = sun.dec * DEG;
+  const y = Math.cos(ds) * Math.sin(dRa);
+  const x = Math.sin(ds) * Math.cos(dm) - Math.cos(ds) * Math.sin(dm) * Math.cos(dRa);
+  return (Math.atan2(y, x) * RAD + 360) % 360;
+}
+
+/**
+ * How far to turn the upright drawing (lit side on the right for a waxing Moon, on
+ * the left for a waning one) so the lit side faces where the Sun is. The Moon is
+ * drawn north up with east on the left, as the eye sees it from the northern
+ * hemisphere, so a bright limb at position angle χ points to (−sin χ, −cos χ) on
+ * screen. Degrees clockwise, in (−180, 180].
+ */
+export function litAxisRotation(positionAngle: number, waxing: boolean): number {
+  const chi = positionAngle * DEG;
+  const onScreen = Math.atan2(-Math.cos(chi), -Math.sin(chi)) * RAD;
+  const turn = onScreen - (waxing ? 0 : 180);
+  return Math.round((((turn + 180) % 360 + 360) % 360 - 180) * 100) / 100 || 0;
+}
+
+/**
+ * How the sunlit side darkens towards the terminator, as the stops of a gradient
+ * running from the terminator (offset 0) to the bright limb (offset 1) along the
+ * Moon's lit axis. `alpha` is the share of the shadow colour laid over the surface:
+ * 1 where the surface is unlit, 0 where it is as bright as the full Moon.
+ *
+ * The Moon is not a smooth ball: its brightness follows the Lommel–Seeliger law,
+ * B = μ0 / (μ0 + μ), with μ0 the cosine of the angle of the Sun and μ that of the
+ * viewer, both to the surface normal. At full phase that is the same everywhere (the
+ * flat disc we know), and the nearer to the terminator, the dimmer — which is the
+ * soft fade seen on a half or gibbous Moon.
+ *
+ * `from` is where the terminator crosses the lit axis, in radii from the centre
+ * towards the lit side (1 − 2k), so the gradient runs from `from` to 1.
+ */
+export function limbShade(
+  illumination: number,
+  steps = 12,
+): { from: number; stops: { offset: number; alpha: number }[] } | null {
+  const k = Math.max(0, Math.min(1, illumination));
+  const cos = 2 * k - 1; // cosine of the phase angle
+  const sin = Math.sqrt(Math.max(0, 1 - cos * cos));
+  const from = 1 - 2 * k;
+  if (from >= 0.999) return null; // new Moon: nothing is lit
+  const stops: { offset: number; alpha: number }[] = [];
+  for (let i = 0; i <= steps; i++) {
+    const offset = i / steps;
+    const x = from + offset * (1 - from);
+    const z = Math.sqrt(Math.max(0, 1 - x * x));
+    const mu0 = Math.max(0, x * sin + z * cos);
+    const b = z > 0 ? mu0 / (mu0 + z) : 1;
+    const alpha = Math.max(0, 1 - Math.min(1, b / 0.5));
+    stops.push({ offset, alpha: Math.round(alpha * 1000) / 1000 });
+  }
+  return stops.every((s) => s.alpha === 0) ? null : { from, stops };
+}
