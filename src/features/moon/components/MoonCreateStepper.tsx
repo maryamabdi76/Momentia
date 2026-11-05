@@ -12,6 +12,7 @@ import { toPersianDigits } from '@/features/poster/lib/digits';
 import { skyForMoment } from '@/features/poster/lib/sky-for-moment';
 import { todayJalali } from '@/features/poster/lib/today';
 import { DEFAULT_FORMAT_ID, type ExportFormatId } from '@/features/poster/lib/export-formats';
+import { DEFAULT_FRAME } from '@/features/poster/lib/frames';
 import { isPosterStyle } from '@/features/poster/lib/themes';
 import { useMoonExport } from '../hooks/use-moon-export';
 import { loadMoonDraft, saveMoonDraft } from '../lib/draft';
@@ -37,6 +38,7 @@ const DEFAULT_PERSONAL: MoonPersonalizeValues = {
   names: 'شیرین و فرهاد',
   quote: 'همان ماه، همان شب؛ برای همیشه.',
   style: 'gold',
+  frame: DEFAULT_FRAME,
   showDate: true,
   showCity: true,
   showDetails: true,

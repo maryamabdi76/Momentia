@@ -1,21 +1,27 @@
 'use client';
 
-import { Controller, type Control } from 'react-hook-form';
+import { Controller, type Control, type FieldValues, type Path } from 'react-hook-form';
 import { Pencil } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group';
-import type { PersonalizeValues } from '../lib/schemas';
 
-type Props = {
-  control: Control<PersonalizeValues>;
-  name: 'title' | 'names' | 'quote';
+type Props<T extends FieldValues> = {
+  control: Control<T>;
+  /** A text field of the form: `title`, `names` or `quote`. */
+  name: Path<T>;
   label: string;
   placeholder: string;
   hint?: string;
 };
 
-/** One of the poster's three texts: a label, the field, its hint and its error. */
-export function PersonalizeTextField({ control, name, label, placeholder, hint }: Props) {
+/** One of a poster's texts: a label, the field, its hint and its error. */
+export function PersonalizeTextField<T extends FieldValues>({
+  control,
+  name,
+  label,
+  placeholder,
+  hint,
+}: Props<T>) {
   return (
     <div className="space-y-1.5">
       <Label htmlFor={`personalize-${name}`} className="text-[13px] font-medium text-[#E8D9B8]">
