@@ -22,6 +22,7 @@ import { isPosterStyle } from '../lib/themes';
 import { skyForMoment } from '../lib/sky-for-moment';
 import { DEFAULT_FORMAT_ID, type ExportFormatId } from '../lib/export-formats';
 import { DEFAULT_FRAME, type PosterFrame } from '../lib/frames';
+import { todayJalali } from '../lib/today';
 import {
   DEFAULT_TEMPLATE,
   FULL_SKY_DEPTH,
@@ -128,6 +129,9 @@ function StepperInner() {
           : (draft.personal.template ?? DEFAULT_TEMPLATE),
         ...(isPosterStyle(style) ? { style } : {}),
       });
+    } else {
+      // first visit: start on today's date (the browser's day, so not in the static default)
+      setMoment((m) => ({ ...m, ...todayJalali() }));
     }
     setRestored(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- run once on load

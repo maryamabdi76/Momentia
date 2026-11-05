@@ -1,3 +1,4 @@
+import { isPosterFrame } from '@/features/poster/lib/frames';
 import { isPosterStyle } from '@/features/poster/lib/themes';
 import type { MomentData } from '@/features/poster/components/CreateStepper';
 import type { MoonPersonalizeValues } from './schemas';
@@ -25,6 +26,8 @@ export function loadMoonDraft(): MoonDraft | null {
     const { moment: m, personal: p } = parsed;
     const strings = [m.city, m.timezone, m.day, m.month, m.year, m.time, p.title, p.names, p.quote];
     if (strings.some((v) => typeof v !== 'string') || !isPosterStyle(p.style)) return null;
+    // drafts saved before frames existed have none; the stepper fills in the default
+    if (p.frame !== undefined && !isPosterFrame(p.frame)) return null;
     return parsed as unknown as MoonDraft;
   } catch {
     return null;

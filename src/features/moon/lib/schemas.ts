@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { POSTER_FRAMES } from '@/features/poster/lib/frames';
 import { POSTER_STYLES } from '@/features/poster/lib/themes';
 
 export const moonPersonalizeSchema = z.object({
@@ -6,6 +7,7 @@ export const moonPersonalizeSchema = z.object({
   names: z.string().min(1).max(40),
   quote: z.string().max(100),
   style: z.enum(POSTER_STYLES),
+  frame: z.enum(POSTER_FRAMES),
   showDate: z.boolean(),
   showCity: z.boolean(),
   showDetails: z.boolean(),

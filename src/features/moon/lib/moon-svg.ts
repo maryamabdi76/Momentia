@@ -1,3 +1,4 @@
+import { DEFAULT_FRAME, frameSvg, type PosterFrame } from '../../poster/lib/frames.ts';
 import { POSTER_THEMES, type PosterStyle } from '../../poster/lib/themes.ts';
 import { wrapText, type PosterFonts } from '../../poster/lib/poster-svg.ts';
 import { MOON_PALETTES } from './palettes.ts';
@@ -28,6 +29,8 @@ export type MoonPosterData = {
   names: string;
   quote: string;
   style: PosterStyle;
+  /** The border around the poster; the classic double line when missing. */
+  frame?: PosterFrame;
   showDate: boolean;
   showCity: boolean;
   /** The phase name and how much of the disc is lit, under the Moon. */
@@ -78,11 +81,6 @@ const n = (v: number) => Math.round(v * 100) / 100;
 /** A disc slightly larger than the Moon, so blurring the shadow never lightens the dark limb. */
 function shadowDisc(r: number) {
   return `M${n(-r)} 0A${n(r)} ${n(r)} 0 1 0 ${n(r)} 0A${n(r)} ${n(r)} 0 1 0 ${n(-r)} 0Z`;
-}
-
-function corner(color: string, x: number, y: number, sx: 1 | -1, sy: 1 | -1) {
-  const k = 2.25;
-  return `<g transform="translate(${x} ${y}) scale(${sx * k} ${sy * k}) translate(-1 -1)" fill="none" stroke="${color}" stroke-width="0.9"><path d="M1 19 V6 Q1 1 6 1 H19"/><circle cx="6" cy="6" r="1.3" fill="${color}" stroke="none"/></g>`;
 }
 
 export function buildMoonPosterSvg(opts: MoonSvgOptions): string {
@@ -241,12 +239,7 @@ export function buildMoonPosterSvg(opts: MoonSvgOptions): string {
     `<linearGradient id="${id}-divR" x1="0" x2="1"><stop offset="0" stop-color="${t.frame}"/><stop offset="1" stop-color="${t.frame}" stop-opacity="0"/></linearGradient>` +
     `</defs>` +
     `<rect width="${W}" height="${H}" fill="url(#${id}-paper)"/>` +
-    `<rect x="21.6" y="21.6" width="${W - 43.2}" height="${H - 43.2}" fill="none" stroke="${t.frame}" stroke-width="1.4"/>` +
-    `<rect x="33.3" y="33.3" width="${W - 66.6}" height="${H - 66.6}" fill="none" stroke="${t.frameSoft}" stroke-width="1.4"/>` +
-    corner(t.frame, 41, 41, 1, 1) +
-    corner(t.frame, W - 41, 41, -1, 1) +
-    corner(t.frame, 41, H - 41, 1, -1) +
-    corner(t.frame, W - 41, H - 41, -1, -1) +
+    frameSvg(p.frame ?? DEFAULT_FRAME, t, W, H) +
     parts.join('') +
     `</svg>`
   );

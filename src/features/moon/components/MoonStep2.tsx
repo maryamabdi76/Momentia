@@ -4,15 +4,14 @@ import { useEffect } from 'react';
 import { Controller, useForm, useWatch, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
-import { ArrowLeft, ArrowRight, Pencil, ShieldCheck } from 'lucide-react';
-import { cn } from 'cn';
+import { ArrowLeft, ArrowRight, Palette, Pencil, PenLine, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group';
-import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import type { MomentData } from '@/features/poster/components/CreateStepper';
-import { POSTER_STYLES, POSTER_THEMES, paperCss } from '@/features/poster/lib/themes';
+import { FramePicker } from '@/features/poster/components/FramePicker';
+import { PersonalizeSection } from '@/features/poster/components/PersonalizeSection';
+import { PersonalizeTextField } from '@/features/poster/components/PersonalizeTextField';
+import { StylePicker } from '@/features/poster/components/StylePicker';
+import { ToggleChip } from '@/features/poster/components/ToggleChip';
 import { moonPersonalizeSchema, type MoonPersonalizeValues } from '../lib/schemas';
 
 type Props = {
@@ -22,17 +21,6 @@ type Props = {
   onNext: () => void;
   onBack: () => void;
 };
-
-const checkboxClass =
-  'border-white/30 data-[state=checked]:border-[#CEB47B] data-[state=checked]:bg-[#CEB47B] data-[state=checked]:text-[#0c142b] dark:data-[state=checked]:border-[#CEB47B] dark:data-[state=checked]:bg-[#CEB47B]';
-const inputGroupClass =
-  'h-12 border-white/12 has-[[data-slot=input-group-control]:focus-visible]:border-[#CEB47B]/50 has-[[data-slot=input-group-control]:focus-visible]:ring-2 has-[[data-slot=input-group-control]:focus-visible]:ring-[#CEB47B]/10';
-
-const TEXT_FIELDS = [
-  { name: 'title', hint: false },
-  { name: 'names', hint: false },
-  { name: 'quote', hint: true },
-] as const;
 
 const TOGGLES = ['showDate', 'showCity', 'showDetails', 'showStars'] as const;
 
@@ -56,6 +44,7 @@ export function MoonStep2({ data, moment, onChange, onNext, onBack }: Props) {
     watched.names,
     watched.quote,
     watched.style,
+    watched.frame,
     watched.showDate,
     watched.showCity,
     watched.showDetails,
@@ -76,11 +65,11 @@ export function MoonStep2({ data, moment, onChange, onNext, onBack }: Props) {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" noValidate>
-      <div>
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
+      <div className="space-y-2 pb-1">
         <p className="text-xs text-[#CEB47B]">{t('stepLabel')}</p>
-        <h1 className="mt-2 text-3xl font-bold text-white">{t('title')}</h1>
-        <p className="mt-2 text-sm leading-7 text-white/55">{t('description')}</p>
+        <h1 className="text-3xl font-bold text-white">{t('title')}</h1>
+        <p className="text-sm leading-7 text-white/55">{t('description')}</p>
       </div>
 
       <div className="flex items-center justify-between rounded-xl bg-[#142039] p-3">
@@ -96,122 +85,73 @@ export function MoonStep2({ data, moment, onChange, onNext, onBack }: Props) {
         </Button>
       </div>
 
-      {TEXT_FIELDS.map(({ name, hint }) => (
-        <div key={name} className="space-y-1.5">
-          <Label className="text-sm font-medium text-[#E8D9B8]">{tStep2(`${name}Label`)}</Label>
-          <Controller
-            control={control}
-            name={name}
-            render={({ field, fieldState }) => (
-              <>
-                <InputGroup className={inputGroupClass}>
-                  <InputGroupAddon>
-                    <Pencil className="size-4 text-white/25" />
-                  </InputGroupAddon>
-                  <InputGroupInput
-                    {...field}
-                    placeholder={tStep2(`${name}Placeholder`)}
-                    className="h-12 text-right text-sm text-white placeholder:text-white/30"
-                  />
-                </InputGroup>
-                {hint && <p className="text-[11px] text-[#AAB6CD]">{tStep2('quoteHint')}</p>}
-                {fieldState.error && (
-                  <p className="text-[11px] text-red-400">{fieldState.error.message}</p>
-                )}
-              </>
-            )}
-          />
-        </div>
-      ))}
+      {/* The poster's words */}
+      <PersonalizeSection icon={PenLine} title={tStep2('sections.text')}>
+        <PersonalizeTextField
+          control={control}
+          name="title"
+          label={tStep2('titleLabel')}
+          placeholder={tStep2('titlePlaceholder')}
+        />
+        <PersonalizeTextField
+          control={control}
+          name="names"
+          label={tStep2('namesLabel')}
+          placeholder={tStep2('namesPlaceholder')}
+        />
+        <PersonalizeTextField
+          control={control}
+          name="quote"
+          label={tStep2('quoteLabel')}
+          placeholder={tStep2('quotePlaceholder')}
+          hint={tStep2('quoteHint')}
+        />
+      </PersonalizeSection>
 
-      <div className="space-y-3">
-        <p className="text-sm font-medium text-[#E8D9B8]">{tStep2('styleLabel')}</p>
+      {/* How the poster looks, and what is on it */}
+      <PersonalizeSection icon={Palette} title={tStep2('sections.look')}>
         <Controller
           control={control}
           name="style"
+          render={({ field }) => <StylePicker value={field.value} onChange={field.onChange} />}
+        />
+        <Controller
+          control={control}
+          name="frame"
           render={({ field }) => (
-            <RadioGroup
+            <FramePicker
               value={field.value}
-              onValueChange={field.onChange}
-              className="grid grid-cols-2 gap-3"
-            >
-              {POSTER_STYLES.map((s) => {
-                const selected = field.value === s;
-                return (
-                  <Label
-                    key={s}
-                    htmlFor={`moon-style-${s}`}
-                    className={cn(
-                      'flex cursor-pointer items-center justify-between rounded-xl border px-4 py-3.5 transition-colors',
-                      selected ? 'border-[#CEB47B]/70 bg-[#CEB47B]/8' : 'border-[#33415B]',
-                    )}
-                  >
-                    <span className="flex items-center gap-2.5">
-                      <span
-                        aria-hidden
-                        className="size-6 shrink-0 rounded-full border"
-                        style={{
-                          background: paperCss(POSTER_THEMES[s]),
-                          borderColor: POSTER_THEMES[s].frame,
-                        }}
-                      />
-                      <span
-                        className={
-                          selected
-                            ? 'text-sm font-medium text-white'
-                            : 'text-sm font-normal text-white/55'
-                        }
-                      >
-                        {tStep2(`styles.${s}`)}
-                      </span>
-                    </span>
-                    <RadioGroupItem
-                      value={s}
-                      id={`moon-style-${s}`}
-                      className="border-white/20 data-checked:border-[#CEB47B] data-checked:bg-[#CEB47B] dark:data-checked:border-[#CEB47B] dark:data-checked:bg-[#CEB47B] [&_[data-slot=radio-group-indicator]_span]:bg-[#0c142b]"
-                    />
-                  </Label>
-                );
-              })}
-            </RadioGroup>
+              onChange={field.onChange}
+              style={watched.style ?? data.style}
+            />
           )}
         />
-      </div>
 
-      <div className="space-y-2.5">
-        <div>
-          <p className="text-sm font-medium text-[#E8D9B8]">{t('showLabel')}</p>
-          <p className="mt-1 text-[11px] leading-6 text-[#AAB6CD]">{t('showHint')}</p>
-        </div>
-        {TOGGLES.map((key) => (
-          <Controller
-            key={key}
-            control={control}
-            name={key}
-            render={({ field }) => (
-              <div className="flex items-start gap-2 py-1.5">
-                <Checkbox
-                  id={`moon-${key}`}
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                  className={cn('mt-1', checkboxClass)}
-                />
-                <Label
-                  htmlFor={`moon-${key}`}
-                  className="flex-col items-start gap-0.5 text-sm font-normal text-white"
-                >
-                  {t(`toggles.${key}.label`)}
-                  <span className="text-[11px] leading-5 text-[#AAB6CD]">
-                    {t(`toggles.${key}.hint`)}
-                  </span>
-                </Label>
-              </div>
-            )}
-          />
-        ))}
-      </div>
+        <fieldset className="min-w-0 space-y-2.5">
+          <legend className="p-0 text-[13px] font-medium text-[#E8D9B8]">{t('showLabel')}</legend>
+          <div className="flex flex-wrap gap-2">
+            {TOGGLES.map((key) => (
+              <Controller
+                key={key}
+                control={control}
+                name={key}
+                render={({ field }) => (
+                  <ToggleChip
+                    pressed={field.value}
+                    onPressedChange={field.onChange}
+                    title={t(`toggles.${key}.hint`)}
+                  >
+                    {t(`toggles.${key}.label`)}
+                  </ToggleChip>
+                )}
+              />
+            ))}
+          </div>
+          <p className="text-[11px] leading-5 text-[#AAB6CD]">{t('showHint')}</p>
+        </fieldset>
+      </PersonalizeSection>
 
-      <div className="flex gap-3">
+      <div className="flex gap-3 pt-2">
         <Button
           type="button"
           variant="outline"
