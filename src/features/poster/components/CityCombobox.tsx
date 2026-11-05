@@ -62,7 +62,7 @@ export function CityCombobox({
         id={id}
         placeholder={placeholder}
         showClear={!!value}
-        className="h-14 w-full rounded-xl border-[#33415B] bg-transparent text-base text-white shadow-none focus-within:border-[#CEB47B]/50 focus-within:ring-[#CEB47B]/15 dark:bg-transparent [&_input]:text-white [&_input]:placeholder:text-white/40"
+        className="h-14 w-full rounded-xl border-[#33415B] bg-transparent text-base text-white shadow-none focus-within:border-[#CEB47B]/50 focus-within:ring-[#CEB47B]/15 dark:bg-transparent [&_input]:text-white [&_input]:placeholder:text-white/45"
       />
       <ComboboxContent className="border-white/15 bg-[#0c1a38] text-white ring-white/10">
         <ComboboxEmpty className="text-white/45 p-3">

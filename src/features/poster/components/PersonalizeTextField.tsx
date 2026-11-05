@@ -40,7 +40,7 @@ export function PersonalizeTextField<T extends FieldValues>({
                 {...field}
                 id={`personalize-${name}`}
                 placeholder={placeholder}
-                className="h-11 text-right text-sm text-white placeholder:text-white/30"
+                className="h-11 text-right text-sm text-white placeholder:text-white/45"
               />
             </InputGroup>
             {hint && <p className="text-[11px] text-[#AAB6CD]">{hint}</p>}
