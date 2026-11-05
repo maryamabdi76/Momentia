@@ -4,7 +4,10 @@ import { useTranslations } from 'next-intl';
 import { ArrowRight, Info, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toPersianDigits } from '@/features/poster/lib/digits';
+import { formatSpec, getExportFormat, type ExportFormatId } from '@/features/poster/lib/export-formats';
 import type { MomentData } from '@/features/poster/components/CreateStepper';
+import { Dims } from '@/features/poster/components/FormatPicker';
+import { FormatPreviewFrame } from '@/features/poster/components/FormatPreviewFrame';
 import type { PosterExport } from '@/features/poster/hooks/use-poster-export';
 import type { SkySnapshot } from '@/features/sky/lib/types';
 import { useMoonWords } from '../hooks/use-moon-words';
@@ -18,13 +21,16 @@ type Props = {
   moment: MomentData;
   onBack: () => void;
   exporter: PosterExport;
+  /** The file chosen in step 3; the preview shows the poster on that file's page. */
+  format: ExportFormatId;
 };
 
 /** Cream preview card + the per-step content shown beneath it. */
-export function MoonPreview({ step, poster, sky, moment, onBack, exporter }: Props) {
+export function MoonPreview({ step, poster, sky, moment, onBack, exporter, format }: Props) {
   const t = useTranslations('MoonPage');
   const tPreview = useTranslations('CreatePage');
   const tReceive = useTranslations('CreatePage.step3');
+  const tFormats = useTranslations('CreatePage.step3.formats');
   const { facts, labels } = useMoonWords(sky);
 
   const caption = toPersianDigits(
@@ -37,6 +43,10 @@ export function MoonPreview({ step, poster, sky, moment, onBack, exporter }: Pro
       .join(' · '),
   );
 
+  // Only step 3 chooses a file, so only there does the preview show its page.
+  const shown: ExportFormatId = step === 3 ? format : 'poster';
+  const shownSpec = formatSpec(getExportFormat(shown));
+
   return (
     <aside className="flex w-full flex-col gap-5 md:sticky md:top-8">
       <div className="m-auto w-full rounded-xl bg-[#F4EFE6] p-6 text-[#1c2540]">
@@ -45,13 +55,30 @@ export function MoonPreview({ step, poster, sky, moment, onBack, exporter }: Pro
           <span className="text-[#1c2540]/70">{tPreview('preview.label')}</span>
         </div>
 
-        <div className="mx-auto mt-6 max-w-[420px] shadow-xl">
-          {facts ? (
-            <MoonPoster data={poster} facts={facts} labels={labels} watermark />
-          ) : (
-            <div className="aspect-[2/3] w-full animate-pulse bg-[#1c2540]/10" />
-          )}
+        <div className="mt-6 flex justify-center">
+          <FormatPreviewFrame format={shown} style={poster.style}>
+            {facts ? (
+              <MoonPoster
+                data={poster}
+                facts={facts}
+                labels={labels}
+                watermark
+                // the plain poster carries its own shadow; on a page it sits flat
+                className={shown === 'poster' ? 'shadow-xl' : undefined}
+              />
+            ) : (
+              <div className="aspect-[2/3] w-full animate-pulse bg-[#1c2540]/10" />
+            )}
+          </FormatPreviewFrame>
         </div>
+
+        {step === 3 && shown !== 'poster' && (
+          <p className="mt-4 text-center text-xs text-[#1c2540]/70">
+            {tPreview('preview.formatCaption', { label: tFormats(`items.${shown}.label`) })}{' '}
+            <Dims w={shownSpec.page.w} h={shownSpec.page.h} cm={shownSpec.kind === 'pdf'} />{' '}
+            {shownSpec.kind === 'pdf' ? tFormats('units.cm') : tFormats('units.px')}
+          </p>
+        )}
 
         <p className="mt-6 text-center text-sm font-medium">{caption}</p>
         <p className="mt-3 text-center text-xs text-[#1c2540]/70">{t('disclaimer')}</p>
