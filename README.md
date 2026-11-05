@@ -145,6 +145,15 @@ Copy `.env.example` to `.env.local` and fill it in. Without the payment settings
      -d 'allowed_updates=["callback_query"]'
    ```
 
+4. Check everything (token, chat id, webhook and secret) with one command; it prints what to fix and never prints a secret. `--send` also sends a test message:
+
+   ```bash
+   TELEGRAM_BOT_TOKEN=... TELEGRAM_CHAT_ID=... TELEGRAM_WEBHOOK_SECRET=... \
+   SITE_URL=https://<your-domain> node scripts/check-telegram.mjs --send
+   ```
+
+If a buyer taps "I paid" and no message arrives, the Vercel function log has a line starting with `telegram notify failed:` that names the cause (wrong chat id, bot never started, wrong token, network).
+
 On Vercel, add the Upstash Redis integration from the Marketplace for the store. Because the owner approves each payment by hand, payments are as quick as you are; a buyer whose deposit is rejected is pointed to `/contact`.
 
 ### Support, contact and donations

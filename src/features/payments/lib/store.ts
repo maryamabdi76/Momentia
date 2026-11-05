@@ -104,6 +104,15 @@ export async function acquireLock(
   return result === 'OK';
 }
 
+/** Frees a lock early, so a step that failed can be tried again at once instead of after it expires. */
+export async function releaseLock(
+  config: StoreConfig,
+  name: string,
+  fetchImpl: Fetch = fetch,
+): Promise<void> {
+  await command(config, ['DEL', `momentia:lock:${name}`], fetchImpl);
+}
+
 /** How many tomans above the price an order may add to make its amount unique. */
 export const MAX_AMOUNT_OFFSET = 99;
 

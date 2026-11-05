@@ -13,10 +13,13 @@ import {
   markSubmitted,
   readOrder,
   readStoreConfig,
+  releaseLock,
 } from '../lib/store.ts';
 import {
   answerCallback,
+  TelegramError,
   approvalText,
+  describeTelegramFailure,
   parseDecision,
   readTelegramConfig,
   sendApprovalRequest,
@@ -301,4 +304,50 @@ test('the owner gets an answer and the buttons are replaced by the outcome', asy
 
 test('toman formatting', () => {
   assert.equal(formatToman(49000), '۴۹٬۰۰۰');
+});
+
+test('a lock that is released can be taken again at once (a failed send must not block the retry)', async () => {
+  const redis = fakeRedis();
+  assert.equal(await acquireLock(store, 'submit:a', 30, redis.fetchImpl), true);
+  assert.equal(await acquireLock(store, 'submit:a', 30, redis.fetchImpl), false);
+  await releaseLock(store, 'submit:a', redis.fetchImpl);
+  assert.equal(await acquireLock(store, 'submit:a', 30, redis.fetchImpl), true);
+});
+
+test('a network failure or a 5xx is retried once; a wrong chat id is not', async () => {
+  const input = { orderId: ID, amountToman: 1, payerLast4: null };
+  let calls = 0;
+  const flaky = (async () => {
+    calls++;
+    if (calls === 1) throw new TypeError('fetch failed');
+    return json({ ok: true, result: {} });
+  }) as unknown as typeof fetch;
+  await sendApprovalRequest(telegram, input, flaky, 0);
+  assert.equal(calls, 2);
+
+  let wrong = 0;
+  const notFound = (async () => {
+    wrong++;
+    return json({ ok: false, description: 'Bad Request: chat not found' }, 400);
+  }) as unknown as typeof fetch;
+  await assert.rejects(sendApprovalRequest(telegram, input, notFound, 0), /chat not found/);
+  assert.equal(wrong, 1);
+});
+
+test('a network error never carries the bot token', async () => {
+  const down = (async () => {
+    throw new TypeError(`fetch failed https://api.telegram.org/bot${telegram.botToken}/sendMessage`);
+  }) as unknown as typeof fetch;
+  await assert.rejects(
+    sendApprovalRequest(telegram, { orderId: ID, amountToman: 1, payerLast4: null }, down, 0),
+    (err: Error) => err instanceof TelegramError && !err.message.includes(telegram.botToken),
+  );
+});
+
+test('failures are explained for the server log', () => {
+  assert.match(describeTelegramFailure(new TelegramError('Bad Request: chat not found', 400)), /TELEGRAM_CHAT_ID/);
+  assert.match(describeTelegramFailure(new TelegramError('Unauthorized', 401)), /TELEGRAM_BOT_TOKEN/);
+  assert.match(describeTelegramFailure(new TelegramError('Forbidden: bot was blocked by the user', 403)), /blocked/);
+  assert.match(describeTelegramFailure(new TelegramError('TypeError', 0)), /network/);
+  assert.match(describeTelegramFailure(new Error('x')), /unexpected/);
 });
