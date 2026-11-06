@@ -15,8 +15,6 @@ export function generateStaticParams() {
   return OCCASION_SLUGS.map((slug) => ({ slug }));
 }
 
-export const dynamicParams = false;
-
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   if (!isOccasionSlug(slug)) return {};
