@@ -21,8 +21,13 @@ export async function generateMetadata(): Promise<Metadata> {
 
 const SECTIONS = [0, 1] as const;
 
-export default async function ContactPage() {
+export default async function ContactPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ topic?: string }>;
+}) {
   const t = await getTranslations('ContactPage');
+  const { topic } = await searchParams;
 
   return (
     <div
@@ -36,6 +41,14 @@ export default async function ContactPage() {
           {t('title')}
         </h1>
         <p className="mt-4 text-sm leading-7 text-white/60">{t('intro')}</p>
+        {topic === 'city' && (
+          <p
+            role="note"
+            className="mt-6 rounded-xl border border-[#CEB47B]/40 bg-[#CEB47B]/5 px-4 py-3 text-sm leading-7 text-[#E8D9B8]"
+          >
+            {t('cityTopic')}
+          </p>
+        )}
 
         <section className="mt-10 space-y-3">
           <h2 className="text-lg font-semibold text-[#E8D9B8]">

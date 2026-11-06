@@ -23,6 +23,7 @@ import {
 import { TimePicker } from '@/components/ui/time-picker';
 import { cn } from '@/lib/utils';
 import { CityCombobox } from './CityCombobox';
+import { GregorianDateField } from './GregorianDateField';
 import {
   JALALI_DAYS,
   JALALI_MONTHS,
@@ -156,6 +157,7 @@ export function Step1Moment({ data, onChange, onNext }: Props) {
               value={field.value}
               placeholder={t('cityPlaceholder')}
               emptyLabel={t('cityEmpty')}
+              missing={{ label: t('cityMissing'), href: '/contact?topic=city' }}
               provinceSuffix={t('iran')}
               onValueChange={(name, tz) => {
                 field.onChange(name);
@@ -229,6 +231,9 @@ export function Step1Moment({ data, onChange, onNext }: Props) {
             />
           </div>
         </div>
+        <GregorianDateField
+          onPick={({ day, month, year }) => applyOccasion(day, month, year)}
+        />
       </div>
 
       {/* Time */}

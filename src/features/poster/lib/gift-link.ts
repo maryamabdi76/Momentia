@@ -41,3 +41,14 @@ export function readGiftHash(hash: string): PosterDraft | null {
   const token = new URLSearchParams(hash.replace(/^#/, '')).get(PARAM);
   return token ? decodeGift(token) : null;
 }
+
+/** A link back into the editor with this draft loaded, to keep and continue later. Also kept in the fragment. */
+export function editUrl(origin: string, draft: PosterDraft): string {
+  return `${origin}/create#e=${encodeGift(draft)}`;
+}
+
+/** Reads `location.hash` of the editor; null when it carries no usable draft. */
+export function readEditHash(hash: string): PosterDraft | null {
+  const token = new URLSearchParams(hash.replace(/^#/, '')).get('e');
+  return token ? decodeGift(token) : null;
+}

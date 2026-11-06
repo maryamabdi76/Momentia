@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { trackEvent } from '@/lib/track';
-import { giftUrl } from '../lib/gift-link';
+import { editUrl, giftUrl, readEditHash } from '../lib/gift-link';
 import { isOccasionSlug } from '../lib/occasions';
 import { shareLink, type ShareApp } from '../lib/share-links';
 import { useTranslations } from 'next-intl';
@@ -119,7 +119,8 @@ function StepperInner() {
   // link (/create?style=…) wins over the saved one.
   const [restored, setRestored] = useState(false);
   useEffect(() => {
-    const draft = loadDraft();
+    // a saved edit link (/create#e=…) wins over this browser's own draft
+    const draft = readEditHash(window.location.hash) ?? loadDraft();
     if (draft) {
       const style = searchParams.get('style');
       const template = searchParams.get('template');
@@ -158,7 +159,7 @@ function StepperInner() {
     if (restored) saveDraft({ moment, personal });
   }, [restored, moment, personal]);
 
-  const [giftStatus, setGiftStatus] = useState<'copied' | 'error' | null>(null);
+  const [giftStatus, setGiftStatus] = useState<'copied' | 'error' | 'edit' | null>(null);
   // Which file step 3 will download. Kept here so the preview can show that same file.
   const [format, setFormat] = useState<ExportFormatId>(DEFAULT_FORMAT_ID);
 
@@ -169,6 +170,18 @@ function StepperInner() {
         giftUrl(window.location.origin, { moment, personal }),
       );
       setGiftStatus('copied');
+    } catch {
+      setGiftStatus('error');
+    }
+  }
+
+  async function copyEditLink() {
+    trackEvent('edit_link', { product: 'sky' });
+    try {
+      await navigator.clipboard.writeText(
+        editUrl(window.location.origin, { moment, personal }),
+      );
+      setGiftStatus('edit');
     } catch {
       setGiftStatus('error');
     }
@@ -276,6 +289,7 @@ function StepperInner() {
             format={format}
             onCopyGift={copyGiftLink}
             onShareGift={shareGift}
+            onCopyEdit={copyEditLink}
             giftStatus={giftStatus}
           />
         </div>

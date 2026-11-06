@@ -30,9 +30,11 @@ type Props = {
   format: ExportFormatId;
   /** Copies a link that shows this poster to whoever opens it (step 3). */
   onCopyGift: () => void;
-  giftStatus: 'copied' | 'error' | null;
+  giftStatus: 'copied' | 'error' | 'edit' | null;
   /** Opens Telegram or WhatsApp with the gift link ready to send. */
   onShareGift?: (app: 'telegram' | 'whatsapp') => void;
+  /** Copies a link that reopens the editor with this poster, to continue later. */
+  onCopyEdit?: () => void;
 };
 
 /** Cream preview card + the per-step content shown beneath it. */
@@ -47,6 +49,7 @@ export function CreatePreview({
   onCopyGift,
   giftStatus,
   onShareGift,
+  onCopyEdit,
 }: Props) {
   const t = useTranslations('CreatePage');
   const tFormats = useTranslations('CreatePage.step3.formats');
@@ -248,6 +251,16 @@ export function CreatePreview({
                 </Button>
               ))}
             </div>
+          )}
+          {onCopyEdit && (
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={onCopyEdit}
+              className="h-10 cursor-pointer text-xs text-[#AAB6CD] hover:bg-white/5 hover:text-[#E8D9B8]"
+            >
+              {giftStatus === 'edit' ? tReceive('editLinkCopied') : tReceive('editLink')}
+            </Button>
           )}
           <p className="text-xs leading-6 text-[#AAB6CD]">{tReceive('giftNote')}</p>
           <p className="text-xs pb-8 leading-6 text-[#AAB6CD]">
