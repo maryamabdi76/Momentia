@@ -1,11 +1,13 @@
 'use client';
 
+import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { ArrowRight, Info, Link2, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { PosterPreview, type PosterData } from './PosterPreview';
 import { Dims } from './FormatPicker';
 import { FormatPreviewFrame } from './FormatPreviewFrame';
+import { WallScene } from './WallScene';
 import { toPersianDigits } from '../lib/digits';
 import {
   getExportFormat,
@@ -51,6 +53,8 @@ export function CreatePreview({
   const tPoster = useTranslations('Poster');
   const tMoment = useTranslations('CreatePage.step1');
   const tReceive = useTranslations('CreatePage.step3');
+  // step 3 can show the poster on a wall; everywhere else it is just the poster
+  const [scene, setScene] = useState<'poster' | 'wall'>('poster');
 
   // "شب یلدا", "نوروز" … when the chosen day matches one of the quick occasions.
   const occasion = [0, 1]
@@ -85,7 +89,53 @@ export function CreatePreview({
           <span className="text-[#1c2540]/70">{t('preview.label')}</span>
         </div>
 
+        {step === 3 && (
+          <div
+            role="group"
+            aria-label={t('preview.sceneLabel')}
+            className="mt-5 flex justify-center gap-1 text-xs"
+          >
+            {(['poster', 'wall'] as const).map((kind) => (
+              <button
+                key={kind}
+                type="button"
+                aria-pressed={scene === kind}
+                onClick={() => setScene(kind)}
+                className={`rounded-full px-3.5 py-1.5 transition-colors ${
+                  scene === kind
+                    ? 'bg-[#1c2540] text-[#F4EFE6]'
+                    : 'text-[#1c2540]/70 hover:bg-[#1c2540]/10'
+                }`}
+              >
+                {t(kind === 'poster' ? 'preview.scenePoster' : 'preview.sceneWall')}
+              </button>
+            ))}
+          </div>
+        )}
+
         <div className="mt-6 flex justify-center">
+          {step === 3 && scene === 'wall' ? (
+            <WallScene label={t('preview.sceneWallAlt')}>
+              <FormatPreviewFrame format={shown} style={poster.style ?? 'gold'}>
+            <PosterPreview
+              data={poster}
+              sky={sky}
+              showDisclaimer={false}
+              labels={{
+                headerLine: tPoster('headerLine'),
+                north: tPoster('north'),
+                south: tPoster('south'),
+                east: tPoster('east'),
+                west: tPoster('west'),
+                mapAlt: tPoster('mapAlt'),
+                watermark: tPoster('watermark'),
+                disclaimer: tPoster('disclaimer'),
+                timeAt: tPoster('timeAt'),
+              }}
+            />
+          </FormatPreviewFrame>
+            </WallScene>
+          ) : (
           <FormatPreviewFrame format={shown} style={poster.style ?? 'gold'}>
             <PosterPreview
               data={poster}
@@ -104,6 +154,7 @@ export function CreatePreview({
               }}
             />
           </FormatPreviewFrame>
+          )}
         </div>
 
         {step === 3 && shown !== 'poster' && (

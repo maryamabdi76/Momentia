@@ -4,6 +4,7 @@ import { Suspense, useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { trackEvent } from '@/lib/track';
 import { giftUrl } from '../lib/gift-link';
+import { isOccasionSlug } from '../lib/occasions';
 import { shareLink, type ShareApp } from '../lib/share-links';
 import { useTranslations } from 'next-intl';
 import {
@@ -90,6 +91,7 @@ function parseStep(value: string | null): number {
 
 function StepperInner() {
   const t = useTranslations('CreatePage');
+  const tOccasions = useTranslations('Occasions');
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -134,6 +136,16 @@ function StepperInner() {
     } else {
       // first visit: start on today's date (the browser's day, so not in the static default)
       setMoment((m) => ({ ...m, ...todayJalali() }));
+    }
+    // /create?occasion=birthday (from an occasion page) starts from that occasion's wording
+    const occasion = searchParams.get('occasion');
+    if (isOccasionSlug(occasion)) {
+      setPersonal((p) => ({
+        ...p,
+        title: tOccasions(`${occasion}.presetTitle`),
+        names: tOccasions(`${occasion}.presetNames`),
+        quote: tOccasions(`${occasion}.presetQuote`),
+      }));
     }
     // /create?moment=yalda (from the Yalda page) starts on Yalda night, whatever was saved
     if (isYaldaPreset(searchParams.get('moment'))) {
