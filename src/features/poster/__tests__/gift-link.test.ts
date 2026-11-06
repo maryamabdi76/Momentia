@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { decodeGift, encodeGift, giftUrl, readGiftHash } from '../lib/gift-link.ts';
+import { decodeGift, encodeGift,
+  encodeGiftLegacy, giftUrl, readGiftHash } from '../lib/gift-link.ts';
 import type { PosterDraft } from '../lib/draft.ts';
 
 const draft = {
@@ -56,4 +57,16 @@ test('garbage and tampered links give null instead of throwing', () => {
     personal: { ...draft.personal, style: 'neon' },
   } as unknown as PosterDraft);
   assert.equal(decodeGift(badStyle), null);
+});
+
+test('the compact link is much shorter than the old one, and old links still open', () => {
+  const short = encodeGift(draft);
+  const long = encodeGiftLegacy(draft);
+  assert.ok(short.length < long.length * 0.6, `${short.length} vs ${long.length}`);
+  assert.deepEqual(decodeGift(long), draft);
+});
+
+test('a choice nobody defined is refused, not guessed', () => {
+  const next = { ...draft, personal: { ...draft.personal, frame: 'aurora' } } as unknown as PosterDraft;
+  assert.equal(decodeGift(encodeGift(next)), null);
 });

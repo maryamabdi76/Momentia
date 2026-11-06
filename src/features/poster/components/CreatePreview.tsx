@@ -119,7 +119,7 @@ export function CreatePreview({
         <div className="mt-6 flex justify-center">
           {step === 3 && scene === 'wall' ? (
             <WallScene label={t('preview.sceneWallAlt')}>
-              <FormatPreviewFrame format={shown} style={poster.style ?? 'gold'}>
+              <FormatPreviewFrame format="poster" style={poster.style ?? 'gold'}>
             <PosterPreview
               data={poster}
               sky={sky}
