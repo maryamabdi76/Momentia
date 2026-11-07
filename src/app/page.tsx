@@ -8,6 +8,7 @@ import { HomeChoosePoster } from '@/features/home/components/HomeChoosePoster';
 import { HomeStories } from '@/features/home/components/HomeStories';
 import { HomeSteps } from '@/features/home/components/HomeSteps';
 import { HomeGifts } from '@/features/home/components/HomeGifts';
+import { HomeTestimonials } from '@/features/home/components/HomeTestimonials';
 import { HomeMoon } from '@/features/home/components/HomeMoon';
 import { HomeYalda } from '@/features/home/components/HomeYalda';
 import { HomeCreate } from '@/features/home/components/HomeCreate';
@@ -43,6 +44,7 @@ export default function Home() {
       <HomeStories />
       <HomeSteps />
       <HomeGifts />
+      <HomeTestimonials />
       <HomeMoon />
       <HomeYalda />
       <HomeCreate />

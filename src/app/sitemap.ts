@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next';
 import { getSiteUrl } from '@/lib/site';
+import { OCCASION_SLUGS } from '@/features/poster/lib/occasions';
 
 const PATHS = [
   '/',
@@ -10,6 +11,7 @@ const PATHS = [
   '/terms',
   '/privacy',
   '/yalda',
+  ...OCCASION_SLUGS.map((slug) => `/occasions/${slug}` as const),
 ] as const;
 
 export default function sitemap(): MetadataRoute.Sitemap {

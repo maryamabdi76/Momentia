@@ -26,6 +26,7 @@ import {
   showOutcome,
   verifyWebhookSecret,
 } from '../lib/telegram.ts';
+import { recoverOrder } from '../lib/recover.ts';
 import { formatToman } from '../../poster/lib/digits.ts';
 
 const SECRET = 'x'.repeat(40);
@@ -350,4 +351,22 @@ test('failures are explained for the server log', () => {
   assert.match(describeTelegramFailure(new TelegramError('Forbidden: bot was blocked by the user', 403)), /blocked/);
   assert.match(describeTelegramFailure(new TelegramError('TypeError', 0)), /network/);
   assert.match(describeTelegramFailure(new Error('x')), /unexpected/);
+});
+
+test('a tracking code finds its order, with or without stray spaces, and nothing else does', async () => {
+  const redis = fakeRedis();
+  const order = await createOrder(store, 49000, redis.fetchImpl);
+  assert.ok(order);
+  assert.deepEqual(await recoverOrder(store, order.id, redis.fetchImpl), {
+    orderId: order.id,
+    status: 'pending',
+  });
+  assert.equal(await markSubmitted(store, order.id, redis.fetchImpl), 'submitted');
+  assert.deepEqual(await recoverOrder(store, `  ${order.id}\n`, redis.fetchImpl), {
+    orderId: order.id,
+    status: 'submitted',
+  });
+  assert.equal(await recoverOrder(store, 'short', redis.fetchImpl), null);
+  assert.equal(await recoverOrder(store, 42, redis.fetchImpl), null);
+  assert.equal(await recoverOrder(store, 'aaaaaaaaaaaaaaaa', redis.fetchImpl), null);
 });

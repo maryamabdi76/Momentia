@@ -204,7 +204,7 @@ export function Step3Receive({
         <p className="text-xs text-[#CEB47B]">{t('stepLabel')}</p>
         <h1 className="mt-2 text-3xl font-bold text-white">{t('title')}</h1>
         <p className="mt-2 text-sm leading-7 text-white/55">{description}</p>
-        <p className="mt-2 text-[12px] leading-6 text-white/40">
+        <p className="mt-2 text-[12px] leading-6 text-white/60">
           {t('digitalOnlyNote')}
         </p>
       </div>
