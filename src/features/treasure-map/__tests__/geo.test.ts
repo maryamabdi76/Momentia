@@ -1,7 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { boundsKm, frameView, fromMeters, lonLatToWorld, projectToPoster, toMeters, viewBounds, worldToLonLat } from '../lib/mercator.ts';
-import { buildQuery, parseNominatim, parseOverpass } from '../lib/streets.ts';
+import { parseNominatim } from '../lib/places.ts';
+import { pickZoom, tilesFor, tileUrl } from '../lib/tiles.ts';
 
 const tehran = { lon: 51.39, lat: 35.69 };
 
@@ -42,38 +43,28 @@ test('a single place still gets a sensible ~1.5km-wide view', () => {
   assert.ok(km > 1 && km < 3, `got ${km}`);
 });
 
-test('overpass answers are sorted into roads, rivers, water and parks; junk is skipped', () => {
-  const geom = [{ lat: 35.7, lon: 51.4 }, { lat: 35.701, lon: 51.401 }];
-  const d = parseOverpass({
-    elements: [
-      { type: 'way', tags: { highway: 'primary' }, geometry: geom },
-      { type: 'way', tags: { highway: 'residential' }, geometry: geom },
-      { type: 'way', tags: { waterway: 'river' }, geometry: geom },
-      { type: 'way', tags: { natural: 'water' }, geometry: geom },
-      { type: 'way', tags: { leisure: 'park' }, geometry: geom },
-      { type: 'way', tags: { highway: 'footway' }, geometry: geom },
-      { type: 'node', tags: {}, geometry: geom },
-      { type: 'way', tags: { highway: 'primary' }, geometry: [{ lat: 1, lon: 1 }] },
-      null,
-      { type: 'way', tags: { highway: 'primary' }, geometry: 'nope' },
-    ],
-  });
-  assert.deepEqual([d.major.length, d.minor.length, d.rivers.length, d.water.length, d.parks.length], [1, 1, 1, 1, 1]);
-  assert.deepEqual(parseOverpass(null).major, []);
-  assert.deepEqual(parseOverpass({ elements: 5 }).minor, []);
+test('tiles cover the whole shape, in place, with no gaps', () => {
+  const pts = [{ lon: 51.338, lat: 35.6997 }, { lon: 51.3753, lat: 35.7448 }];
+  const r = 296;
+  const view = frameView(pts, r);
+  const c = { x: 450, y: 610 };
+  const tiles = tilesFor(view, c, r, 'light');
+  assert.ok(tiles.length >= 4 && tiles.length <= 60, `got ${tiles.length}`);
+  const size = tiles[0]!.size;
+  assert.ok(size > 100 && size <= 257, `tile size ${size}`);
+  assert.ok(Math.min(...tiles.map((t) => t.left)) <= c.x - r);
+  assert.ok(Math.max(...tiles.map((t) => t.left + t.size)) >= c.x + r);
+  assert.ok(Math.min(...tiles.map((t) => t.top)) <= c.y - r);
+  assert.ok(Math.max(...tiles.map((t) => t.top + t.size)) >= c.y + r);
+  // a pin lands on the tile that should hold it
+  const p = projectToPoster(pts[0]!, view, c);
+  assert.ok(tiles.some((t) => p.x >= t.left && p.x < t.left + t.size && p.y >= t.top && p.y < t.top + t.size));
 });
 
-test('the point budget stops a huge answer', () => {
-  const geom = Array.from({ length: 100 }, (_, i) => ({ lat: 35 + i * 1e-4, lon: 51 }));
-  const els = Array.from({ length: 50 }, () => ({ type: 'way', tags: { highway: 'primary' }, geometry: geom }));
-  assert.ok(parseOverpass({ elements: els }, 1000).major.length <= 10);
-});
-
-test('queries ask for the box, and big areas ask for main roads only', () => {
-  const b = { south: 35.6, west: 51.3, north: 35.8, east: 51.5 };
-  assert.match(buildQuery(b, false), /\(35\.60000,51\.30000,35\.80000,51\.50000\)/);
-  assert.match(buildQuery(b, false), /residential/);
-  assert.doesNotMatch(buildQuery(b, true), /residential/);
+test('tile urls and zoom', () => {
+  assert.equal(tileUrl('dark', 15, 100, 201), 'https://b.basemaps.cartocdn.com/dark_nolabels/15/100/201@2x.png');
+  assert.ok(pickZoom(1500 / 592, 35.7) >= 14 && pickZoom(1500 / 592, 35.7) <= 17);
+  assert.equal(pickZoom(1e9, 0), 3);
 });
 
 test('place search results are shortened to a name', () => {

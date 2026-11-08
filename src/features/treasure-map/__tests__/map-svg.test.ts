@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { buildTreasureMapSvg, placeMilestones, titleFontSize } from '../lib/map-svg.ts';
+import { buildTreasureMapSvg, mapTiles, placeMilestones, titleFontSize } from '../lib/map-svg.ts';
 import { createProjection, spreadPins, smoothOpenPath } from '../lib/map-geometry.ts';
 
 const labels = {
@@ -116,37 +116,45 @@ test('long titles get a smaller, but never tiny, font', () => {
   assert.ok(titleFontSize('x'.repeat(200)) >= 40);
 });
 
-test('with real streets, pins land where the places are and the map data is credited', () => {
+test('with picked places the map is drawn from tiles and credited; pins land where the places are', () => {
   const places = [
     { title: 'الف', city: 'برج آزادی', date: '', lat: 35.6997, lon: 51.338 },
     { title: 'ب', city: 'برج میلاد', date: '', lat: 35.7448, lon: 51.3753 },
   ];
-  const streets = {
-    major: [[{ lon: 51.33, lat: 35.7 }, { lon: 51.38, lat: 35.74 }]],
-    minor: [[{ lon: 51.34, lat: 35.71 }, { lon: 51.36, lat: 35.72 }]],
-    rivers: [],
-    water: [],
-    parks: [[{ lon: 51.34, lat: 35.72 }, { lon: 51.35, lat: 35.72 }, { lon: 51.35, lat: 35.73 }]],
-  };
   const base = { ...data, scope: 'city' as const, milestones: places };
-  const real = buildTreasureMapSvg({ data: base, labels, watermark: false, streets });
-  assert.match(real, /© OpenStreetMap/);
-  assert.match(real, /stroke-width="3"/);
-  const pins = [...real.matchAll(/<circle cx="([\d.]+)" cy="([\d.]+)" r="15"/g)].map((m) => [Number(m[1]), Number(m[2])]);
+  const svg = buildTreasureMapSvg({ data: base, labels, watermark: false });
+  assert.match(svg, /<image href="https:\/\/[a-d]\.basemaps\.cartocdn\.com\/light_nolabels\//);
+  assert.match(svg, /© OpenStreetMap/);
+  assert.match(svg, /feColorMatrix/); // paper tint
+  const pins = [...svg.matchAll(/<circle cx="([\d.]+)" cy="([\d.]+)" r="15"/g)].map((m) => [Number(m[1]), Number(m[2])]);
   assert.equal(pins.length, 2);
   // Milad Tower is north-east of Azadi Tower
   assert.ok(pins[1]![0] > pins[0]![0] && pins[1]![1] < pins[0]![1]);
-  // without street data, the stylised backdrop is used and nothing is credited
-  const fallback = buildTreasureMapSvg({ data: base, labels, watermark: false, streets: null });
-  assert.doesNotMatch(fallback, /© OpenStreetMap/);
+  // an export swaps each tile for its embedded picture
+  const url = mapTiles(base)[0]!.url;
+  assert.match(buildTreasureMapSvg({ data: base, labels, watermark: false, tileImages: { [url]: 'data:image/png;base64,AAAA' } }), /href="data:image\/png;base64,AAAA"/);
 });
 
-test('picked places never get invented streets while the real ones are missing', () => {
+test('night uses the dark base map, with no tint', () => {
+  const places = [
+    { title: 'الف', city: 'الف', date: '', lat: 35.6997, lon: 51.338 },
+    { title: 'ب', city: 'ب', date: '', lat: 35.7, lon: 51.34 },
+  ];
+  const svg = buildTreasureMapSvg({ data: { ...data, scope: 'city', theme: 'night', milestones: places }, labels, watermark: false });
+  assert.match(svg, /dark_nolabels/);
+  assert.doesNotMatch(svg, /feColorMatrix/);
+});
+
+test('no tiles for an Iran map or while places are not all picked', () => {
+  assert.deepEqual(mapTiles(data), []);
+  assert.deepEqual(mapTiles({ ...data, scope: 'city' }), []);
+});
+
+test('picked places never get invented streets', () => {
   const places = [
     { title: 'الف', city: 'الف', date: '', lat: 35.6997, lon: 51.338 },
     { title: 'ب', city: 'ب', date: '', lat: 35.7448, lon: 51.3753 },
   ];
-  const svg = buildTreasureMapSvg({ data: { ...data, scope: 'city', milestones: places }, labels, watermark: false, streets: null });
+  const svg = buildTreasureMapSvg({ data: { ...data, scope: 'city', milestones: places }, labels, watermark: false });
   assert.doesNotMatch(svg, /stroke-opacity="0.34"/); // the stylised block grid
-  assert.equal((svg.match(/r="15"/g) ?? []).length, 2);
 });

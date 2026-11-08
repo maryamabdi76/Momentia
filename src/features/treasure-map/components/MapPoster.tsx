@@ -2,7 +2,6 @@
 
 import { useId, useMemo } from 'react';
 import { cn } from 'cn';
-import type { StreetData } from '../lib/streets';
 import {
   buildTreasureMapSvg,
   type TreasureMapData,
@@ -13,18 +12,16 @@ import {
 export function MapPoster({
   data,
   labels,
-  streets,
   className,
 }: {
   data: TreasureMapData;
   labels: TreasureMapLabels;
-  streets?: StreetData | null;
   className?: string;
 }) {
   const idPrefix = `tmap${useId().replace(/[^a-zA-Z0-9]/g, '')}`;
   const svg = useMemo(
-    () => buildTreasureMapSvg({ data, labels, watermark: true, idPrefix, streets }),
-    [data, labels, idPrefix, streets],
+    () => buildTreasureMapSvg({ data, labels, watermark: true, idPrefix }),
+    [data, labels, idPrefix],
   );
   return (
     <div

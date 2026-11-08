@@ -9,7 +9,6 @@ import { PremiumAccessError, ensurePremiumAccess } from '@/features/poster/lib/p
 import { readPremiumToken, subscribePremiumToken } from '@/features/payments/lib/client';
 import { createMapSvg, svgToPngBlob } from '../lib/export-map';
 import { saveMapDraft } from '../lib/draft';
-import type { StreetData } from '../lib/streets';
 import type { TreasureMapLabels, TreasureMapData } from '../lib/map-svg';
 import type { TreasureMapValues } from '../lib/schemas';
 
@@ -29,7 +28,6 @@ export function useMapExport(
   data: TreasureMapData,
   labels: TreasureMapLabels,
   draft: TreasureMapValues,
-  streets: StreetData | null = null,
 ): MapExport {
   const [busy, setBusy] = useState<MapExport['busy']>(null);
   const [notice, setNotice] = useState<MapExport['notice']>(null);
@@ -56,7 +54,7 @@ export function useMapExport(
 
   const paid = () =>
     ensurePremiumAccess(null, { product: 'map', save: () => saveMapDraft(draft) });
-  const svg = () => createMapSvg({ data, labels, streets, watermark: false });
+  const svg = () => createMapSvg({ data, labels, watermark: false });
 
   return {
     busy,

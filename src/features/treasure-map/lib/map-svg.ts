@@ -2,8 +2,8 @@ import type { PosterFonts } from '../../poster/lib/poster-svg.ts';
 import { formatDecimal, toPersianDigits } from '../../poster/lib/digits.ts';
 import { IRAN_CITIES } from '../../poster/lib/cities.ts';
 import { mulberry32 } from '../../moon/lib/random.ts';
-import { frameView, projectToPoster, type LonLat } from './mercator.ts';
-import { hasStreets, type StreetData } from './streets.ts';
+import { frameView, projectToPoster } from './mercator.ts';
+import { tilesFor, type TileSpec } from './tiles.ts';
 import {
   createProjection,
   iranOutlinePath,
@@ -45,7 +45,7 @@ export type TreasureMapLabels = {
   /** "{count} لحظه" already filled in. */
   count: string;
   watermark: string;
-  /** Credit for the map data, shown when real streets are drawn. */
+  /** Credit for the map data, shown when a real map is drawn. */
   credit: string;
   alt: string;
   north: string;
@@ -54,8 +54,8 @@ export type TreasureMapOptions = {
   data: TreasureMapData;
   labels: TreasureMapLabels;
   fonts?: PosterFonts;
-  /** Real streets for the picked places; without them a stylised backdrop is drawn. */
-  streets?: StreetData | null;
+  /** Tile pictures as data: URIs, by tile URL, so an exported file stands on its own. */
+  tileImages?: Record<string, string>;
   /** The small site mark at the foot; the premium file leaves it out. */
   watermark: boolean;
   /** Prefix for ids, so several maps can share a page. */
@@ -68,6 +68,13 @@ const PALETTES = {
   blush: { bg: '#F7E9E5', card: '#FCF4F1', ink: '#3A2A2E', accent: '#A8324A', muted: '#8A7479', land: '#F0DAD5', water: '#E0CFD2', park: '#E6D9CF', onAccent: '#FFFFFF' },
   night: { bg: '#0c142b', card: '#101a38', ink: '#F4EFE6', accent: '#CEB47B', muted: '#AAB6CD', land: '#1a2850', water: '#1a2d5e', park: '#142447', onAccent: '#0c142b' },
 } as const;
+
+/** The light base map is tinted towards each theme's paper; the dark one is used as it is. */
+const TINTS: Record<MapTheme, { r: number; g: number; b: number } | null> = {
+  paper: { r: 0.99, g: 0.965, b: 0.92 },
+  blush: { r: 1, g: 0.94, b: 0.93 },
+  night: null,
+};
 
 const esc = (s: string) =>
   s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -188,26 +195,17 @@ function cityBackdrop(c: { cx: number; cy: number; r: number }, seed: string, p:
 const hasPoint = (m: Milestone): m is Milestone & { lat: number; lon: number } =>
   typeof m.lat === 'number' && typeof m.lon === 'number';
 
-/** Real streets, rivers, water and parks, drawn north up around the framed pins. */
-function realBackdrop(
-  streets: StreetData,
-  view: ReturnType<typeof frameView>,
-  c: { cx: number; cy: number },
-  p: Pal,
-): string {
-  const proj = (pt: LonLat) => projectToPoster(pt, view, { x: c.cx, y: c.cy });
-  const path = (lines: LonLat[][], close = false) =>
-    lines
-      .map((l) => `M${l.map((pt) => { const q = proj(pt); return `${n(q.x)} ${n(q.y)}`; }).join('L')}${close ? 'Z' : ''}`)
-      .join('');
-  const line = `fill="none" stroke-linecap="round" stroke-linejoin="round"`;
-  return (
-    (streets.parks.length ? `<path d="${path(streets.parks, true)}" fill="${p.park}"/>` : '') +
-    (streets.water.length ? `<path d="${path(streets.water, true)}" fill="${p.water}"/>` : '') +
-    (streets.rivers.length ? `<path d="${path(streets.rivers)}" ${line} stroke="${p.water}" stroke-width="12"/>` : '') +
-    (streets.minor.length ? `<path d="${path(streets.minor)}" ${line} stroke="${p.ink}" stroke-opacity="0.42" stroke-width="1.3"/>` : '') +
-    (streets.major.length ? `<path d="${path(streets.major)}" ${line} stroke="${p.ink}" stroke-opacity="0.75" stroke-width="3"/>` : '')
-  );
+const picked = (ms: Milestone[]) => ms.filter(hasPoint);
+
+/** The tiles a city map needs, or none when its places are not all picked yet. */
+export function mapTiles(data: TreasureMapData): TileSpec[] {
+  if (data.scope !== 'city') return [];
+  const items = data.milestones.slice(0, MAX_MILESTONES);
+  const pts = picked(items);
+  if (pts.length === 0 || pts.length !== items.length) return [];
+  const view = frameView(pts.map((m) => ({ lon: m.lon, lat: m.lat })), MAP_RADIUS);
+  const heart = data.shape === 'heart';
+  return tilesFor(view, { x: MAP_POSTER_WIDTH / 2, y: heart ? 618 : 610 }, MAP_RADIUS, data.theme === 'night' ? 'dark' : 'light');
 }
 
 /** Points wandering from right to left across the middle of the shape (Persian reads right to left). */
@@ -223,8 +221,14 @@ function cityPins(c: { cx: number; cy: number; r: number }, count: number, seed:
   });
 }
 
+function tintFilter(id: string, theme: MapTheme): string {
+  const t = TINTS[theme];
+  if (!t) return '';
+  return `<filter id="${id}-tint" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="${t.r} 0 0 0 0  0 ${t.g} 0 0 0  0 0 ${t.b} 0 0  0 0 0 1 0"/></filter>`;
+}
+
 export function buildTreasureMapSvg(opts: TreasureMapOptions): string {
-  const { data, labels, fonts, watermark, streets } = opts;
+  const { data, labels, fonts, watermark, tileImages } = opts;
   const id = opts.idPrefix ?? 'tmap';
   const p = PALETTES[data.theme];
   const W = MAP_POSTER_WIDTH;
@@ -260,14 +264,24 @@ export function buildTreasureMapSvg(opts: TreasureMapOptions): string {
     const clip = heart ? `<path d="${shapePath}"/>` : `<circle cx="${shape.cx}" cy="${shape.cy}" r="${R}"/>`;
     parts.push(`<clipPath id="${id}-clip">${clip}</clipPath>`);
     parts.push(heart ? `<path d="${shapePath}" fill="${p.card}"/>` : `<circle cx="${shape.cx}" cy="${shape.cy}" r="${R}" fill="${p.card}"/>`);
-    const picked = items.map((x) => x.m).filter(hasPoint);
-    const real = picked.length === items.length && picked.length > 0;
-    const view = real ? frameView(picked.map((m) => ({ lon: m.lon, lat: m.lat })), R) : null;
-    const drawReal = real && view !== null && hasStreets(streets);
+    const pts = picked(items.map((x) => x.m));
+    const real = pts.length === items.length && pts.length > 0;
+    const view = real ? frameView(pts.map((m) => ({ lon: m.lon, lat: m.lat })), R) : null;
+    const tiles = mapTiles(data);
+    const tint = TINTS[data.theme];
+    const tileMarkup = tiles
+      .map((t) => `<image href="${esc(tileImages?.[t.url] ?? t.url)}" x="${n(t.left - 0.4)}" y="${n(t.top - 0.4)}" width="${n(t.size + 0.8)}" height="${n(t.size + 0.8)}" preserveAspectRatio="none"/>`)
+      .join('');
     parts.push(
-      `<g clip-path="url(#${id}-clip)">${drawReal ? realBackdrop(streets, view, shape, p) : real ? '' : cityBackdrop(shape, data.area, p, id)}</g>`,
+      `<g clip-path="url(#${id}-clip)">${
+        real
+          ? tint
+            ? `<g filter="url(#${id}-tint)">${tileMarkup}</g>`
+            : tileMarkup
+          : cityBackdrop(shape, data.area, p, id)
+      }</g>`,
     );
-    usedReal = drawReal;
+    usedReal = real;
     realView = real ? view : null;
     // outline, with a fine second ring on a circle
     if (heart) {
@@ -344,7 +358,7 @@ export function buildTreasureMapSvg(opts: TreasureMapOptions): string {
 
   return (
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="${esc(labels.alt)}">` +
-    `<defs><style>${fontCss}text{font-family:'Vazirmatn',Tahoma,sans-serif}</style></defs>` +
+    `<defs><style>${fontCss}text{font-family:'Vazirmatn',Tahoma,sans-serif}</style>${tintFilter(id, data.theme)}</defs>` +
     `<rect width="${W}" height="${H}" fill="${p.bg}"/>` +
     parts.join('') +
     `</svg>`
