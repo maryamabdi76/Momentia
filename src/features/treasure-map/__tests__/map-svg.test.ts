@@ -140,3 +140,13 @@ test('with real streets, pins land where the places are and the map data is cred
   const fallback = buildTreasureMapSvg({ data: base, labels, watermark: false, streets: null });
   assert.doesNotMatch(fallback, /© OpenStreetMap/);
 });
+
+test('picked places never get invented streets while the real ones are missing', () => {
+  const places = [
+    { title: 'الف', city: 'الف', date: '', lat: 35.6997, lon: 51.338 },
+    { title: 'ب', city: 'ب', date: '', lat: 35.7448, lon: 51.3753 },
+  ];
+  const svg = buildTreasureMapSvg({ data: { ...data, scope: 'city', milestones: places }, labels, watermark: false, streets: null });
+  assert.doesNotMatch(svg, /stroke-opacity="0.34"/); // the stylised block grid
+  assert.equal((svg.match(/r="15"/g) ?? []).length, 2);
+});

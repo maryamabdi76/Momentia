@@ -265,7 +265,7 @@ export function buildTreasureMapSvg(opts: TreasureMapOptions): string {
     const view = real ? frameView(picked.map((m) => ({ lon: m.lon, lat: m.lat })), R) : null;
     const drawReal = real && view !== null && hasStreets(streets);
     parts.push(
-      `<g clip-path="url(#${id}-clip)">${drawReal ? realBackdrop(streets, view, shape, p) : cityBackdrop(shape, data.area, p, id)}</g>`,
+      `<g clip-path="url(#${id}-clip)">${drawReal ? realBackdrop(streets, view, shape, p) : real ? '' : cityBackdrop(shape, data.area, p, id)}</g>`,
     );
     usedReal = drawReal;
     realView = real ? view : null;

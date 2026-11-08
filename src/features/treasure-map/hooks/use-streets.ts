@@ -3,11 +3,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import { MAP_RADIUS, type Milestone, type TreasureMapData } from '../lib/map-svg';
 import { boundsKm, frameView, viewBounds } from '../lib/mercator';
-import { fetchStreets, type StreetData } from '../lib/streets';
+import { fetchStreets, hasStreets, type StreetData } from '../lib/streets';
 
 export type StreetsState = {
   streets: StreetData | null;
-  status: 'idle' | 'loading' | 'ready' | 'error' | 'too-far';
+  status: 'idle' | 'loading' | 'ready' | 'empty' | 'error' | 'too-far';
+  /** Ask again after an error. */
+  retry: () => void;
 };
 
 /** Beyond this the places are in different cities; one street map of all of it would be unreadable. */
@@ -25,7 +27,8 @@ const picked = (ms: Milestone[]) =>
  * stop editing, asks once per area, and remembers the answer.
  */
 export function useStreets(data: TreasureMapData): StreetsState {
-  const [state, setState] = useState<StreetsState>({ streets: null, status: 'idle' });
+  const [state, setState] = useState<Pick<StreetsState, 'streets' | 'status'>>({ streets: null, status: 'idle' });
+  const [attempt, setAttempt] = useState(0);
 
   const plan = useMemo(() => {
     if (data.scope !== 'city' || data.milestones.length === 0) return null;
@@ -51,7 +54,7 @@ export function useStreets(data: TreasureMapData): StreetsState {
     }
     const hit = cache.get(plan.key);
     if (hit) {
-      setState({ streets: hit, status: 'ready' });
+      setState({ streets: hit, status: hasStreets(hit) ? 'ready' : 'empty' });
       return;
     }
     const ctrl = new AbortController();
@@ -60,7 +63,7 @@ export function useStreets(data: TreasureMapData): StreetsState {
       fetchStreets(plan.bounds, plan.majorOnly, ctrl.signal)
         .then((streets) => {
           cache.set(plan.key, streets);
-          setState({ streets, status: 'ready' });
+          setState({ streets, status: hasStreets(streets) ? 'ready' : 'empty' });
         })
         .catch((err: unknown) => {
           if (ctrl.signal.aborted) return;
@@ -74,7 +77,7 @@ export function useStreets(data: TreasureMapData): StreetsState {
     };
     // `plan` is derived from `key`; the key is what says the area changed
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key]);
+  }, [key, attempt]);
 
-  return state;
+  return { ...state, retry: () => setAttempt((a) => a + 1) };
 }

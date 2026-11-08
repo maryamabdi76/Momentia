@@ -91,7 +91,10 @@ export function TreasureMapMaker() {
 
   const streetsState = useStreets(current);
   const exporter = useMapExport(current, labels, current, streetsState.streets);
-  const valid = treasureMapSchema.safeParse(current).success;
+  const filled = treasureMapSchema.safeParse(current).success;
+  // a city map is only a real map once its streets have arrived
+  const streetsOk = current.scope !== 'city' || streetsState.status === 'ready';
+  const valid = filled && streetsOk;
 
   // keep what was typed, so closing the tab to pay does not lose it
   useEffect(() => {
@@ -318,12 +321,21 @@ export function TreasureMapMaker() {
       </section>
 
       <aside className="min-w-0 space-y-5 lg:sticky lg:top-6 lg:self-start">
-        <MapPoster data={current} labels={labels} streets={streetsState.streets} />
         {current.scope === 'city' && streetsState.status !== 'idle' && streetsState.status !== 'ready' && (
-          <p className="text-center text-[12px] leading-6 text-[#AAB6CD]" role="status">
-            {t(`streets.${streetsState.status === 'too-far' ? 'tooFar' : streetsState.status}`)}
-          </p>
+          <div
+            role="status"
+            className="flex flex-wrap items-center gap-3 rounded-xl border border-[#CEB47B]/40 bg-[#CEB47B]/10 px-4 py-3 text-[13px] leading-6 text-[#E8D9B8]"
+          >
+            {streetsState.status === 'loading' && <Loader2 aria-hidden className="size-4 shrink-0 animate-spin" />}
+            <span className="min-w-0 flex-1">{t(`streets.${streetsState.status === 'too-far' ? 'tooFar' : streetsState.status}`)}</span>
+            {streetsState.status === 'error' && (
+              <Button type="button" size="sm" onClick={streetsState.retry} className="h-8 bg-[#CEB47B] text-[#0c142b] hover:bg-[#e0c180]">
+                {t('streets.retry')}
+              </Button>
+            )}
+          </div>
         )}
+        <MapPoster data={current} labels={labels} streets={streetsState.streets} />
 
         <div className="space-y-4 rounded-2xl border border-[#CEB47B] bg-[#142039] p-5">
           <div className="flex items-center justify-between gap-2">
@@ -360,8 +372,11 @@ export function TreasureMapMaker() {
               {t('premium.downloadSvg')}
             </Button>
           </div>
-          {!valid && (
+          {!filled && (
             <p className="text-[12px] leading-6 text-[#E8D9B8]">{t('premium.incomplete')}</p>
+          )}
+          {filled && !streetsOk && (
+            <p className="text-[12px] leading-6 text-[#E8D9B8]">{t('premium.waitStreets')}</p>
           )}
           {exporter.notice && (
             <p role="alert" className="rounded-lg border border-red-300/30 px-3 py-2 text-[12px] leading-6 text-red-300">

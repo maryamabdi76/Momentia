@@ -72,28 +72,66 @@ export function parseOverpass(json: unknown, maxPoints = 60000): StreetData {
 export const hasStreets = (d: StreetData | null | undefined): d is StreetData =>
   !!d && d.major.length + d.minor.length > 0;
 
-const ENDPOINTS = ['https://overpass-api.de/api/interpreter', 'https://overpass.kumi.systems/api/interpreter'];
+const ENDPOINTS = [
+  'https://overpass-api.de/api/interpreter',
+  'https://overpass.kumi.systems/api/interpreter',
+  'https://overpass.private.coffee/api/interpreter',
+];
+/** The next server is tried this long after the previous one, if it has not answered yet. */
+const STAGGER_MS = 4000;
+const REQUEST_TIMEOUT_MS = 20000;
 
-/** Asks OpenStreetMap's Overpass servers for the streets in a box, trying a second server if the first fails. */
+const sleep = (ms: number, signal: AbortSignal) =>
+  new Promise<void>((resolve, reject) => {
+    const done = () => {
+      clearTimeout(t);
+      reject(new DOMException('aborted', 'AbortError'));
+    };
+    const t = setTimeout(() => {
+      signal.removeEventListener('abort', done);
+      resolve();
+    }, ms);
+    signal.addEventListener('abort', done, { once: true });
+  });
+
+/**
+ * Asks OpenStreetMap's Overpass servers for the streets in a box. The first server is asked
+ * at once; if it has not answered after a few seconds the next is asked too, and the first
+ * good answer wins. A server that does not answer in 20 s is given up on.
+ */
 export async function fetchStreets(b: Bounds, majorOnly: boolean, signal?: AbortSignal): Promise<StreetData> {
   const body = `data=${encodeURIComponent(buildQuery(b, majorOnly))}`;
-  let lastError: unknown = new Error('overpass');
-  for (const url of ENDPOINTS) {
+  const all = new AbortController();
+  const onOuterAbort = () => all.abort();
+  signal?.addEventListener('abort', onOuterAbort, { once: true });
+
+  const request = async (url: string, delay: number): Promise<StreetData> => {
+    if (delay > 0) await sleep(delay, all.signal);
+    const own = new AbortController();
+    const timer = setTimeout(() => own.abort(), REQUEST_TIMEOUT_MS);
+    const cancel = () => own.abort();
+    all.signal.addEventListener('abort', cancel, { once: true });
     try {
       const res = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body,
-        signal,
+        signal: own.signal,
       });
       if (!res.ok) throw new Error(`overpass ${res.status}`);
       return parseOverpass(await res.json());
-    } catch (err) {
-      if (signal?.aborted) throw err;
-      lastError = err;
+    } finally {
+      clearTimeout(timer);
+      all.signal.removeEventListener('abort', cancel);
     }
+  };
+
+  try {
+    return await Promise.any(ENDPOINTS.map((url, i) => request(url, i * STAGGER_MS)));
+  } finally {
+    all.abort(); // stop the slower requests once one has answered
+    signal?.removeEventListener('abort', onOuterAbort);
   }
-  throw lastError;
 }
 
 export type PlaceHit = { name: string; detail: string; lat: number; lon: number };
