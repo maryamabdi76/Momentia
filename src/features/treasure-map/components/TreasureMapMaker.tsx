@@ -20,14 +20,17 @@ import { MapPoster } from './MapPoster';
 const SAMPLE: TreasureMapValues = {
   title: 'جایی که قصهٔ ما رقم خورد',
   names: 'شیرین و فرهاد',
+  scope: 'city',
+  area: 'تهران',
+  theme: 'paper',
   milestones: [
-    { title: 'اولین قرار', city: 'تهران', date: '۱۴ مهر ۱۳۹۸' },
-    { title: 'خواستگاری', city: 'شیراز', date: '۲ اردیبهشت ۱۴۰۰' },
-    { title: 'جشن عروسی', city: 'اصفهان', date: '۲۰ شهریور ۱۴۰۰' },
+    { title: 'اولین قرار', city: 'کافه نادری', date: '۱۴ مهر ۱۳۹۸' },
+    { title: 'خواستگاری', city: 'پارک ملت', date: '۲ اردیبهشت ۱۴۰۰' },
+    { title: 'جشن عروسی', city: 'باغ کتاب', date: '۲۰ شهریور ۱۴۰۰' },
   ],
 };
 
-const EMPTY_MILESTONE = { title: '', city: 'تهران', date: '' };
+const EMPTY_MILESTONE = { title: '', city: '', date: '' };
 
 const fieldClass =
   'h-10 w-full rounded-lg border border-[#33415B] bg-[#0c142b] px-3 text-sm text-white placeholder:text-[#6f7c97] focus-visible:border-[#CEB47B] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#CEB47B]/30';
@@ -36,7 +39,7 @@ export function TreasureMapMaker() {
   const t = useTranslations('MapPage');
   const [ready, setReady] = useState(false);
 
-  const { control, register, reset } = useForm<TreasureMapValues>({
+  const { control, register, reset, setValue, getValues } = useForm<TreasureMapValues>({
     resolver: zodResolver(treasureMapSchema),
     defaultValues: SAMPLE,
     mode: 'onChange',
@@ -55,9 +58,12 @@ export function TreasureMapMaker() {
     () => ({
       title: watched.title || SAMPLE.title,
       names: watched.names ?? '',
+      scope: watched.scope ?? 'city',
+      area: watched.area ?? 'تهران',
+      theme: watched.theme ?? 'paper',
       milestones: (watched.milestones ?? []).map((m) => ({
         title: m?.title || '…',
-        city: m?.city ?? 'تهران',
+        city: m?.city || (watched.scope === 'iran' ? 'تهران' : '…'),
         date: m?.date ?? '',
       })),
     }),
@@ -70,8 +76,6 @@ export function TreasureMapMaker() {
       count: t('poster.count', { count: toPersianDigits(String(current.milestones.length)) }),
       watermark: t('poster.watermark'),
       alt: t('poster.alt'),
-      gulf: t('poster.gulf'),
-      caspian: t('poster.caspian'),
       north: t('poster.north'),
     }),
     [t, current.milestones.length],
@@ -105,7 +109,71 @@ export function TreasureMapMaker() {
           <p className="text-sm leading-7 text-[#AAB6CD]">{t('intro')}</p>
         </div>
 
-        <div className="space-y-3 rounded-2xl border border-[#33415B] bg-[#142039] p-5">
+        <div className="space-y-4 rounded-2xl border border-[#33415B] bg-[#142039] p-5">
+          <div className="space-y-2">
+            <span className="text-[13px] font-medium text-[#E8D9B8]">{t('scopeLabel')}</span>
+            <Controller
+              control={control}
+              name="scope"
+              render={({ field: f }) => (
+                <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label={t('scopeLabel')}>
+                  {(['city', 'iran'] as const).map((key) => (
+                    <button
+                      key={key}
+                      type="button"
+                      role="radio"
+                      aria-checked={f.value === key}
+                      onClick={() => {
+                        f.onChange(key);
+                        // a city map names places; an Iran map picks cities, so start each over from a valid value
+                        getValues('milestones').forEach((_, i) =>
+                          setValue(`milestones.${i}.city`, key === 'iran' ? 'تهران' : '', { shouldValidate: true }),
+                        );
+                      }}
+                      className={`h-10 rounded-lg border text-sm transition-colors ${f.value === key ? 'border-[#CEB47B] bg-[#CEB47B]/15 text-[#CEB47B]' : 'border-[#33415B] text-white/70 hover:bg-white/5'}`}
+                    >
+                      {t(`scope.${key}`)}
+                    </button>
+                  ))}
+                </div>
+              )}
+            />
+          </div>
+          {watched.scope !== 'iran' && (
+            <label className="block space-y-1.5">
+              <span className="text-[13px] font-medium text-[#E8D9B8]">{t('areaLabel')}</span>
+              <select {...register('area')} className={fieldClass}>
+                {IRAN_CITIES.map((c) => (
+                  <option key={c.name} value={c.name}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
+          <div className="space-y-2">
+            <span className="text-[13px] font-medium text-[#E8D9B8]">{t('themeLabel')}</span>
+            <Controller
+              control={control}
+              name="theme"
+              render={({ field: f }) => (
+                <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label={t('themeLabel')}>
+                  {(['paper', 'night'] as const).map((key) => (
+                    <button
+                      key={key}
+                      type="button"
+                      role="radio"
+                      aria-checked={f.value === key}
+                      onClick={() => f.onChange(key)}
+                      className={`h-10 rounded-lg border text-sm transition-colors ${f.value === key ? 'border-[#CEB47B] bg-[#CEB47B]/15 text-[#CEB47B]' : 'border-[#33415B] text-white/70 hover:bg-white/5'}`}
+                    >
+                      {t(`theme.${key}`)}
+                    </button>
+                  ))}
+                </div>
+              )}
+            />
+          </div>
           <label className="block space-y-1.5">
             <span className="text-[13px] font-medium text-[#E8D9B8]">{t('titleLabel')}</span>
             <Input {...register('title')} maxLength={40} className={fieldClass} placeholder={t('titlePlaceholder')} />
@@ -148,24 +216,25 @@ export function TreasureMapMaker() {
                     />
                   </label>
                   <label className="block space-y-1.5">
-                    <span className="text-[12px] text-[#AAB6CD]">{t('milestoneCity')}</span>
-                    <Controller
-                      control={control}
-                      name={`milestones.${i}.city`}
-                      render={({ field: f }) => (
-                        <select
-                          value={f.value}
-                          onChange={f.onChange}
-                          className={fieldClass}
-                        >
-                          {IRAN_CITIES.map((c) => (
-                            <option key={c.name} value={c.name}>
-                              {c.name}
-                            </option>
-                          ))}
-                        </select>
-                      )}
-                    />
+                    <span className="text-[12px] text-[#AAB6CD]">
+                      {watched.scope === 'iran' ? t('milestoneCity') : t('milestonePlace')}
+                    </span>
+                    {watched.scope === 'iran' ? (
+                      <select {...register(`milestones.${i}.city`)} className={fieldClass}>
+                        {IRAN_CITIES.map((c) => (
+                          <option key={c.name} value={c.name}>
+                            {c.name}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <Input
+                        {...register(`milestones.${i}.city`)}
+                        maxLength={22}
+                        className={fieldClass}
+                        placeholder={t('placePlaceholder')}
+                      />
+                    )}
                   </label>
                   <label className="block space-y-1.5">
                     <span className="text-[12px] text-[#AAB6CD]">{t('milestoneDate')}</span>
@@ -184,7 +253,7 @@ export function TreasureMapMaker() {
             type="button"
             variant="outline"
             disabled={fields.length >= MAX_MILESTONES}
-            onClick={() => append(EMPTY_MILESTONE)}
+            onClick={() => append({ ...EMPTY_MILESTONE, city: getValues('scope') === 'iran' ? 'تهران' : '' })}
             className="h-10 w-full gap-2 border-dashed border-[#CEB47B]/50 bg-transparent text-sm text-[#CEB47B] hover:bg-[#CEB47B]/10"
           >
             <Plus className="size-4" />

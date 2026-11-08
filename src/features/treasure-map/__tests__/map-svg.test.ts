@@ -8,11 +8,12 @@ const labels = {
   count: '۳ لحظه',
   watermark: 'آسمان شب ما',
   alt: 'نقشه',
-  gulf: 'خلیج فارس',
-  caspian: 'دریای خزر',
   north: 'ش',
 };
 const data = {
+  scope: 'iran' as const,
+  area: 'تهران',
+  theme: 'paper' as const,
   title: 'قصهٔ ما',
   names: 'شیرین و فرهاد',
   milestones: [
@@ -27,12 +28,30 @@ test('builds one pin and one legend row per known city', () => {
   assert.equal((svg.match(/r="15"/g) ?? []).length, 3);
   assert.match(svg, /اولین قرار/);
   assert.match(svg, /۱۴ مهر ۱۳۹۸/);
-  assert.match(svg, /خلیج فارس/);
 });
 
 test('premium file has no watermark, free preview has', () => {
   assert.match(buildTreasureMapSvg({ data, labels, watermark: true }), /آسمان شب ما/);
   assert.doesNotMatch(buildTreasureMapSvg({ data, labels, watermark: false }), /آسمان شب ما/);
+});
+
+test('city map: draws pins at the given places, with the city name and coordinates', () => {
+  const city = {
+    ...data,
+    scope: 'city' as const,
+    milestones: data.milestones.map((m, i) => ({ ...m, city: ['کافه نادری', 'پارک ملت', 'برج میلاد'][i]! })),
+  };
+  const svg = buildTreasureMapSvg({ data: city, labels, watermark: false });
+  assert.equal((svg.match(/r="15"/g) ?? []).length, 3);
+  assert.match(svg, /پارک ملت/);
+  assert.match(svg, /۳۵٫۶۹°N/);
+  assert.equal(svg, buildTreasureMapSvg({ data: city, labels, watermark: false }));
+});
+
+test('night theme changes the colours only', () => {
+  const night = buildTreasureMapSvg({ data: { ...data, theme: 'night' }, labels, watermark: false });
+  assert.match(night, /#0c142b/);
+  assert.doesNotMatch(buildTreasureMapSvg({ data, labels, watermark: false }), /#0c142b/);
 });
 
 test('escapes user text', () => {

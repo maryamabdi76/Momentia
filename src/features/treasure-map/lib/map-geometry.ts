@@ -62,7 +62,10 @@ function curveTo(p0: Point, p1: Point, p2: Point, p3: Point): string {
 }
 
 export function iranOutlinePath(project: ReturnType<typeof createProjection>): string {
-  return smoothClosedPath(IRAN_OUTLINE.map(([lon, lat]) => project(lon, lat)));
+  return smoothClosedPath(
+    // every other point: a softer silhouette, not a survey
+    IRAN_OUTLINE.filter((_, i) => i % 2 === 0).map(([lon, lat]) => project(lon, lat)),
+  );
 }
 
 /**
