@@ -15,9 +15,9 @@ export const treasureMapSchema = z
   .object({
     title: z.string().trim().min(1).max(40),
     names: z.string().trim().max(40),
-    scope: z.enum(MAP_SCOPES).default('city'),
-    area: z.string().refine((v) => CITY_NAMES.includes(v)).default('تهران'),
-    theme: z.enum(MAP_THEMES).default('paper'),
+    scope: z.enum(MAP_SCOPES),
+    area: z.string().refine((v) => CITY_NAMES.includes(v)),
+    theme: z.enum(MAP_THEMES),
     milestones: z.array(milestoneSchema).min(MIN_MILESTONES).max(MAX_MILESTONES),
   })
   .refine((v) => v.scope === 'city' || v.milestones.every((m) => CITY_NAMES.includes(m.city)), {
