@@ -2,17 +2,15 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { Loader2, Minus, Plus, Search } from 'lucide-react';
+import 'leaflet/dist/leaflet.css';
+import { Loader2, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { TILE, lonLatToWorld, worldToLonLat, type LonLat } from '../lib/mercator';
+import type { LonLat } from '../lib/mercator';
 import { searchPlaces, type PlaceHit } from '../lib/streets';
 
 const TEHRAN: LonLat = { lon: 51.389, lat: 35.6892 };
-const MIN_ZOOM = 4;
-const MAX_ZOOM = 18;
-const MAP_HEIGHT = 340;
 
 export type PickedPlace = { lat: number; lon: number; name?: string };
 
@@ -28,148 +26,93 @@ type Props = {
   onPick: (place: PickedPlace) => void;
 };
 
-/** A small slippy map on OpenStreetMap tiles: drag to move, tap to place a pin. */
-function TileMap({
-  center,
-  zoom,
+export type MapFocus = { center: LonLat; zoom: number; nonce: number };
+
+/**
+ * The map the user picks on: Leaflet on OpenStreetMap tiles. Leaflet needs `window`,
+ * so it is loaded in an effect, never while rendering on the server.
+ */
+function LeafletMap({
+  focus,
   pin,
   others,
-  onMove,
-  onZoom,
   onTap,
 }: {
-  center: LonLat;
-  zoom: number;
+  focus: MapFocus;
   pin: LonLat | null;
   others: LonLat[];
-  onMove: (c: LonLat) => void;
-  onZoom: (z: number) => void;
   onTap: (p: LonLat) => void;
 }) {
   const ref = useRef<HTMLDivElement>(null);
-  const [width, setWidth] = useState(320);
-  const drag = useRef<{ x: number; y: number; moved: number } | null>(null);
+  const leaflet = useRef<typeof import('leaflet') | null>(null);
+  const map = useRef<import('leaflet').Map | null>(null);
+  const layer = useRef<import('leaflet').LayerGroup | null>(null);
+  const tapRef = useRef(onTap);
+  const [ready, setReady] = useState(false);
 
+  useEffect(() => {
+    tapRef.current = onTap;
+  }, [onTap]);
+
+  // create the map once
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    const ro = new ResizeObserver(() => setWidth(el.clientWidth || 320));
-    ro.observe(el);
-    setWidth(el.clientWidth || 320);
-    return () => ro.disconnect();
+    let cancelled = false;
+    let ro: ResizeObserver | null = null;
+    void import('leaflet').then((mod) => {
+      if (cancelled) return;
+      const L = (mod as unknown as { default?: typeof import('leaflet') }).default ?? mod;
+      leaflet.current = L;
+      const m = L.map(el, { center: [focus.center.lat, focus.center.lon], zoom: focus.zoom, minZoom: 4, maxZoom: 19 });
+      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      }).addTo(m);
+      layer.current = L.layerGroup().addTo(m);
+      m.on('click', (e) => tapRef.current({ lat: e.latlng.lat, lon: e.latlng.lng }));
+      map.current = m;
+      // the map opens inside an animating dialog, so its size is only right a moment later
+      ro = new ResizeObserver(() => m.invalidateSize());
+      ro.observe(el);
+      setReady(true);
+    });
+    return () => {
+      cancelled = true;
+      ro?.disconnect();
+      map.current?.remove();
+      map.current = null;
+      layer.current = null;
+    };
+    // created once; later view changes go through `focus`
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // the wheel zooms; it has to be a non-passive listener so the page does not scroll too
-  const zoomRef = useRef(zoom);
+  // move to a new place when asked (a search result, or the map opening)
   useEffect(() => {
-    zoomRef.current = zoom;
-  }, [zoom]);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const onWheel = (e: WheelEvent) => {
-      e.preventDefault();
-      onZoom(Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, zoomRef.current + (e.deltaY < 0 ? 1 : -1))));
-    };
-    el.addEventListener('wheel', onWheel, { passive: false });
-    return () => el.removeEventListener('wheel', onWheel);
-  }, [onZoom]);
+    map.current?.setView([focus.center.lat, focus.center.lon], focus.zoom);
+  }, [focus, ready]);
 
-  const c = lonLatToWorld(center, zoom);
-  const left0 = c.x - width / 2;
-  const top0 = c.y - MAP_HEIGHT / 2;
-  const n = 2 ** zoom;
-  const tiles: Array<{ key: string; src: string; x: number; y: number }> = [];
-  for (let ty = Math.floor(top0 / TILE); ty <= Math.floor((top0 + MAP_HEIGHT) / TILE); ty++) {
-    if (ty < 0 || ty >= n) continue;
-    for (let tx = Math.floor(left0 / TILE); tx <= Math.floor((left0 + width) / TILE); tx++) {
-      const wrapped = ((tx % n) + n) % n;
-      tiles.push({
-        key: `${zoom}/${tx}/${ty}`,
-        src: `https://tile.openstreetmap.org/${zoom}/${wrapped}/${ty}.png`,
-        x: tx * TILE - left0,
-        y: ty * TILE - top0,
-      });
+  // markers: the pending pin and the other milestones' places
+  useEffect(() => {
+    const L = leaflet.current;
+    const g = layer.current;
+    if (!L || !g) return;
+    g.clearLayers();
+    others.forEach((o) =>
+      L.circleMarker([o.lat, o.lon], { radius: 6, color: '#ffffff', weight: 2, fillColor: '#7A7684', fillOpacity: 1, interactive: false }).addTo(g),
+    );
+    if (pin) {
+      L.circleMarker([pin.lat, pin.lon], { radius: 10, color: '#ffffff', weight: 3, fillColor: '#B4513C', fillOpacity: 1, interactive: false }).addTo(g);
     }
-  }
-  const at = (p: LonLat) => {
-    const w = lonLatToWorld(p, zoom);
-    return { x: w.x - left0, y: w.y - top0 };
-  };
+  }, [pin, others, ready]);
 
-  return (
-    <div
-      ref={ref}
-      className="relative w-full cursor-grab touch-none select-none overflow-hidden rounded-xl border border-[#33415B] bg-[#e8e4da] active:cursor-grabbing"
-      style={{ height: MAP_HEIGHT }}
-      onPointerDown={(e) => {
-        e.currentTarget.setPointerCapture(e.pointerId);
-        drag.current = { x: e.clientX, y: e.clientY, moved: 0 };
-      }}
-      onPointerMove={(e) => {
-        const d = drag.current;
-        if (!d) return;
-        const dx = e.clientX - d.x;
-        const dy = e.clientY - d.y;
-        d.moved += Math.abs(dx) + Math.abs(dy);
-        d.x = e.clientX;
-        d.y = e.clientY;
-        const w = lonLatToWorld(center, zoom);
-        onMove(worldToLonLat(w.x - dx, w.y - dy, zoom));
-      }}
-      onPointerUp={(e) => {
-        const d = drag.current;
-        drag.current = null;
-        if (!d || d.moved > 6) return;
-        const rect = e.currentTarget.getBoundingClientRect();
-        onTap(worldToLonLat(left0 + (e.clientX - rect.left), top0 + (e.clientY - rect.top), zoom));
-      }}
-      onPointerCancel={() => {
-        drag.current = null;
-      }}
-    >
-      {tiles.map((t) => (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          key={t.key}
-          src={t.src}
-          alt=""
-          draggable={false}
-          width={TILE}
-          height={TILE}
-          className="pointer-events-none absolute max-w-none"
-          style={{ left: t.x, top: t.y }}
-        />
-      ))}
-      {others.map((o, i) => {
-        const p = at(o);
-        return <span key={i} className="pointer-events-none absolute size-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white bg-[#7A7684]" style={{ left: p.x, top: p.y }} />;
-      })}
-      {pin && (
-        <span
-          className="pointer-events-none absolute size-6 -translate-x-1/2 -translate-y-1/2 rounded-full border-[3px] border-white bg-[#B4513C] shadow-lg"
-          style={{ left: at(pin).x, top: at(pin).y }}
-        />
-      )}
-      <div className="absolute start-2 top-2 flex flex-col gap-1" onPointerDown={(e) => e.stopPropagation()} onPointerUp={(e) => e.stopPropagation()}>
-        <button type="button" aria-label="+" disabled={zoom >= MAX_ZOOM} onClick={() => onZoom(zoom + 1)} className="flex size-9 items-center justify-center rounded-md bg-white text-[#0c142b] shadow disabled:opacity-40">
-          <Plus className="size-4" />
-        </button>
-        <button type="button" aria-label="−" disabled={zoom <= MIN_ZOOM} onClick={() => onZoom(zoom - 1)} className="flex size-9 items-center justify-center rounded-md bg-white text-[#0c142b] shadow disabled:opacity-40">
-          <Minus className="size-4" />
-        </button>
-      </div>
-      <span className="pointer-events-none absolute end-1 bottom-1 rounded bg-white/80 px-1.5 py-0.5 text-[10px] text-[#333]" dir="ltr">
-        © OpenStreetMap contributors
-      </span>
-    </div>
-  );
+  return <div ref={ref} dir="ltr" className="z-0 h-[340px] w-full overflow-hidden rounded-xl border border-[#33415B] bg-[#e8e4da]" />;
 }
 
 export function PlacePicker({ open, onOpenChange, start, current, others = [], onPick }: Props) {
   const t = useTranslations('MapPage.picker');
-  const [center, setCenter] = useState<LonLat>(start ?? TEHRAN);
-  const [zoom, setZoom] = useState(start ? 15 : 12);
+  const [focus, setFocus] = useState<MapFocus>({ center: start ?? TEHRAN, zoom: start ? 15 : 12, nonce: 0 });
   const [pending, setPending] = useState<PickedPlace | null>(null);
   const [query, setQuery] = useState('');
   const [hits, setHits] = useState<PlaceHit[] | null>(null);
@@ -179,8 +122,7 @@ export function PlacePicker({ open, onOpenChange, start, current, others = [], o
   // each time it opens: start where this milestone already is, with nothing pending
   useEffect(() => {
     if (!open) return;
-    setCenter(start ?? TEHRAN);
-    setZoom(start ? 15 : 12);
+    setFocus((f) => ({ center: start ?? TEHRAN, zoom: start ? 15 : 12, nonce: f.nonce + 1 }));
     setPending(current ? { lat: current.lat, lon: current.lon } : null);
     setHits(null);
     setFailed(false);
@@ -206,8 +148,7 @@ export function PlacePicker({ open, onOpenChange, start, current, others = [], o
 
   const choose = (h: PlaceHit) => {
     setPending({ lat: h.lat, lon: h.lon, name: h.name });
-    setCenter({ lat: h.lat, lon: h.lon });
-    setZoom(16);
+    setFocus((f) => ({ center: { lat: h.lat, lon: h.lon }, zoom: 16, nonce: f.nonce + 1 }));
     setHits(null);
   };
 
@@ -252,15 +193,8 @@ export function PlacePicker({ open, onOpenChange, start, current, others = [], o
           </ul>
         )}
 
-        <TileMap
-          center={center}
-          zoom={zoom}
-          pin={pending}
-          others={others}
-          onMove={setCenter}
-          onZoom={setZoom}
-          onTap={(p) => setPending({ lat: p.lat, lon: p.lon })}
-        />
+        {/* the dialog is mounted only while open, so Leaflet starts with a real size */}
+        <LeafletMap focus={focus} pin={pending} others={others} onTap={(p) => setPending({ lat: p.lat, lon: p.lon })} />
 
         <Button
           type="button"
