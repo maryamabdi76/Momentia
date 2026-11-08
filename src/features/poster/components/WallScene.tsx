@@ -43,8 +43,8 @@ export function WallScene({ children, label }: { children: ReactNode; label: str
           className="pointer-events-none absolute inset-0"
           style={{
             background:
-              'linear-gradient(135deg,rgba(255,255,255,.14) 0%,rgba(0,0,0,.10) 100%)',
-            boxShadow: 'inset 0 0 12px rgba(0,0,0,.22)',
+              'linear-gradient(120deg,rgba(255,244,225,.10) 0%,rgba(90,60,30,.10) 100%)',
+            boxShadow: 'inset 0 0 10px rgba(60,40,20,.20)',
           }}
         />
       </div>

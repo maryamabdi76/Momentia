@@ -11,9 +11,9 @@ export type WallMockup = {
 
 export const WALL_MOCKUP: WallMockup = {
   src: '/mockups/living-room.jpg',
-  width: 740,
-  height: 973,
-  frame: { x: 235, y: 184, w: 283, h: 402 },
+  width: 1024,
+  height: 1536,
+  frame: { x: 265, y: 175, w: 498, h: 760 },
 };
 
 /** The frame as percentages of the photo, so it can be placed at any rendered size. */
