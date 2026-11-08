@@ -9,6 +9,9 @@ export const milestoneSchema = z.object({
   /** An Iranian city on an Iran map; a place name on a city map. */
   city: z.string().trim().min(1).max(22),
   date: z.string().trim().max(18),
+  /** Where it happened, picked on the map (city maps). */
+  lat: z.number().min(-90).max(90).optional(),
+  lon: z.number().min(-180).max(180).optional(),
 });
 
 export const treasureMapSchema = z
@@ -22,6 +25,10 @@ export const treasureMapSchema = z
     milestones: z.array(milestoneSchema).min(MIN_MILESTONES).max(MAX_MILESTONES),
   })
   .refine((v) => v.scope === 'city' || v.milestones.every((m) => CITY_NAMES.includes(m.city)), {
+    path: ['milestones'],
+  })
+  // a city map is drawn around the places picked on the map
+  .refine((v) => v.scope === 'iran' || v.milestones.every((m) => m.lat !== undefined && m.lon !== undefined), {
     path: ['milestones'],
   });
 

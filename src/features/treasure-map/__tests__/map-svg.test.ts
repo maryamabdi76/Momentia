@@ -7,6 +7,7 @@ const labels = {
   kicker: 'نقشهٔ گنج',
   count: '۳ لحظه',
   watermark: 'آسمان شب ما',
+  credit: '© OpenStreetMap',
   alt: 'نقشه',
   north: 'ش',
 };
@@ -113,4 +114,29 @@ test('smooth path needs two points and starts at the first', () => {
 test('long titles get a smaller, but never tiny, font', () => {
   assert.ok(titleFontSize('کوتاه') > titleFontSize('یک عنوان بسیار بسیار بلند برای نقشه'));
   assert.ok(titleFontSize('x'.repeat(200)) >= 40);
+});
+
+test('with real streets, pins land where the places are and the map data is credited', () => {
+  const places = [
+    { title: 'الف', city: 'برج آزادی', date: '', lat: 35.6997, lon: 51.338 },
+    { title: 'ب', city: 'برج میلاد', date: '', lat: 35.7448, lon: 51.3753 },
+  ];
+  const streets = {
+    major: [[{ lon: 51.33, lat: 35.7 }, { lon: 51.38, lat: 35.74 }]],
+    minor: [[{ lon: 51.34, lat: 35.71 }, { lon: 51.36, lat: 35.72 }]],
+    rivers: [],
+    water: [],
+    parks: [[{ lon: 51.34, lat: 35.72 }, { lon: 51.35, lat: 35.72 }, { lon: 51.35, lat: 35.73 }]],
+  };
+  const base = { ...data, scope: 'city' as const, milestones: places };
+  const real = buildTreasureMapSvg({ data: base, labels, watermark: false, streets });
+  assert.match(real, /© OpenStreetMap/);
+  assert.match(real, /stroke-width="3"/);
+  const pins = [...real.matchAll(/<circle cx="([\d.]+)" cy="([\d.]+)" r="15"/g)].map((m) => [Number(m[1]), Number(m[2])]);
+  assert.equal(pins.length, 2);
+  // Milad Tower is north-east of Azadi Tower
+  assert.ok(pins[1]![0] > pins[0]![0] && pins[1]![1] < pins[0]![1]);
+  // without street data, the stylised backdrop is used and nothing is credited
+  const fallback = buildTreasureMapSvg({ data: base, labels, watermark: false, streets: null });
+  assert.doesNotMatch(fallback, /© OpenStreetMap/);
 });

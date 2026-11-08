@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Controller, useFieldArray, useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
-import { Crown, Download, Loader2, Lock, Plus, Trash2 } from 'lucide-react';
+import { Crown, Download, Loader2, Lock, MapPin, Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PaymentDialog } from '@/features/payments/components/PaymentDialog';
@@ -12,10 +12,12 @@ import { PREMIUM_PRICE_TOMAN } from '@/features/payments/lib/client';
 import { IRAN_CITIES } from '@/features/poster/lib/cities';
 import { formatToman, toPersianDigits } from '@/features/poster/lib/digits';
 import { useMapExport } from '../hooks/use-map-export';
+import { useStreets } from '../hooks/use-streets';
 import { loadMapDraft, saveMapDraft } from '../lib/draft';
 import { MAX_MILESTONES, MIN_MILESTONES, type TreasureMapLabels } from '../lib/map-svg';
 import { treasureMapSchema, type TreasureMapValues } from '../lib/schemas';
 import { MapPoster } from './MapPoster';
+import { PlacePicker } from './PlacePicker';
 
 const SAMPLE: TreasureMapValues = {
   title: 'جایی که قصهٔ ما رقم خورد',
@@ -25,9 +27,9 @@ const SAMPLE: TreasureMapValues = {
   theme: 'paper',
   shape: 'circle',
   milestones: [
-    { title: 'اولین قرار', city: 'کافه نادری', date: '۱۴ مهر ۱۳۹۸' },
-    { title: 'خواستگاری', city: 'پارک ملت', date: '۲ اردیبهشت ۱۴۰۰' },
-    { title: 'جشن عروسی', city: 'باغ کتاب', date: '۲۰ شهریور ۱۴۰۰' },
+    { title: 'اولین قرار', city: 'پل طبیعت', date: '۱۴ مهر ۱۳۹۸', lat: 35.7611, lon: 51.4143 },
+    { title: 'خواستگاری', city: 'برج آزادی', date: '۲ اردیبهشت ۱۴۰۰', lat: 35.6997, lon: 51.338 },
+    { title: 'جشن عروسی', city: 'برج میلاد', date: '۲۰ شهریور ۱۴۰۰', lat: 35.7448, lon: 51.3753 },
   ],
 };
 
@@ -39,6 +41,7 @@ const fieldClass =
 export function TreasureMapMaker() {
   const t = useTranslations('MapPage');
   const [ready, setReady] = useState(false);
+  const [pickerFor, setPickerFor] = useState<number | null>(null);
 
   const { control, register, reset, setValue, getValues } = useForm<TreasureMapValues>({
     resolver: zodResolver(treasureMapSchema),
@@ -67,6 +70,8 @@ export function TreasureMapMaker() {
         title: m?.title || '…',
         city: m?.city || (watched.scope === 'iran' ? 'تهران' : '…'),
         date: m?.date ?? '',
+        lat: m?.lat,
+        lon: m?.lon,
       })),
     }),
     [watched],
@@ -77,13 +82,15 @@ export function TreasureMapMaker() {
       kicker: t('poster.kicker'),
       count: t('poster.count', { count: toPersianDigits(String(current.milestones.length)) }),
       watermark: t('poster.watermark'),
+      credit: t('poster.credit'),
       alt: t('poster.alt'),
       north: t('poster.north'),
     }),
     [t, current.milestones.length],
   );
 
-  const exporter = useMapExport(current, labels, current);
+  const streetsState = useStreets(current);
+  const exporter = useMapExport(current, labels, current, streetsState.streets);
   const valid = treasureMapSchema.safeParse(current).success;
 
   // keep what was typed, so closing the tab to pay does not lose it
@@ -128,9 +135,11 @@ export function TreasureMapMaker() {
                       onClick={() => {
                         f.onChange(key);
                         // a city map names places; an Iran map picks cities, so start each over from a valid value
-                        getValues('milestones').forEach((_, i) =>
-                          setValue(`milestones.${i}.city`, key === 'iran' ? 'تهران' : '', { shouldValidate: true }),
-                        );
+                        getValues('milestones').forEach((_, i) => {
+                          setValue(`milestones.${i}.city`, key === 'iran' ? 'تهران' : '', { shouldValidate: true });
+                          setValue(`milestones.${i}.lat`, undefined);
+                          setValue(`milestones.${i}.lon`, undefined);
+                        });
                       }}
                       className={`h-10 rounded-lg border text-sm transition-colors ${f.value === key ? 'border-[#CEB47B] bg-[#CEB47B]/15 text-[#CEB47B]' : 'border-[#33415B] text-white/70 hover:bg-white/5'}`}
                     >
@@ -263,6 +272,19 @@ export function TreasureMapMaker() {
                       />
                     )}
                   </label>
+                  {watched.scope !== 'iran' && (
+                    <div className="sm:col-span-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setPickerFor(i)}
+                        className={`h-10 w-full gap-2 bg-transparent text-sm hover:bg-white/5 ${watched.milestones?.[i]?.lat === undefined ? 'border-dashed border-[#CEB47B]/60 text-[#CEB47B]' : 'border-[#33415B] text-white/80'}`}
+                      >
+                        <MapPin className="size-4" />
+                        {watched.milestones?.[i]?.lat === undefined ? t('pickOnMap') : t('pickedOnMap')}
+                      </Button>
+                    </div>
+                  )}
                   <label className="block space-y-1.5">
                     <span className="text-[12px] text-[#AAB6CD]">{t('milestoneDate')}</span>
                     <Input
@@ -296,7 +318,12 @@ export function TreasureMapMaker() {
       </section>
 
       <aside className="min-w-0 space-y-5 lg:sticky lg:top-6 lg:self-start">
-        <MapPoster data={current} labels={labels} />
+        <MapPoster data={current} labels={labels} streets={streetsState.streets} />
+        {current.scope === 'city' && streetsState.status !== 'idle' && streetsState.status !== 'ready' && (
+          <p className="text-center text-[12px] leading-6 text-[#AAB6CD]" role="status">
+            {t(`streets.${streetsState.status === 'too-far' ? 'tooFar' : streetsState.status}`)}
+          </p>
+        )}
 
         <div className="space-y-4 rounded-2xl border border-[#CEB47B] bg-[#142039] p-5">
           <div className="flex items-center justify-between gap-2">
@@ -344,6 +371,35 @@ export function TreasureMapMaker() {
           <p className="text-center text-[11px] leading-5 text-[#AAB6CD]">{t('premium.note')}</p>
         </div>
       </aside>
+      <PlacePicker
+        open={pickerFor !== null}
+        onOpenChange={(o) => {
+          if (!o) setPickerFor(null);
+        }}
+        start={
+          pickerFor !== null && current.milestones[pickerFor]?.lat !== undefined
+            ? { lat: current.milestones[pickerFor]!.lat!, lon: current.milestones[pickerFor]!.lon! }
+            : (() => {
+                const first = current.milestones.find((m) => m.lat !== undefined);
+                return first ? { lat: first.lat!, lon: first.lon! } : null;
+              })()
+        }
+        current={
+          pickerFor !== null && current.milestones[pickerFor]?.lat !== undefined
+            ? { lat: current.milestones[pickerFor]!.lat!, lon: current.milestones[pickerFor]!.lon! }
+            : null
+        }
+        others={current.milestones
+          .filter((m, i) => i !== pickerFor && m.lat !== undefined)
+          .map((m) => ({ lat: m.lat!, lon: m.lon! }))}
+        onPick={({ lat, lon, name }) => {
+          if (pickerFor === null) return;
+          setValue(`milestones.${pickerFor}.lat`, lat, { shouldValidate: true });
+          setValue(`milestones.${pickerFor}.lon`, lon, { shouldValidate: true });
+          const label = getValues(`milestones.${pickerFor}.city`);
+          if (name && !label) setValue(`milestones.${pickerFor}.city`, name.slice(0, 22), { shouldValidate: true });
+        }}
+      />
     </main>
   );
 }
