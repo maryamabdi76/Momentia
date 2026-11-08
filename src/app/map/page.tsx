@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { HomeHeader } from '@/features/home/components/HomeHeader';
@@ -22,7 +23,10 @@ export default function MapPage() {
   return (
     <div className="flex min-h-screen flex-col bg-[#080f28] text-[#f7f3e8]" dir="rtl">
       <HomeHeader variant="posters" />
-      <TreasureMapMaker />
+      {/* the form's field ids are random, so it is streamed in rather than prerendered */}
+      <Suspense fallback={<main className="flex-1" aria-busy="true" />}>
+        <TreasureMapMaker />
+      </Suspense>
       <HomeFooter variant="create" />
     </div>
   );
