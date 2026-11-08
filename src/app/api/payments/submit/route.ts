@@ -4,6 +4,7 @@ import {
   ORDER_ID_PATTERN,
   acquireLock,
   allow,
+  refund,
   markSubmitted,
   readOrder,
   releaseLock,
@@ -59,6 +60,8 @@ export async function POST(request: Request) {
     } catch (err) {
       // Without this the lock would stay for 30 seconds and a retry would be turned away.
       await releaseLock(config.store, lock).catch(() => {});
+      // the owner was not told, so this try must not count against the buyer's limit
+      await refund(config.store, lock).catch(() => {});
       console.error(`telegram notify failed: ${describeTelegramFailure(err)}`);
       return Response.json({ error: 'notify_failed' }, { status: 502 });
     }

@@ -76,6 +76,21 @@ async function command(
  * Counts one more hit for `key` inside a window and says whether it is still allowed.
  * Used so one visitor cannot use up the few unique amounts or spam the owner.
  */
+/**
+ * Gives back one use of `allow()`, for an attempt that did not really happen (the Telegram
+ * message could not be sent). Otherwise a buyer's failed tries would use up their five
+ * chances and lock them out once the real cause was fixed.
+ */
+export async function refund(
+  config: StoreConfig,
+  key: string,
+  fetchImpl: Fetch = fetch,
+): Promise<void> {
+  const k = `momentia:limit:${key}`;
+  const count = Number(await command(config, ['DECR', k], fetchImpl));
+  if (count <= 0) await command(config, ['DEL', k], fetchImpl);
+}
+
 export async function allow(
   config: StoreConfig,
   key: string,

@@ -13,6 +13,7 @@ import {
   markSubmitted,
   readOrder,
   readStoreConfig,
+  refund,
   releaseLock,
 } from '../lib/store.ts';
 import {
@@ -62,6 +63,11 @@ function fakeRedis() {
         return json({ result: data.delete(key) ? 1 : 0 });
       case 'INCR': {
         const n = Number(data.get(key) ?? 0) + 1;
+        data.set(key, String(n));
+        return json({ result: n });
+      }
+      case 'DECR': {
+        const n = Number(data.get(key) ?? 0) - 1;
         data.set(key, String(n));
         return json({ result: n });
       }
@@ -369,4 +375,15 @@ test('a tracking code finds its order, with or without stray spaces, and nothing
   assert.equal(await recoverOrder(store, 'short', redis.fetchImpl), null);
   assert.equal(await recoverOrder(store, 42, redis.fetchImpl), null);
   assert.equal(await recoverOrder(store, 'aaaaaaaaaaaaaaaa', redis.fetchImpl), null);
+});
+
+test('a refunded try does not count towards the limit', async () => {
+  const redis = fakeRedis();
+  for (let i = 0; i < 20; i++) {
+    assert.equal(await allow(store, 'submit:z', 5, 3600, redis.fetchImpl), true, `try ${i}`);
+    await refund(store, 'submit:z', redis.fetchImpl);
+  }
+  // real tries still run out
+  for (let i = 0; i < 5; i++) assert.equal(await allow(store, 'submit:z', 5, 3600, redis.fetchImpl), true);
+  assert.equal(await allow(store, 'submit:z', 5, 3600, redis.fetchImpl), false);
 });
