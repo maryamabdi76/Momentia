@@ -17,7 +17,7 @@ export function loadMapDraft(): TreasureMapValues | null {
     // drafts saved before maps had a scope or theme get the defaults
     const withDefaults =
       typeof stored === 'object' && stored !== null
-        ? { scope: 'city', area: 'تهران', theme: 'paper', ...stored }
+        ? { scope: 'city', area: 'تهران', theme: 'paper', shape: 'circle', ...stored }
         : stored;
     const parsed = treasureMapSchema.safeParse(withDefaults);
     return parsed.success ? parsed.data : null;

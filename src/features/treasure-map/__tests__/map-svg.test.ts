@@ -14,6 +14,7 @@ const data = {
   scope: 'iran' as const,
   area: 'تهران',
   theme: 'paper' as const,
+  shape: 'circle' as const,
   title: 'قصهٔ ما',
   names: 'شیرین و فرهاد',
   milestones: [
@@ -46,6 +47,19 @@ test('city map: draws pins at the given places, with the city name and coordinat
   assert.match(svg, /پارک ملت/);
   assert.match(svg, /۳۵٫۶۹°N/);
   assert.equal(svg, buildTreasureMapSvg({ data: city, labels, watermark: false }));
+});
+
+test('heart cut draws a heart outline and still keeps every pin inside the picture', () => {
+  const svg = buildTreasureMapSvg({ data: { ...data, scope: 'city', shape: 'heart', milestones: data.milestones.map((m) => ({ ...m, city: 'خانه' })) }, labels, watermark: false });
+  assert.match(svg, /C/);
+  assert.equal((svg.match(/r="15"/g) ?? []).length, 3);
+  for (const m of svg.matchAll(/<circle cx="([\d.]+)" cy="([\d.]+)" r="15"/g)) {
+    assert.ok(Number(m[1]) > 150 && Number(m[1]) < 750 && Number(m[2]) > 300 && Number(m[2]) < 940);
+  }
+});
+
+test('the heading has no letter-spacing, which breaks joined letters', () => {
+  assert.doesNotMatch(buildTreasureMapSvg({ data, labels, watermark: false }), /letter-spacing/);
 });
 
 test('night theme changes the colours only', () => {

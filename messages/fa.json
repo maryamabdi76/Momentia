@@ -988,8 +988,14 @@
     },
     "areaLabel": "شهر",
     "themeLabel": "رنگ نقشه",
+    "shapeLabel": "شکل نقشه",
+    "shape": {
+      "circle": "دایره",
+      "heart": "قلب"
+    },
     "theme": {
-      "paper": "کاغذی روشن",
+      "paper": "کاغذی",
+      "blush": "صورتی",
       "night": "شب"
     },
     "milestoneDate": "تاریخ",

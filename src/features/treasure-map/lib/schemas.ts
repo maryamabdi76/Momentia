@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { IRAN_CITIES } from '@/features/poster/lib/cities';
-import { MAP_SCOPES, MAP_THEMES, MAX_MILESTONES, MIN_MILESTONES } from './map-svg';
+import { MAP_SCOPES, MAP_SHAPES, MAP_THEMES, MAX_MILESTONES, MIN_MILESTONES } from './map-svg';
 
 const CITY_NAMES = IRAN_CITIES.map((c) => c.name);
 
@@ -18,6 +18,7 @@ export const treasureMapSchema = z
     scope: z.enum(MAP_SCOPES),
     area: z.string().refine((v) => CITY_NAMES.includes(v)),
     theme: z.enum(MAP_THEMES),
+    shape: z.enum(MAP_SHAPES),
     milestones: z.array(milestoneSchema).min(MIN_MILESTONES).max(MAX_MILESTONES),
   })
   .refine((v) => v.scope === 'city' || v.milestones.every((m) => CITY_NAMES.includes(m.city)), {

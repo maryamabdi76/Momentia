@@ -23,6 +23,7 @@ const SAMPLE: TreasureMapValues = {
   scope: 'city',
   area: 'تهران',
   theme: 'paper',
+  shape: 'circle',
   milestones: [
     { title: 'اولین قرار', city: 'کافه نادری', date: '۱۴ مهر ۱۳۹۸' },
     { title: 'خواستگاری', city: 'پارک ملت', date: '۲ اردیبهشت ۱۴۰۰' },
@@ -61,6 +62,7 @@ export function TreasureMapMaker() {
       scope: watched.scope ?? 'city',
       area: watched.area ?? 'تهران',
       theme: watched.theme ?? 'paper',
+      shape: watched.shape ?? 'circle',
       milestones: (watched.milestones ?? []).map((m) => ({
         title: m?.title || '…',
         city: m?.city || (watched.scope === 'iran' ? 'تهران' : '…'),
@@ -151,14 +153,39 @@ export function TreasureMapMaker() {
               </select>
             </label>
           )}
+          {watched.scope !== 'iran' && (
+            <div className="space-y-2">
+              <span className="text-[13px] font-medium text-[#E8D9B8]">{t('shapeLabel')}</span>
+              <Controller
+                control={control}
+                name="shape"
+                render={({ field: f }) => (
+                  <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label={t('shapeLabel')}>
+                    {(['circle', 'heart'] as const).map((key) => (
+                      <button
+                        key={key}
+                        type="button"
+                        role="radio"
+                        aria-checked={f.value === key}
+                        onClick={() => f.onChange(key)}
+                        className={`h-10 rounded-lg border text-sm transition-colors ${f.value === key ? 'border-[#CEB47B] bg-[#CEB47B]/15 text-[#CEB47B]' : 'border-[#33415B] text-white/70 hover:bg-white/5'}`}
+                      >
+                        {t(`shape.${key}`)}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              />
+            </div>
+          )}
           <div className="space-y-2">
             <span className="text-[13px] font-medium text-[#E8D9B8]">{t('themeLabel')}</span>
             <Controller
               control={control}
               name="theme"
               render={({ field: f }) => (
-                <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label={t('themeLabel')}>
-                  {(['paper', 'night'] as const).map((key) => (
+                <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label={t('themeLabel')}>
+                  {(['paper', 'blush', 'night'] as const).map((key) => (
                     <button
                       key={key}
                       type="button"
