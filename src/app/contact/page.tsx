@@ -1,4 +1,6 @@
+import { Suspense } from 'react';
 import type { Metadata } from 'next';
+import { CityTopicNote } from '@/features/support/components/CityTopicNote';
 import { getTranslations } from 'next-intl/server';
 import { HomeHeader } from '@/features/home/components/HomeHeader';
 import { HomeFooter } from '@/features/home/components/HomeFooter';
@@ -36,6 +38,9 @@ export default async function ContactPage() {
           {t('title')}
         </h1>
         <p className="mt-4 text-sm leading-7 text-white/60">{t('intro')}</p>
+        <Suspense>
+          <CityTopicNote text={t('cityTopic')} />
+        </Suspense>
 
         <section className="mt-10 space-y-3">
           <h2 className="text-lg font-semibold text-[#E8D9B8]">

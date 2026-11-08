@@ -35,6 +35,7 @@ export async function POST(request: Request) {
       if (order && (order.status === 'pending' || order.status === 'submitted')) {
         return Response.json({
           status: order.status,
+          code: existingId,
           amountToman: order.amountToman,
           card,
         });
@@ -50,7 +51,7 @@ export async function POST(request: Request) {
 
     const secure = new URL(request.url).protocol === 'https:';
     return Response.json(
-      { status: 'pending', amountToman: created.amountToman, card },
+      { status: 'pending', code: created.id, amountToman: created.amountToman, card },
       { headers: { 'Set-Cookie': orderCookie(created.id, secure) } },
     );
   } catch (err) {

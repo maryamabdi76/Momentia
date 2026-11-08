@@ -3,7 +3,9 @@
 import { Suspense, useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { trackEvent } from '@/lib/track';
-import { giftUrl } from '../lib/gift-link';
+import { editUrl, giftUrl, readEditHash } from '../lib/gift-link';
+import { isOccasionSlug } from '../lib/occasions';
+import { shareLink, type ShareApp } from '../lib/share-links';
 import { useTranslations } from 'next-intl';
 import {
   Stepper,
@@ -23,6 +25,7 @@ import { skyForMoment } from '../lib/sky-for-moment';
 import { DEFAULT_FORMAT_ID, type ExportFormatId } from '../lib/export-formats';
 import { DEFAULT_FRAME, type PosterFrame } from '../lib/frames';
 import { todayJalali } from '../lib/today';
+import { YALDA_FIELDS, YALDA_TIME, isYaldaPreset } from '../lib/presets';
 import {
   DEFAULT_TEMPLATE,
   FULL_SKY_DEPTH,
@@ -88,6 +91,7 @@ function parseStep(value: string | null): number {
 
 function StepperInner() {
   const t = useTranslations('CreatePage');
+  const tOccasions = useTranslations('Occasions');
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -115,7 +119,8 @@ function StepperInner() {
   // link (/create?style=…) wins over the saved one.
   const [restored, setRestored] = useState(false);
   useEffect(() => {
-    const draft = loadDraft();
+    // a saved edit link (/create#e=…) wins over this browser's own draft
+    const draft = readEditHash(window.location.hash) ?? loadDraft();
     if (draft) {
       const style = searchParams.get('style');
       const template = searchParams.get('template');
@@ -133,6 +138,20 @@ function StepperInner() {
       // first visit: start on today's date (the browser's day, so not in the static default)
       setMoment((m) => ({ ...m, ...todayJalali() }));
     }
+    // /create?occasion=birthday (from an occasion page) starts from that occasion's wording
+    const occasion = searchParams.get('occasion');
+    if (isOccasionSlug(occasion)) {
+      setPersonal((p) => ({
+        ...p,
+        title: tOccasions(`${occasion}.presetTitle`),
+        names: tOccasions(`${occasion}.presetNames`),
+        quote: tOccasions(`${occasion}.presetQuote`),
+      }));
+    }
+    // /create?moment=yalda (from the Yalda page) starts on Yalda night, whatever was saved
+    if (isYaldaPreset(searchParams.get('moment'))) {
+      setMoment((m) => ({ ...m, ...YALDA_FIELDS, time: YALDA_TIME, noExactTime: false }));
+    }
     setRestored(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- run once on load
   }, []);
@@ -140,7 +159,7 @@ function StepperInner() {
     if (restored) saveDraft({ moment, personal });
   }, [restored, moment, personal]);
 
-  const [giftStatus, setGiftStatus] = useState<'copied' | 'error' | null>(null);
+  const [giftStatus, setGiftStatus] = useState<'copied' | 'error' | 'edit' | null>(null);
   // Which file step 3 will download. Kept here so the preview can show that same file.
   const [format, setFormat] = useState<ExportFormatId>(DEFAULT_FORMAT_ID);
 
@@ -154,6 +173,24 @@ function StepperInner() {
     } catch {
       setGiftStatus('error');
     }
+  }
+
+  async function copyEditLink() {
+    trackEvent('edit_link', { product: 'sky' });
+    try {
+      await navigator.clipboard.writeText(
+        editUrl(window.location.origin, { moment, personal }),
+      );
+      setGiftStatus('edit');
+    } catch {
+      setGiftStatus('error');
+    }
+  }
+
+  function shareGift(app: ShareApp) {
+    trackEvent('gift_share', { product: 'sky', app });
+    const url = giftUrl(window.location.origin, { moment, personal });
+    window.open(shareLink(app, t('step3.giftMessage'), url), '_blank', 'noopener,noreferrer');
   }
 
   function goTo(n: number) {
@@ -251,6 +288,8 @@ function StepperInner() {
             exporter={exporter}
             format={format}
             onCopyGift={copyGiftLink}
+            onShareGift={shareGift}
+            onCopyEdit={copyEditLink}
             giftStatus={giftStatus}
           />
         </div>

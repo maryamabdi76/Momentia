@@ -1,11 +1,13 @@
 'use client';
 
+import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { ArrowRight, Info, Link2, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { PosterPreview, type PosterData } from './PosterPreview';
 import { Dims } from './FormatPicker';
 import { FormatPreviewFrame } from './FormatPreviewFrame';
+import { WallScene } from './WallScene';
 import { toPersianDigits } from '../lib/digits';
 import {
   getExportFormat,
@@ -28,7 +30,11 @@ type Props = {
   format: ExportFormatId;
   /** Copies a link that shows this poster to whoever opens it (step 3). */
   onCopyGift: () => void;
-  giftStatus: 'copied' | 'error' | null;
+  giftStatus: 'copied' | 'error' | 'edit' | null;
+  /** Opens Telegram or WhatsApp with the gift link ready to send. */
+  onShareGift?: (app: 'telegram' | 'whatsapp') => void;
+  /** Copies a link that reopens the editor with this poster, to continue later. */
+  onCopyEdit?: () => void;
 };
 
 /** Cream preview card + the per-step content shown beneath it. */
@@ -42,12 +48,16 @@ export function CreatePreview({
   format,
   onCopyGift,
   giftStatus,
+  onShareGift,
+  onCopyEdit,
 }: Props) {
   const t = useTranslations('CreatePage');
   const tFormats = useTranslations('CreatePage.step3.formats');
   const tPoster = useTranslations('Poster');
   const tMoment = useTranslations('CreatePage.step1');
   const tReceive = useTranslations('CreatePage.step3');
+  // step 3 can show the poster on a wall; everywhere else it is just the poster
+  const [scene, setScene] = useState<'poster' | 'wall'>('poster');
 
   // "شب یلدا", "نوروز" … when the chosen day matches one of the quick occasions.
   const occasion = [0, 1]
@@ -82,7 +92,53 @@ export function CreatePreview({
           <span className="text-[#1c2540]/70">{t('preview.label')}</span>
         </div>
 
+        {step === 3 && (
+          <div
+            role="group"
+            aria-label={t('preview.sceneLabel')}
+            className="mt-5 flex justify-center gap-1 text-xs"
+          >
+            {(['poster', 'wall'] as const).map((kind) => (
+              <button
+                key={kind}
+                type="button"
+                aria-pressed={scene === kind}
+                onClick={() => setScene(kind)}
+                className={`rounded-full px-3.5 py-1.5 transition-colors ${
+                  scene === kind
+                    ? 'bg-[#1c2540] text-[#F4EFE6]'
+                    : 'text-[#1c2540]/70 hover:bg-[#1c2540]/10'
+                }`}
+              >
+                {t(kind === 'poster' ? 'preview.scenePoster' : 'preview.sceneWall')}
+              </button>
+            ))}
+          </div>
+        )}
+
         <div className="mt-6 flex justify-center">
+          {step === 3 && scene === 'wall' ? (
+            <WallScene label={t('preview.sceneWallAlt')}>
+              <FormatPreviewFrame format="poster" style={poster.style ?? 'gold'}>
+            <PosterPreview
+              data={poster}
+              sky={sky}
+              showDisclaimer={false}
+              labels={{
+                headerLine: tPoster('headerLine'),
+                north: tPoster('north'),
+                south: tPoster('south'),
+                east: tPoster('east'),
+                west: tPoster('west'),
+                mapAlt: tPoster('mapAlt'),
+                watermark: tPoster('watermark'),
+                disclaimer: tPoster('disclaimer'),
+                timeAt: tPoster('timeAt'),
+              }}
+            />
+          </FormatPreviewFrame>
+            </WallScene>
+          ) : (
           <FormatPreviewFrame format={shown} style={poster.style ?? 'gold'}>
             <PosterPreview
               data={poster}
@@ -101,6 +157,7 @@ export function CreatePreview({
               }}
             />
           </FormatPreviewFrame>
+          )}
         </div>
 
         {step === 3 && shown !== 'poster' && (
@@ -180,6 +237,31 @@ export function CreatePreview({
                 : tReceive('giftLink')}
             <Link2 className="size-4" />
           </Button>
+          {onShareGift && (
+            <div className="grid grid-cols-2 gap-3">
+              {(['telegram', 'whatsapp'] as const).map((app) => (
+                <Button
+                  key={app}
+                  type="button"
+                  variant="outline"
+                  onClick={() => onShareGift(app)}
+                  className="h-11 cursor-pointer rounded-xl border-[#33415B] bg-transparent text-xs font-bold text-[#E8D9B8] hover:bg-white/5 hover:text-[#E8D9B8]"
+                >
+                  {tReceive(app === 'telegram' ? 'giftShareTelegram' : 'giftShareWhatsapp')}
+                </Button>
+              ))}
+            </div>
+          )}
+          {onCopyEdit && (
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={onCopyEdit}
+              className="h-10 cursor-pointer text-xs text-[#AAB6CD] hover:bg-white/5 hover:text-[#E8D9B8]"
+            >
+              {giftStatus === 'edit' ? tReceive('editLinkCopied') : tReceive('editLink')}
+            </Button>
+          )}
           <p className="text-xs leading-6 text-[#AAB6CD]">{tReceive('giftNote')}</p>
           <p className="text-xs pb-8 leading-6 text-[#AAB6CD]">
             {t('preview.shareNote')}

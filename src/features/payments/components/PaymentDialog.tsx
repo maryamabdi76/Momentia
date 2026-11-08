@@ -360,6 +360,20 @@ export function PaymentDialog() {
               <p className="rounded-lg border border-white/10 bg-[#0c142b] px-3 py-2.5 text-[12px] leading-6 text-[#AAB6CD]">
                 {t('waiting.keep')}
               </p>
+              {order?.code && (
+                <div className="space-y-1.5 rounded-lg border border-[#CEB47B]/30 bg-[#0c142b] px-3 py-2.5">
+                  <p className="text-[12px] text-[#E8D9B8]">{t('waiting.codeLabel')}</p>
+                  <p dir="ltr" className="select-all break-all text-center font-mono text-sm tracking-wider text-white">
+                    {order.code}
+                  </p>
+                  <p className="text-[11px] leading-5 text-[#AAB6CD]">
+                    {t('waiting.codeHint')}{' '}
+                    <Link href="/track" className="text-[#CEB47B] underline-offset-4 hover:underline">
+                      {t('waiting.codeLink')}
+                    </Link>
+                  </p>
+                </div>
+              )}
               <DialogFooter className="mx-0 mb-0 border-0 bg-transparent p-0">
                 <Button
                   type="button"

@@ -103,8 +103,42 @@ export async function claimPremiumToken(): Promise<ClaimResult> {
   return { status: 'unavailable' };
 }
 
+/** Gets an order back by its tracking code (for a buyer who lost the tab). */
+export async function recoverByCode(
+  code: string,
+): Promise<ClaimResult | { status: 'rate_limited' }> {
+  try {
+    const res = await fetch('/api/payments/recover', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code }),
+    });
+    if (res.status === 429) return { status: 'rate_limited' };
+    const body = (await res.json().catch(() => null)) as {
+      status?: unknown;
+      token?: unknown;
+    } | null;
+    if (body?.status === 'paid' && typeof body.token === 'string') {
+      return { status: 'paid', token: body.token };
+    }
+    if (
+      body?.status === 'pending' ||
+      body?.status === 'submitted' ||
+      body?.status === 'rejected' ||
+      body?.status === 'none'
+    ) {
+      return { status: body.status };
+    }
+  } catch {
+    // offline: reported as unavailable below
+  }
+  return { status: 'unavailable' };
+}
+
 export type OrderInfo = {
   status: 'pending' | 'submitted';
+  /** Tracking code (the order id): lets the buyer get the file back from /track. */
+  code: string | null;
   /** Exactly what to transfer, in tomans. */
   amountToman: number;
   card: { number: string; holder: string | null; bank: string | null };
@@ -159,6 +193,7 @@ export async function startOrder(): Promise<OrderInfo> {
   }
   return {
     status: data.status,
+    code: typeof data.code === 'string' && ORDER_ID_SHAPE.test(data.code) ? data.code : null,
     amountToman: data.amountToman,
     card: { number: card.number, holder: card.holder ?? null, bank: card.bank ?? null },
   };

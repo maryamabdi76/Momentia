@@ -47,7 +47,7 @@ export default async function YaldaPage() {
             asChild
             className="bg-[#CEB47B] p-6! font-bold text-[#0c142b] hover:bg-[#e0c180]"
           >
-            <a href="/create">
+            <a href="/create?moment=yalda">
               {t('cta')}
               <ArrowLeft data-icon="inline-end" />
             </a>
@@ -57,7 +57,7 @@ export default async function YaldaPage() {
             variant="outline"
             className="border-[#33415B] bg-transparent p-6! font-bold text-[#E8D9B8] hover:bg-white/5 hover:text-[#CEB47B]"
           >
-            <a href="/moon">{t('ctaMoon')}</a>
+            <a href="/moon?moment=yalda">{t('ctaMoon')}</a>
           </Button>
         </div>
 
