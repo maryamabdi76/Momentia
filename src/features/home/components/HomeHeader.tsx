@@ -31,6 +31,7 @@ export async function HomeHeader({ variant = 'home' }: HomeHeaderProps) {
 
   const navLinks: Array<{ href: string; label: string; active?: boolean }> = [
     { href: '/posters', label: t('nav.gallery'), active: isPosters },
+    { href: '/map', label: t('nav.map') },
   ];
 
   // The two makers are the two things to do here, so both are buttons: one

@@ -6,6 +6,7 @@ const PATHS = [
   '/',
   '/create',
   '/moon',
+  '/map',
   '/posters',
   '/contact',
   '/terms',
