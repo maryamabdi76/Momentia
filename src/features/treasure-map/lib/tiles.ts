@@ -6,23 +6,46 @@ const TILE_METRES_AT_Z0 = (2 * HALF) / 256;
 
 /**
  * The background of the map: label-free, light or dark base maps, so the poster shows the
- * shape of the streets and rivers without a single street name. Data © OpenStreetMap
- * contributors, tiles © CARTO. To use another provider, change this one function.
+ * shape of the streets and rivers without a single street name.
+ *
+ * The default is Esri's World Light / Dark Gray base maps, which need no key. They are fine to
+ * try the feature, but for a shop use a provider you have an account with and set
+ * NEXT_PUBLIC_MAP_TILE_LIGHT_URL and NEXT_PUBLIC_MAP_TILE_DARK_URL (templates with {z}, {x}, {y};
+ * a label-free style), and NEXT_PUBLIC_MAP_TILE_MAX_ZOOM if it differs. Update the `credit` text in
+ * messages/fa.json to match the provider.
  */
 export type TileStyle = 'light' | 'dark';
 
+const ESRI = 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas';
+const DEFAULT_TEMPLATES: Record<TileStyle, string> = {
+  light: `${ESRI}/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}`,
+  dark: `${ESRI}/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}`,
+};
+
+function template(style: TileStyle): string {
+  // read each variable literally: Next.js only inlines `process.env.NEXT_PUBLIC_X` written out in full
+  const custom = style === 'light' ? process.env.NEXT_PUBLIC_MAP_TILE_LIGHT_URL : process.env.NEXT_PUBLIC_MAP_TILE_DARK_URL;
+  return custom || DEFAULT_TEMPLATES[style];
+}
+
+/** The deepest zoom the tile source has. Esri's gray base maps stop at 16. */
+export function maxTileZoom(): number {
+  const custom = Number(process.env.NEXT_PUBLIC_MAP_TILE_MAX_ZOOM);
+  if (Number.isFinite(custom) && custom > 0) return Math.min(19, Math.floor(custom));
+  return process.env.NEXT_PUBLIC_MAP_TILE_LIGHT_URL ? 19 : 16;
+}
+
 export function tileUrl(style: TileStyle, z: number, x: number, y: number): string {
-  const sub = 'abcd'[(x + y) % 4];
-  return `https://${sub}.basemaps.cartocdn.com/${style}_nolabels/${z}/${x}/${y}@2x.png`;
+  return template(style).replace('{z}', String(z)).replace('{x}', String(x)).replace('{y}', String(y));
 }
 
 export type TileSpec = { url: string; left: number; top: number; size: number };
 
 /** The zoom whose tiles are at least as sharp as the poster needs: one tile pixel per poster pixel or finer. */
-export function pickZoom(metresPerPx: number, lat: number): number {
+export function pickZoom(metresPerPx: number, lat: number, maxZoom = maxTileZoom()): number {
   const mercatorMpp = metresPerPx / Math.cos((lat * Math.PI) / 180);
   const z = Math.ceil(Math.log2(TILE_METRES_AT_Z0 / mercatorMpp));
-  return Math.max(3, Math.min(19, z));
+  return Math.max(3, Math.min(maxZoom, z));
 }
 
 /**

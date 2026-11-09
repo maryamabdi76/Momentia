@@ -123,7 +123,7 @@ test('with picked places the map is drawn from tiles and credited; pins land whe
   ];
   const base = { ...data, scope: 'city' as const, milestones: places };
   const svg = buildTreasureMapSvg({ data: base, labels, watermark: false });
-  assert.match(svg, /<image href="https:\/\/[a-d]\.basemaps\.cartocdn\.com\/light_nolabels\//);
+  assert.match(svg, /<image href="https:\/\/server\.arcgisonline\.com\/.*World_Light_Gray_Base/);
   assert.match(svg, /© OpenStreetMap/);
   assert.match(svg, /feColorMatrix/); // paper tint
   const pins = [...svg.matchAll(/<circle cx="([\d.]+)" cy="([\d.]+)" r="15"/g)].map((m) => [Number(m[1]), Number(m[2])]);
@@ -141,7 +141,7 @@ test('night uses the dark base map, with no tint', () => {
     { title: 'ب', city: 'ب', date: '', lat: 35.7, lon: 51.34 },
   ];
   const svg = buildTreasureMapSvg({ data: { ...data, scope: 'city', theme: 'night', milestones: places }, labels, watermark: false });
-  assert.match(svg, /dark_nolabels/);
+  assert.match(svg, /World_Dark_Gray_Base/);
   assert.doesNotMatch(svg, /feColorMatrix/);
 });
 
