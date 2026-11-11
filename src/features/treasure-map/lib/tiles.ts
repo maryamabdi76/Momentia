@@ -5,34 +5,28 @@ const HALF = Math.PI * 6378137;
 const TILE_METRES_AT_Z0 = (2 * HALF) / 256;
 
 /**
- * The background of the map: label-free, light or dark base maps, so the poster shows the
- * shape of the streets and rivers without a single street name.
+ * The background of the map: OpenStreetMap's standard tiles, the same ones the Leaflet picker shows,
+ * washed out to a single soft tone by the filter in map-svg.ts so the poster reads as a quiet
+ * line drawing.
  *
- * The default is Esri's World Light / Dark Gray base maps, which need no key. They are fine to
- * try the feature, but for a shop use a provider you have an account with and set
- * NEXT_PUBLIC_MAP_TILE_LIGHT_URL and NEXT_PUBLIC_MAP_TILE_DARK_URL (templates with {z}, {x}, {y};
- * a label-free style), and NEXT_PUBLIC_MAP_TILE_MAX_ZOOM if it differs. Update the `credit` text in
- * messages/fa.json to match the provider.
+ * openstreetmap.org's tile servers are meant for light use. For a shop use a provider you have an
+ * account with and set NEXT_PUBLIC_MAP_TILE_LIGHT_URL (and _DARK_URL; templates with {z}, {x}, {y}),
+ * NEXT_PUBLIC_MAP_TILE_MAX_ZOOM if it differs, and update the `credit` text in messages/fa.json.
  */
 export type TileStyle = 'light' | 'dark';
 
-const ESRI = 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas';
-const DEFAULT_TEMPLATES: Record<TileStyle, string> = {
-  light: `${ESRI}/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}`,
-  dark: `${ESRI}/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}`,
-};
+const OSM = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
 
 function template(style: TileStyle): string {
   // read each variable literally: Next.js only inlines `process.env.NEXT_PUBLIC_X` written out in full
   const custom = style === 'light' ? process.env.NEXT_PUBLIC_MAP_TILE_LIGHT_URL : process.env.NEXT_PUBLIC_MAP_TILE_DARK_URL;
-  return custom || DEFAULT_TEMPLATES[style];
+  return custom || process.env.NEXT_PUBLIC_MAP_TILE_LIGHT_URL || OSM;
 }
 
-/** The deepest zoom the tile source has. Esri's gray base maps stop at 16. */
+/** The deepest zoom the tile source has. */
 export function maxTileZoom(): number {
   const custom = Number(process.env.NEXT_PUBLIC_MAP_TILE_MAX_ZOOM);
-  if (Number.isFinite(custom) && custom > 0) return Math.min(19, Math.floor(custom));
-  return process.env.NEXT_PUBLIC_MAP_TILE_LIGHT_URL ? 19 : 16;
+  return Number.isFinite(custom) && custom > 0 ? Math.min(19, Math.floor(custom)) : 19;
 }
 
 export function tileUrl(style: TileStyle, z: number, x: number, y: number): string {
@@ -49,20 +43,28 @@ export function pickZoom(metresPerPx: number, lat: number, maxZoom = maxTileZoom
 }
 
 /**
- * The tiles that cover a circle of radius `r` around `centre` on the poster, with where each one goes.
+ * The tiles that cover a box around `centre` on the poster, with where each one goes.
  * North is up; the view's centre sits on `centre`.
  */
-export function tilesFor(view: View, centre: { x: number; y: number }, r: number, style: TileStyle): TileSpec[] {
+export function tilesFor(
+  view: View,
+  centre: { x: number; y: number },
+  /** Half the width and height to cover, in poster pixels; one number covers a square. */
+  half: number | { x: number; y: number },
+  style: TileStyle,
+): TileSpec[] {
+  const hx = typeof half === 'number' ? half : half.x;
+  const hy = typeof half === 'number' ? half : half.y;
   const z = pickZoom(view.metresPerPx, view.center.lat);
   const mpp = view.metresPerPx / Math.cos((view.center.lat * Math.PI) / 180); // mercator metres per poster pixel
   const c = toMeters(view.center);
   const tileM = (2 * HALF) / 2 ** z;
   const n = 2 ** z;
   const clamp = (v: number) => Math.max(0, Math.min(n - 1, v));
-  const minX = clamp(Math.floor((c.x - r * mpp + HALF) / tileM));
-  const maxX = clamp(Math.floor((c.x + r * mpp + HALF) / tileM));
-  const minY = clamp(Math.floor((HALF - (c.y + r * mpp)) / tileM));
-  const maxY = clamp(Math.floor((HALF - (c.y - r * mpp)) / tileM));
+  const minX = clamp(Math.floor((c.x - hx * mpp + HALF) / tileM));
+  const maxX = clamp(Math.floor((c.x + hx * mpp + HALF) / tileM));
+  const minY = clamp(Math.floor((HALF - (c.y + hy * mpp)) / tileM));
+  const maxY = clamp(Math.floor((HALF - (c.y - hy * mpp)) / tileM));
   const size = tileM / mpp;
   const out: TileSpec[] = [];
   for (let ty = minY; ty <= maxY; ty++) {

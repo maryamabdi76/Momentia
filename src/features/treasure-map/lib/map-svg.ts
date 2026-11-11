@@ -1,12 +1,11 @@
 import type { PosterFonts } from '../../poster/lib/poster-svg.ts';
 import { formatDecimal, toPersianDigits } from '../../poster/lib/digits.ts';
 import { IRAN_CITIES } from '../../poster/lib/cities.ts';
+import { IRAN_OUTLINE } from './iran-outline.ts';
 import { mulberry32 } from '../../moon/lib/random.ts';
 import { frameView, projectToPoster } from './mercator.ts';
 import { tilesFor, type TileSpec } from './tiles.ts';
 import {
-  createProjection,
-  iranOutlinePath,
   smoothClosedPath,
   smoothOpenPath,
   spreadPins,
@@ -49,6 +48,7 @@ export type TreasureMapLabels = {
   credit: string;
   alt: string;
   north: string;
+  iran: string;
 };
 export type TreasureMapOptions = {
   data: TreasureMapData;
@@ -69,24 +69,9 @@ const PALETTES = {
   night: { bg: '#0c142b', card: '#101a38', ink: '#F4EFE6', accent: '#CEB47B', muted: '#AAB6CD', land: '#1a2850', water: '#1a2d5e', park: '#142447', onAccent: '#0c142b' },
 } as const;
 
-/** The light base map is tinted towards each theme's paper; the dark one is used as it is. */
-const TINTS: Record<MapTheme, { r: number; g: number; b: number } | null> = {
-  paper: { r: 0.99, g: 0.965, b: 0.92 },
-  blush: { r: 1, g: 0.94, b: 0.93 },
-  night: null,
-};
-
 const esc = (s: string) =>
   s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const n = (v: number) => Math.round(v * 10) / 10;
-
-/** Milestones of an Iran map whose city we know, up to the maximum, each with its coordinates. */
-export function placeMilestones(milestones: Milestone[]) {
-  return milestones
-    .slice(0, MAX_MILESTONES)
-    .map((m) => ({ m, city: IRAN_CITIES.find((c) => c.name === m.city) }))
-    .filter((x): x is { m: Milestone; city: (typeof IRAN_CITIES)[number] } => x.city !== undefined);
-}
 
 /** A title shrinks a little as it gets longer, so it stays on one line. */
 export function titleFontSize(text: string): number {
@@ -197,15 +182,23 @@ const hasPoint = (m: Milestone): m is Milestone & { lat: number; lon: number } =
 
 const picked = (ms: Milestone[]) => ms.filter(hasPoint);
 
-/** The tiles a city map needs, or none when its places are not all picked yet. */
+/** Iran as one fixed view: the whole country fits the panel with a margin. */
+const IRAN_VIEW = { center: { lon: 53.75, lat: 32.4 }, metresPerPx: 3100 };
+const IRAN_PANEL = { x: 90, y: 300, width: 720, height: 620 };
+
+/** The tiles a map needs: always for Iran, and for a city once all its places are picked. */
 export function mapTiles(data: TreasureMapData): TileSpec[] {
-  if (data.scope !== 'city') return [];
+  const style = data.theme === 'night' ? 'dark' : 'light';
+  if (data.scope === 'iran') {
+    const c = { x: IRAN_PANEL.x + IRAN_PANEL.width / 2, y: IRAN_PANEL.y + IRAN_PANEL.height / 2 };
+    return tilesFor(IRAN_VIEW, c, { x: IRAN_PANEL.width / 2, y: IRAN_PANEL.height / 2 }, style);
+  }
   const items = data.milestones.slice(0, MAX_MILESTONES);
   const pts = picked(items);
   if (pts.length === 0 || pts.length !== items.length) return [];
   const view = frameView(pts.map((m) => ({ lon: m.lon, lat: m.lat })), MAP_RADIUS);
   const heart = data.shape === 'heart';
-  return tilesFor(view, { x: MAP_POSTER_WIDTH / 2, y: heart ? 618 : 610 }, MAP_RADIUS, data.theme === 'night' ? 'dark' : 'light');
+  return tilesFor(view, { x: MAP_POSTER_WIDTH / 2, y: heart ? 618 : 610 }, MAP_RADIUS, style);
 }
 
 /** Points wandering from right to left across the middle of the shape (Persian reads right to left). */
@@ -221,10 +214,36 @@ function cityPins(c: { cx: number; cy: number; r: number }, count: number, seed:
   });
 }
 
+const rgb = (hex: string) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255);
+
+/**
+ * Washes the standard map down to one soft tone: roads vanish into the paper, outlines and
+ * labels become a faint line drawing. The tile's brightness becomes the strength of the ink.
+ */
 function tintFilter(id: string, theme: MapTheme): string {
-  const t = TINTS[theme];
-  if (!t) return '';
-  return `<filter id="${id}-tint" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="${t.r} 0 0 0 0  0 ${t.g} 0 0 0  0 0 ${t.b} 0 0  0 0 0 1 0"/></filter>`;
+  const p = PALETTES[theme];
+  const W = [0.2126, 0.7152, 0.0722];
+  const ink = 0.55;
+  const rows = rgb(p.card).map((paper, i) => {
+    if (theme === 'night') {
+      // dark paper, light ink: darkest tile pixels become the strongest line
+      const line = rgb(p.ink)[i]!;
+      const k = (line - paper) * ink;
+      return [-k * W[0]!, -k * W[1]!, -k * W[2]!, 0, paper + k];
+    }
+    const a = paper * ink;
+    return [a * W[0]!, a * W[1]!, a * W[2]!, 0, paper * (1 - ink)];
+  });
+  const values = [...rows, [0, 0, 0, 1, 0]].map((r) => r.map((v) => +v.toFixed(4)).join(' ')).join('  ');
+  return `<filter id="${id}-tint" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="${values}"/></filter>`;
+}
+
+/** The outline of Iran as a smooth closed path, in the same projection as the tiles. */
+function iranSilhouette(centre: { x: number; y: number }): string {
+  return smoothClosedPath(
+    // every other point: a softer silhouette, not a survey
+    IRAN_OUTLINE.filter((_, i) => i % 2 === 0).map(([lon, lat]) => projectToPoster({ lon, lat }, IRAN_VIEW, centre)),
+  );
 }
 
 export function buildTreasureMapSvg(opts: TreasureMapOptions): string {
@@ -235,12 +254,13 @@ export function buildTreasureMapSvg(opts: TreasureMapOptions): string {
   const H = MAP_POSTER_HEIGHT;
   const isCity = data.scope === 'city';
   const heart = data.shape === 'heart';
-  // city maps are cut to a circle or a heart; an Iran map sits on a plain panel
+  // a city map is cut to a circle or a heart; an Iran map is cut to Iran's outline
   const R = MAP_RADIUS;
   const shape = { cx: W / 2, cy: heart ? 618 : 610, r: R };
-  const box = { x: 90, y: 300, width: 720, height: 620 };
+  const panel = IRAN_PANEL;
+  const panelCentre = { x: panel.x + panel.width / 2, y: panel.y + panel.height / 2 };
 
-  const items = data.milestones.slice(0, MAX_MILESTONES).map((m) => ({ m, city: IRAN_CITIES.find((c) => c.name === m.city) }));
+  const items = data.milestones.slice(0, MAX_MILESTONES).map((m) => ({ m }));
   const parts: string[] = [];
   const text = (x: number, y: number, size: number, weight: number, fill: string, s: string, extra = '') =>
     `<text x="${n(x)}" y="${n(y)}" font-size="${size}" font-weight="${weight}" fill="${fill}" text-anchor="middle" direction="rtl"${extra}>${esc(s)}</text>`;
@@ -255,34 +275,25 @@ export function buildTreasureMapSvg(opts: TreasureMapOptions): string {
   parts.push(text(W / 2, 196, titleFontSize(data.title), 700, p.ink, data.title));
   if (data.names) parts.push(text(W / 2, 250, 28, 400, p.muted, data.names));
 
-  let pins: Point[];
+  const pts = picked(items.map((x) => x.m));
+  const real = pts.length === items.length && pts.length > 0;
+  const tiles = mapTiles(data);
+  const tileMarkup = tiles
+    .map((t) => `<image href="${esc(tileImages?.[t.url] ?? t.url)}" x="${n(t.left - 0.4)}" y="${n(t.top - 0.4)}" width="${n(t.size + 0.8)}" height="${n(t.size + 0.8)}" preserveAspectRatio="none"/>`)
+    .join('');
+  const tinted = tileMarkup ? `<g filter="url(#${id}-tint)">${tileMarkup}</g>` : '';
+
+  let pins: Point[] = [];
   let coords = '';
-  let usedReal = false;
-  let realView: ReturnType<typeof frameView> | null = null;
+  let usedTiles = false;
   if (isCity) {
     const shapePath = heart ? heartPath(shape.cx, shape.cy, R) : '';
     const clip = heart ? `<path d="${shapePath}"/>` : `<circle cx="${shape.cx}" cy="${shape.cy}" r="${R}"/>`;
     parts.push(`<clipPath id="${id}-clip">${clip}</clipPath>`);
     parts.push(heart ? `<path d="${shapePath}" fill="${p.card}"/>` : `<circle cx="${shape.cx}" cy="${shape.cy}" r="${R}" fill="${p.card}"/>`);
-    const pts = picked(items.map((x) => x.m));
-    const real = pts.length === items.length && pts.length > 0;
     const view = real ? frameView(pts.map((m) => ({ lon: m.lon, lat: m.lat })), R) : null;
-    const tiles = mapTiles(data);
-    const tint = TINTS[data.theme];
-    const tileMarkup = tiles
-      .map((t) => `<image href="${esc(tileImages?.[t.url] ?? t.url)}" x="${n(t.left - 0.4)}" y="${n(t.top - 0.4)}" width="${n(t.size + 0.8)}" height="${n(t.size + 0.8)}" preserveAspectRatio="none"/>`)
-      .join('');
-    parts.push(
-      `<g clip-path="url(#${id}-clip)">${
-        real
-          ? tint
-            ? `<g filter="url(#${id}-tint)">${tileMarkup}</g>`
-            : tileMarkup
-          : cityBackdrop(shape, data.area, p, id)
-      }</g>`,
-    );
-    usedReal = real;
-    realView = real ? view : null;
+    parts.push(`<g clip-path="url(#${id}-clip)">${real ? tinted : cityBackdrop(shape, data.area, p, id)}</g>`);
+    usedTiles = real;
     // outline, with a fine second ring on a circle
     if (heart) {
       parts.push(`<path d="${shapePath}" fill="none" stroke="${p.ink}" stroke-width="3" stroke-linejoin="round"/>`);
@@ -292,25 +303,26 @@ export function buildTreasureMapSvg(opts: TreasureMapOptions): string {
         `<circle cx="${shape.cx}" cy="${shape.cy}" r="${R + 14}" fill="none" stroke="${p.ink}" stroke-opacity="0.35" stroke-width="1.2"/>`,
       );
     }
-    if (realView) {
-      pins = items.map(({ m }) => projectToPoster({ lon: m.lon ?? 0, lat: m.lat ?? 0 }, realView!, { x: shape.cx, y: shape.cy }));
-      const { lat, lon } = realView.center;
-      coords = toPersianDigits(`${formatDecimal(lat, 2)}°N · ${formatDecimal(lon, 2)}°E`);
+    if (view) {
+      pins = items.map(({ m }) => projectToPoster({ lon: m.lon ?? 0, lat: m.lat ?? 0 }, view, { x: shape.cx, y: shape.cy }));
+      coords = toPersianDigits(`${formatDecimal(view.center.lat, 2)}°N · ${formatDecimal(view.center.lon, 2)}°E`);
     } else {
       pins = cityPins({ ...shape, cy: heart ? shape.cy - 40 : shape.cy }, items.length, data.area + data.title);
       const c = IRAN_CITIES.find((x) => x.name === data.area);
       if (c) coords = toPersianDigits(`${formatDecimal(c.lat, 2)}°N · ${formatDecimal(c.lon, 2)}°E`);
     }
   } else {
-    // minimal: a soft silhouette, no sea names, no grid
-    parts.push(`<rect x="${box.x}" y="${box.y}" width="${box.width}" height="${box.height}" fill="${p.card}" stroke="${p.ink}" stroke-opacity="0.35" stroke-width="1.5"/>`);
-    const project = createProjection(box, 40);
-    parts.push(`<path d="${iranOutlinePath(project)}" fill="${p.land}" stroke="${p.ink}" stroke-opacity="0.45" stroke-width="1.8" stroke-linejoin="round"/>`);
-    const placed = items.filter((x): x is { m: Milestone; city: (typeof IRAN_CITIES)[number] } => x.city !== undefined);
-    pins = spreadPins(
-      placed.map(({ city }) => project(city.lon, city.lat)),
-      placed.map(({ city }) => city.name),
-    );
+    // Iran: the map shows through Iran's outline only; everything beyond the border stays paper
+    const outline = iranSilhouette(panelCentre);
+    parts.push(`<clipPath id="${id}-clip"><path d="${outline}"/></clipPath>`);
+    parts.push(`<path d="${outline}" fill="${p.card}"/>`);
+    parts.push(`<g clip-path="url(#${id}-clip)">${tinted}</g>`);
+    parts.push(`<path d="${outline}" fill="none" stroke="${p.ink}" stroke-opacity="0.7" stroke-width="2" stroke-linejoin="round"/>`);
+    usedTiles = tiles.length > 0;
+    if (real) {
+      const placed = pts.map((m) => projectToPoster({ lon: m.lon, lat: m.lat }, IRAN_VIEW, panelCentre));
+      pins = spreadPins(placed, pts.map((m) => `${m.lat.toFixed(2)},${m.lon.toFixed(2)}`), 16);
+    }
   }
 
   if (pins.length >= 2) {
@@ -325,10 +337,8 @@ export function buildTreasureMapSvg(opts: TreasureMapOptions): string {
   });
 
   // the place under the map, as on printed maps
-  if (isCity) {
-    parts.push(text(W / 2, 958, 34, 700, p.ink, data.area));
-    if (coords) parts.push(text(W / 2, 988, 17, 400, p.muted, coords));
-  }
+  parts.push(text(W / 2, 958, 34, 700, p.ink, isCity ? data.area : labels.iran));
+  if (coords) parts.push(text(W / 2, 988, 17, 400, p.muted, coords));
 
   // legend: two columns, the first milestone at the right (reading order of Persian)
   const rows = Math.ceil(items.length / 2);
@@ -348,7 +358,7 @@ export function buildTreasureMapSvg(opts: TreasureMapOptions): string {
     );
   });
 
-  if (usedReal) parts.push(text(W / 2, 1272, 14, 400, p.muted, labels.credit));
+  if (usedTiles) parts.push(text(W / 2, 1272, 14, 400, p.muted, labels.credit));
   if (watermark) parts.push(text(W / 2, 1296, 17, 400, p.accent, labels.watermark, ' fill-opacity="0.85"'));
 
   const fontCss = fonts

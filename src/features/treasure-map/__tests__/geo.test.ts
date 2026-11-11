@@ -62,13 +62,10 @@ test('tiles cover the whole shape, in place, with no gaps', () => {
 });
 
 test('tile urls and zoom', () => {
-  assert.equal(
-    tileUrl('dark', 15, 100, 201),
-    'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/15/201/100',
-  );
-  assert.ok(pickZoom(1500 / 592, 35.7) >= 14 && pickZoom(1500 / 592, 35.7) <= 16);
-  assert.equal(pickZoom(0.1, 35.7), 16, 'never deeper than the source has');
-  assert.equal(pickZoom(0.1, 35.7, 19), 19);
+  assert.equal(tileUrl('dark', 15, 100, 201), 'https://tile.openstreetmap.org/15/100/201.png');
+  assert.ok(pickZoom(1500 / 592, 35.7) >= 14 && pickZoom(1500 / 592, 35.7) <= 17);
+  assert.equal(pickZoom(0.1, 35.7), 19, 'never deeper than the source has');
+  assert.equal(pickZoom(0.1, 35.7, 16), 16);
   assert.equal(pickZoom(1e9, 0), 3);
 });
 

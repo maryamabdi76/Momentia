@@ -6,7 +6,7 @@ const CITY_NAMES = IRAN_CITIES.map((c) => c.name);
 
 export const milestoneSchema = z.object({
   title: z.string().trim().min(1).max(24),
-  /** An Iranian city on an Iran map; a place name on a city map. */
+  /** The place's name, as the user wants it on the poster. */
   city: z.string().trim().min(1).max(22),
   date: z.string().trim().max(18),
   /** Where it happened, picked on the map (city maps). */
@@ -24,11 +24,8 @@ export const treasureMapSchema = z
     shape: z.enum(MAP_SHAPES),
     milestones: z.array(milestoneSchema).min(MIN_MILESTONES).max(MAX_MILESTONES),
   })
-  .refine((v) => v.scope === 'city' || v.milestones.every((m) => CITY_NAMES.includes(m.city)), {
-    path: ['milestones'],
-  })
-  // a city map is drawn around the places picked on the map
-  .refine((v) => v.scope === 'iran' || v.milestones.every((m) => m.lat !== undefined && m.lon !== undefined), {
+  // every map is drawn around places picked on the map
+  .refine((v) => v.milestones.every((m) => m.lat !== undefined && m.lon !== undefined), {
     path: ['milestones'],
   });
 

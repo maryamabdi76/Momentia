@@ -978,11 +978,10 @@
     "milestonesTitle": "لحظه‌های مهم",
     "milestoneTitle": "چه اتفاقی افتاد؟",
     "milestonePlaceholder": "اولین قرار",
-    "milestoneCity": "کدام شهر؟",
-    "milestonePlace": "کجا؟",
+    "milestonePlace": "نام مکان",
     "placePlaceholder": "نام مکان، مثلاً کافه نادری",
     "pickOnMap": "انتخاب روی نقشه",
-    "pickedOnMap": "مکان انتخاب شده؛ تغییر روی نقشه",
+    "pickedOnMap": "مکان انتخاب شد؛ تغییر روی نقشه",
     "picker": {
       "title": "مکان را روی نقشه انتخاب کنید",
       "hint": "نقشه را بکشید و روی جای دقیق بزنید، یا نام مکان را جستجو کنید.",
@@ -1019,7 +1018,8 @@
       "kicker": "نقشهٔ گنج · داستان ما",
       "count": "{count} لحظه از قصهٔ ما",
       "watermark": "آسمان شب ما",
-      "credit": "Esri · © OpenStreetMap contributors",
+      "credit": "© OpenStreetMap contributors",
+      "iran": "ایران",
       "alt": "نقشهٔ ایران با مسیر طلایی میان لحظه‌های مهم",
       "north": "ش"
     },

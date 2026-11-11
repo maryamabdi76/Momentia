@@ -67,7 +67,7 @@ export function TreasureMapMaker() {
       shape: watched.shape ?? 'circle',
       milestones: (watched.milestones ?? []).map((m) => ({
         title: m?.title || '…',
-        city: m?.city || (watched.scope === 'iran' ? 'تهران' : '…'),
+        city: m?.city || '…',
         date: m?.date ?? '',
         lat: m?.lat,
         lon: m?.lon,
@@ -82,6 +82,7 @@ export function TreasureMapMaker() {
       count: t('poster.count', { count: toPersianDigits(String(current.milestones.length)) }),
       watermark: t('poster.watermark'),
       credit: t('poster.credit'),
+      iran: t('poster.iran'),
       alt: t('poster.alt'),
       north: t('poster.north'),
     }),
@@ -130,15 +131,7 @@ export function TreasureMapMaker() {
                       type="button"
                       role="radio"
                       aria-checked={f.value === key}
-                      onClick={() => {
-                        f.onChange(key);
-                        // a city map names places; an Iran map picks cities, so start each over from a valid value
-                        getValues('milestones').forEach((_, i) => {
-                          setValue(`milestones.${i}.city`, key === 'iran' ? 'تهران' : '', { shouldValidate: true });
-                          setValue(`milestones.${i}.lat`, undefined);
-                          setValue(`milestones.${i}.lon`, undefined);
-                        });
-                      }}
+                      onClick={() => f.onChange(key)}
                       className={`h-10 rounded-lg border text-sm transition-colors ${f.value === key ? 'border-[#CEB47B] bg-[#CEB47B]/15 text-[#CEB47B]' : 'border-[#33415B] text-white/70 hover:bg-white/5'}`}
                     >
                       {t(`scope.${key}`)}
@@ -250,27 +243,23 @@ export function TreasureMapMaker() {
                     />
                   </label>
                   <label className="block space-y-1.5">
-                    <span className="text-[12px] text-[#AAB6CD]">
-                      {watched.scope === 'iran' ? t('milestoneCity') : t('milestonePlace')}
-                    </span>
-                    {watched.scope === 'iran' ? (
-                      <select {...register(`milestones.${i}.city`)} className={fieldClass}>
-                        {IRAN_CITIES.map((c) => (
-                          <option key={c.name} value={c.name}>
-                            {c.name}
-                          </option>
-                        ))}
-                      </select>
-                    ) : (
-                      <Input
-                        {...register(`milestones.${i}.city`)}
-                        maxLength={22}
-                        className={fieldClass}
-                        placeholder={t('placePlaceholder')}
-                      />
-                    )}
+                    <span className="text-[12px] text-[#AAB6CD]">{t('milestonePlace')}</span>
+                    <Input
+                      {...register(`milestones.${i}.city`)}
+                      maxLength={22}
+                      className={fieldClass}
+                      placeholder={t('placePlaceholder')}
+                    />
                   </label>
-                  {watched.scope !== 'iran' && (
+                  <label className="block space-y-1.5">
+                    <span className="text-[12px] text-[#AAB6CD]">{t('milestoneDate')}</span>
+                    <Input
+                      {...register(`milestones.${i}.date`)}
+                      maxLength={18}
+                      className={fieldClass}
+                      placeholder={t('datePlaceholder')}
+                    />
+                  </label>
                     <div className="sm:col-span-2">
                       <Button
                         type="button"
@@ -282,16 +271,6 @@ export function TreasureMapMaker() {
                         {watched.milestones?.[i]?.lat === undefined ? t('pickOnMap') : t('pickedOnMap')}
                       </Button>
                     </div>
-                  )}
-                  <label className="block space-y-1.5">
-                    <span className="text-[12px] text-[#AAB6CD]">{t('milestoneDate')}</span>
-                    <Input
-                      {...register(`milestones.${i}.date`)}
-                      maxLength={18}
-                      className={fieldClass}
-                      placeholder={t('datePlaceholder')}
-                    />
-                  </label>
                 </div>
               </li>
             ))}
@@ -300,7 +279,7 @@ export function TreasureMapMaker() {
             type="button"
             variant="outline"
             disabled={fields.length >= MAX_MILESTONES}
-            onClick={() => append({ ...EMPTY_MILESTONE, city: getValues('scope') === 'iran' ? 'تهران' : '' })}
+            onClick={() => append(EMPTY_MILESTONE)}
             className="h-10 w-full gap-2 border-dashed border-[#CEB47B]/50 bg-transparent text-sm text-[#CEB47B] hover:bg-[#CEB47B]/10"
           >
             <Plus className="size-4" />
@@ -366,6 +345,7 @@ export function TreasureMapMaker() {
       </aside>
       <PlacePicker
         open={pickerFor !== null}
+        wholeCountry={current.scope === 'iran'}
         onOpenChange={(o) => {
           if (!o) setPickerFor(null);
         }}

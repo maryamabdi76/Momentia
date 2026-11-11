@@ -19,6 +19,8 @@ type Props = {
   onOpenChange: (open: boolean) => void;
   /** Where the map opens: the place already picked for this milestone, or another one. */
   start?: LonLat | null;
+  /** An Iran map: with nothing picked yet the map opens on the whole country. */
+  wholeCountry?: boolean;
   /** The place picked now, shown as a marker. */
   current?: LonLat | null;
   /** The other milestones' places, shown as small dots for orientation. */
@@ -110,7 +112,9 @@ function LeafletMap({
   return <div ref={ref} dir="ltr" className="z-0 h-[340px] w-full overflow-hidden rounded-xl border border-[#33415B] bg-[#e8e4da]" />;
 }
 
-export function PlacePicker({ open, onOpenChange, start, current, others = [], onPick }: Props) {
+const IRAN: LonLat = { lon: 53.7, lat: 32.4 };
+
+export function PlacePicker({ open, onOpenChange, start, wholeCountry = false, current, others = [], onPick }: Props) {
   const t = useTranslations('MapPage.picker');
   const [focus, setFocus] = useState<MapFocus>({ center: start ?? TEHRAN, zoom: start ? 15 : 12, nonce: 0 });
   const [pending, setPending] = useState<PickedPlace | null>(null);
@@ -122,7 +126,8 @@ export function PlacePicker({ open, onOpenChange, start, current, others = [], o
   // each time it opens: start where this milestone already is, with nothing pending
   useEffect(() => {
     if (!open) return;
-    setFocus((f) => ({ center: start ?? TEHRAN, zoom: start ? 15 : 12, nonce: f.nonce + 1 }));
+    const fallback = wholeCountry ? { center: IRAN, zoom: 5 } : { center: TEHRAN, zoom: 12 };
+    setFocus((f) => ({ center: start ?? fallback.center, zoom: start ? (wholeCountry ? 8 : 15) : fallback.zoom, nonce: f.nonce + 1 }));
     setPending(current ? { lat: current.lat, lon: current.lon } : null);
     setHits(null);
     setFailed(false);
