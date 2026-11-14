@@ -35,7 +35,7 @@ export const MAP_LAYOUTS = ['single', 'cards'] as const;
 export type MapLayout = (typeof MAP_LAYOUTS)[number];
 export const MAX_CARDS = 4;
 export const maxMilestones = (layout: MapLayout) => (layout === 'cards' ? MAX_CARDS : MAX_MILESTONES);
-export const MAP_SHAPES = ['circle', 'arch', 'square'] as const;
+export const MAP_SHAPES = ['circle', 'heart', 'arch', 'square'] as const;
 export type MapShape = (typeof MAP_SHAPES)[number];
 export type MapTheme = (typeof MAP_THEMES)[number];
 
@@ -110,6 +110,45 @@ export function mapFrameColors(theme: MapTheme): { frame: string; frameSoft: str
   return { frame: ink, frameSoft: `rgba(${r},${g},${b},0.45)` };
 }
 
+const HEART_R = 0.55;
+const HEART_C = 0.45;
+
+/**
+ * A classic heart: two round lobes with a shallow cleft, then straight sides running to a sharp
+ * point. It is exactly 2s wide and 2s tall, centred on (cx, cy). Also returns where the right
+ * straight side runs, so a date can be set along it.
+ */
+export function heartGeometry(cx: number, cy: number, s: number) {
+  const P = (x: number, y: number) => ({ x: cx + x * s, y: cy + y * s });
+  const tip = { x: 0, y: 1 };
+  // the tangent from the tip to the right lobe's circle, on its outer side
+  const c = { x: HEART_C, y: -HEART_C };
+  const vx = tip.x - c.x;
+  const vy = tip.y - c.y;
+  const d = Math.hypot(vx, vy);
+  const base = Math.atan2(vy, vx);
+  const alpha = Math.acos(HEART_R / d);
+  const pts = [base + alpha, base - alpha].map((a) => ({ x: c.x + HEART_R * Math.cos(a), y: c.y + HEART_R * Math.sin(a) }));
+  const t = pts[0]!.x > pts[1]!.x ? pts[0]! : pts[1]!;
+  const cleftY = -HEART_C - Math.sqrt(HEART_R ** 2 - HEART_C ** 2);
+  const tipP = P(tip.x, tip.y);
+  const rightT = P(t.x, t.y);
+  const leftT = P(-t.x, t.y);
+  const cleft = P(0, cleftY);
+  const r = HEART_R * s;
+  const f = (p: { x: number; y: number }) => `${n(p.x)} ${n(p.y)}`;
+  const path = `M${f(tipP)}L${f(leftT)}A${n(r)} ${n(r)} 0 1 1 ${f(cleft)}A${n(r)} ${n(r)} 0 1 1 ${f(rightT)}Z`;
+  // the right side, as a direction from the tip, and the way out of the heart
+  const dx = rightT.x - tipP.x;
+  const dy = rightT.y - tipP.y;
+  const len = Math.hypot(dx, dy);
+  return {
+    path,
+    tip: tipP,
+    side: { mid: { x: (tipP.x + rightT.x) / 2, y: (tipP.y + rightT.y) / 2 }, angle: (Math.atan2(dy, dx) * 180) / Math.PI, normal: { x: -dy / len, y: dx / len } },
+  };
+}
+
 /**
  * A map's cut as one SVG element, centred on (cx, cy) and no more than 2r tall.
  * `attrs` carries the fill, stroke or clip the caller wants.
@@ -120,6 +159,7 @@ export function shapeEl(shape: MapShape, cx: number, cy: number, r: number, attr
     const top = cy - r + w;
     return `<path d="M${n(cx - w)} ${n(cy + r)}V${n(top)}A${n(w)} ${n(w)} 0 0 1 ${n(cx + w)} ${n(top)}V${n(cy + r)}Z" ${attrs}/>`;
   }
+  if (shape === 'heart') return `<path d="${heartGeometry(cx, cy, r).path}" ${attrs}/>`;
   if (shape === 'square') {
     const h = r * 0.9;
     return `<rect x="${n(cx - h)}" y="${n(cy - h)}" width="${n(2 * h)}" height="${n(2 * h)}" rx="${n(r * 0.1)}" ${attrs}/>`;
@@ -357,14 +397,27 @@ export function buildTreasureMapSvg(opts: TreasureMapOptions): string {
       }
       parts.push(shapeEl(data.shape, c.x, c.y, c.r, `fill="none" stroke="${p.ink}" stroke-width="2.5" stroke-linejoin="round"`));
       // the place itself: a pin with a soft halo
+      const hearted = data.shape === 'heart';
+      const py = hearted ? c.y - c.r * 0.12 : c.y;
       parts.push(
-        `<circle cx="${n(c.x)}" cy="${n(c.y)}" r="22" fill="${p.accent}" fill-opacity="0.2"/>`,
-        `<circle cx="${n(c.x)}" cy="${n(c.y)}" r="10" fill="${p.accent}" stroke="${p.card}" stroke-width="3"/>`,
+        `<circle cx="${n(c.x)}" cy="${n(py)}" r="22" fill="${p.accent}" fill-opacity="0.2"/>`,
+        `<circle cx="${n(c.x)}" cy="${n(py)}" r="10" fill="${p.accent}" stroke="${p.card}" stroke-width="3"/>`,
       );
       const base = c.y + c.r + 56;
       parts.push(text(c.x, base, 28, 700, p.ink, m.title));
       parts.push(text(c.x, base + 30, 18, 400, p.muted, m.city));
-      if (m.date) parts.push(text(c.x, base + 56, 16, 400, p.accent, toPersianDigits(m.date)));
+      if (m.date && hearted) {
+        // set along the heart's right side, reading up towards the lobe, as on printed love maps
+        const { side } = heartGeometry(c.x, c.y, c.r);
+        const off = 20;
+        const x = side.mid.x + side.normal.x * off;
+        const y = side.mid.y + side.normal.y * off;
+        parts.push(
+          `<text x="${n(x)}" y="${n(y)}" font-size="17" fill="${p.accent}" text-anchor="middle" dominant-baseline="middle" transform="rotate(${n(side.angle)} ${n(x)} ${n(y)})">${esc(toPersianDigits(m.date))}</text>`,
+        );
+      } else if (m.date) {
+        parts.push(text(c.x, base + 56, 16, 400, p.accent, toPersianDigits(m.date)));
+      }
     });
   } else {
   const pts = picked(items.map((x) => x.m));

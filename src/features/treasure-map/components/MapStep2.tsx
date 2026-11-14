@@ -79,7 +79,7 @@ export function MapStep2({ form, onNext, onBack }: Props) {
               control={control}
               name="shape"
               render={({ field: f }) => (
-                <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label={t('shapeLabel')}>
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4" role="radiogroup" aria-label={t('shapeLabel')}>
                   {MAP_SHAPES.map((key) => (
                     <button
                       key={key}

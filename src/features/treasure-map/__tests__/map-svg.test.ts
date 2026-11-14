@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { buildTreasureMapSvg, cardSlots, mapAspect, mapTiles, maxMilestones, titleFontSize } from '../lib/map-svg.ts';
+import { buildTreasureMapSvg, cardSlots, heartGeometry, mapAspect, mapTiles, maxMilestones, titleFontSize } from '../lib/map-svg.ts';
 import { spreadPins, smoothOpenPath } from '../lib/map-geometry.ts';
 
 const labels = {
@@ -90,10 +90,10 @@ test('escapes user text', () => {
   assert.match(svg, /&lt;script&gt;&quot;&amp;/);
 });
 
-test('arch and square cuts keep every pin inside the picture', () => {
-  for (const shape of ['arch', 'square'] as const) {
+test('heart, arch and square cuts keep every pin inside the picture', () => {
+  for (const shape of ['heart', 'arch', 'square'] as const) {
     const svg = buildTreasureMapSvg({ data: { ...city, shape }, labels, watermark: false });
-    assert.match(svg, shape === 'arch' ? /<path d="M[\d. ]+V[\d. ]+A/ : /<rect x="[\d. ]+" y="[\d. ]+" width="[\d. ]+" height="[\d. ]+" rx=/);
+    assert.match(svg, shape === 'heart' ? /<path d="M[\d. ]+L[\d. ]+A/ : shape === 'arch' ? /<path d="M[\d. ]+V[\d. ]+A/ : /<rect x="[\d. ]+" y="[\d. ]+" width="[\d. ]+" height="[\d. ]+" rx=/);
     for (const [x, y] of pinsOf(svg)) assert.ok(x > 150 && x < 750 && y > 300 && y < 940);
   }
 });
@@ -170,4 +170,15 @@ test('cards sit in one row on a landscape sheet', () => {
     assert.ok(slots.every((c) => c.x - c.r >= 40 && c.x + c.r <= 1310));
   }
   assert.equal(maxMilestones('cards'), 4);
+});
+
+test('the heart is a classic one: 2s wide and tall, pointed, with the date set along its right side', () => {
+  const g = heartGeometry(450, 400, 100);
+  // the outline starts at the tip, the lowest point, and ends back there
+  assert.ok(g.path.startsWith('M450 500L'));
+  assert.ok(g.path.endsWith('Z'));
+  assert.ok(g.side.angle < 0 && g.side.angle > -90, 'the side climbs to the right');
+  assert.ok(g.side.normal.x > 0 && g.side.normal.y > 0, 'outwards is down and to the right');
+  const svg = buildTreasureMapSvg({ data: { ...city, layout: 'cards' as const, shape: 'heart' as const }, labels, watermark: false });
+  assert.match(svg, /<text [^>]*transform="rotate\(-[\d.]+ /);
 });
