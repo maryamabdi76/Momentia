@@ -22,7 +22,7 @@ type Props = {
 export function MapStep3({ exporter, format, onFormatChange, valid }: Props) {
   const t = useTranslations('MapPage');
   const tSupport = useTranslations('Support');
-  const pay = !exporter.premiumUnlocked && PREMIUM_PRICE_TOMAN;
+  const price = exporter.premiumUnlocked ? null : PREMIUM_PRICE_TOMAN;
 
   return (
     <div className="space-y-6">
@@ -70,7 +70,7 @@ export function MapStep3({ exporter, format, onFormatChange, valid }: Props) {
             ) : (
               <Lock className="size-4" />
             )}
-            {pay ? t('premium.payBtn', { price: formatToman(PREMIUM_PRICE_TOMAN) }) : t('premium.downloadBtn')}
+            {price ? t('premium.payBtn', { price: formatToman(price) }) : t('premium.downloadBtn')}
           </Button>
           <Button
             type="button"
