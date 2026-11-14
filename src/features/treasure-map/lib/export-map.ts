@@ -35,15 +35,28 @@ function loadTile(url: string): Promise<string> {
   return hit;
 }
 
+/** A paid file must not have holes in its map, so a tile that fails is tried once more before giving up. */
+async function loadTileWithRetry(url: string): Promise<string> {
+  try {
+    return await loadTile(url);
+  } catch {
+    await new Promise((r) => setTimeout(r, 400));
+    return loadTile(url);
+  }
+}
+
+/** The file is drawn about three times larger than the preview, so its map tiles are two zoom levels sharper. */
+const EXPORT_TILE_DETAIL = 2;
+
 export async function createMapSvg(input: {
   data: TreasureMapData;
   labels: TreasureMapLabels;
   watermark: boolean;
 }): Promise<string> {
-  const tiles = mapTiles(input.data);
+  const tiles = mapTiles(input.data, EXPORT_TILE_DETAIL);
   const [fonts, images] = await Promise.all([
     loadFonts(),
-    Promise.all(tiles.map(async (t) => [t.url, await loadTile(t.url)] as const)),
+    Promise.all(tiles.map(async (t) => [t.url, await loadTileWithRetry(t.url)] as const)),
   ]);
-  return buildTreasureMapSvg({ ...input, fonts, tileImages: Object.fromEntries(images), idPrefix: 'export' });
+  return buildTreasureMapSvg({ ...input, fonts, tileImages: Object.fromEntries(images), idPrefix: 'export', tileDetail: EXPORT_TILE_DETAIL });
 }

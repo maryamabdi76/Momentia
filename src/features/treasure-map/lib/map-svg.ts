@@ -74,6 +74,8 @@ export type TreasureMapOptions = {
   tileImages?: Record<string, string>;
   /** The small site mark at the foot; the premium file leaves it out. */
   watermark: boolean;
+  /** Zoom levels sharper than the preview; must match what `mapTiles` was asked for when the tile pictures were loaded. */
+  tileDetail?: number;
   /** Prefix for ids, so several maps can share a page. */
   idPrefix?: string;
 };
@@ -261,23 +263,27 @@ const IRAN_VIEW = { center: { lon: 53.75, lat: 32.4 }, metresPerPx: 3100 };
 const IRAN_PANEL = { x: 90, y: 300, width: 720, height: 620 };
 
 /** The tiles a map needs: always for Iran, and for a city once all its places are picked. */
-export function mapTiles(data: TreasureMapData): TileSpec[] {
+/**
+ * `detail` is how many zoom levels sharper than the preview the tiles should be. The exported file
+ * is drawn about three times larger, so it asks for more; Iran stays modest to keep the tile count down.
+ */
+export function mapTiles(data: TreasureMapData, detail = 0): TileSpec[] {
   const style = data.theme === 'night' ? 'dark' : 'light';
   if (data.layout === 'cards') {
     const slots = cardSlots(Math.min(data.milestones.length, MAX_CARDS));
     return data.milestones.slice(0, MAX_CARDS).flatMap((m, i) =>
-      hasPoint(m) ? tilesFor(cardView(m, slots[i]!.r), slots[i]!, slots[i]!.r, style) : [],
+      hasPoint(m) ? tilesFor(cardView(m, slots[i]!.r), slots[i]!, slots[i]!.r, style, detail) : [],
     );
   }
   if (data.scope === 'iran') {
     const c = { x: IRAN_PANEL.x + IRAN_PANEL.width / 2, y: IRAN_PANEL.y + IRAN_PANEL.height / 2 };
-    return tilesFor(IRAN_VIEW, c, { x: IRAN_PANEL.width / 2, y: IRAN_PANEL.height / 2 }, style);
+    return tilesFor(IRAN_VIEW, c, { x: IRAN_PANEL.width / 2, y: IRAN_PANEL.height / 2 }, style, Math.min(detail, 1));
   }
   const items = data.milestones.slice(0, maxMilestones(data.layout));
   const pts = picked(items);
   if (pts.length === 0 || pts.length !== items.length) return [];
   const view = frameView(pts.map((m) => ({ lon: m.lon, lat: m.lat })), MAP_RADIUS);
-  return tilesFor(view, { x: 450, y: 610 }, MAP_RADIUS, style);
+  return tilesFor(view, { x: 450, y: 610 }, MAP_RADIUS, style, detail);
 }
 
 
@@ -353,6 +359,7 @@ function iranSilhouette(centre: { x: number; y: number }): string {
 
 export function buildTreasureMapSvg(opts: TreasureMapOptions): string {
   const { data, labels, fonts, watermark, tileImages } = opts;
+  const tileDetail = opts.tileDetail ?? 0;
   const id = opts.idPrefix ?? 'tmap';
   const p = PALETTES[data.theme];
   const { width: W, height: H } = mapCanvas(data.layout);
@@ -391,7 +398,7 @@ export function buildTreasureMapSvg(opts: TreasureMapOptions): string {
       parts.push(`<clipPath id="${clipId}">${shapeEl(data.shape, c.x, c.y, c.r, '')}</clipPath>`);
       parts.push(shapeEl(data.shape, c.x, c.y, c.r, `fill="${p.card}"`));
       if (hasPoint(m)) {
-        const tiles = tilesFor(cardView(m, c.r), c, c.r, tileStyle);
+        const tiles = tilesFor(cardView(m, c.r), c, c.r, tileStyle, tileDetail);
         if (tiles.length) usedTiles = true;
         parts.push(`<g clip-path="url(#${clipId})"><g filter="url(#${id}-tint)">${tileImagesMarkup(tiles, tileImages)}</g></g>`);
       }
@@ -422,7 +429,7 @@ export function buildTreasureMapSvg(opts: TreasureMapOptions): string {
   } else {
   const pts = picked(items.map((x) => x.m));
   const real = pts.length === items.length && pts.length > 0;
-  const tiles = mapTiles(data);
+  const tiles = mapTiles(data, tileDetail);
   const tileMarkup = tiles
     .map((t) => `<image href="${esc(tileImages?.[t.url] ?? t.url)}" x="${n(t.left - 0.4)}" y="${n(t.top - 0.4)}" width="${n(t.size + 0.8)}" height="${n(t.size + 0.8)}" preserveAspectRatio="none"/>`)
     .join('');
@@ -496,7 +503,8 @@ export function buildTreasureMapSvg(opts: TreasureMapOptions): string {
 
   }
 
-  if (usedTiles) parts.push(text(W / 2, H - 78, 14, 400, p.muted, labels.credit));
+  // the paid file carries no credit line (the page shows it); the free preview does
+  if (usedTiles && watermark) parts.push(text(W / 2, H - 78, 14, 400, p.muted, labels.credit));
   if (watermark) parts.push(text(W / 2, H - 54, 17, 400, p.accent, labels.watermark, ' fill-opacity="0.85"'));
 
   const fontCss = fonts

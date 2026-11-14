@@ -51,6 +51,7 @@ export function MapPreview({ step, data, labels, format, onBack }: Props) {
           </p>
         )}
         <p className="mt-4 text-center text-xs text-[#1c2540]/70">{t('preview.note')}</p>
+        <p className="mt-2 text-center text-[11px] text-[#1c2540]/55">{t('preview.credit')}</p>
       </div>
 
       {step === 3 && (

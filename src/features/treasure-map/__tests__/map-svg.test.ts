@@ -151,7 +151,17 @@ test('cards layout draws one clipped map per moment with its caption', () => {
   assert.equal((svg.match(/<clipPath id="tmap-card\d"/g) ?? []).length, 3);
   for (const m of places) assert.ok(svg.includes(m.title) && svg.includes(m.city));
   assert.ok(svg.includes('tile.openstreetmap.org'));
-  assert.ok(svg.includes(labels.credit));
+  assert.ok(!svg.includes(labels.credit), 'the paid file has no credit line');
+  assert.ok(buildTreasureMapSvg({ data, labels, watermark: true }).includes(labels.credit));
+});
+
+test('the exported file asks for sharper tiles than the preview (more of them, each smaller)', () => {
+  const preview = mapTiles(city);
+  const sharp = mapTiles(city, 2);
+  assert.ok(sharp.length > preview.length);
+  assert.ok(sharp[0]!.size < preview[0]!.size);
+  // Iran stays modest
+  assert.ok(mapTiles(iran, 2).length <= 120);
 });
 
 test('cards sit in one row on a landscape sheet', () => {

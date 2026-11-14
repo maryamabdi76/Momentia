@@ -52,10 +52,12 @@ export function tilesFor(
   /** Half the width and height to cover, in poster pixels; one number covers a square. */
   half: number | { x: number; y: number },
   style: TileStyle,
+  /** Extra zoom levels beyond what the poster needs: an exported file is drawn several times larger than the preview. */
+  boost = 0,
 ): TileSpec[] {
   const hx = typeof half === 'number' ? half : half.x;
   const hy = typeof half === 'number' ? half : half.y;
-  const z = pickZoom(view.metresPerPx, view.center.lat);
+  const z = Math.min(maxTileZoom(), pickZoom(view.metresPerPx, view.center.lat) + boost);
   const mpp = view.metresPerPx / Math.cos((view.center.lat * Math.PI) / 180); // mercator metres per poster pixel
   const c = toMeters(view.center);
   const tileM = (2 * HALF) / 2 ** z;
