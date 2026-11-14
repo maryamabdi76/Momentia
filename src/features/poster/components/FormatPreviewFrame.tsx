@@ -8,6 +8,8 @@ type Props = {
   style: PosterStyle;
   /** Backdrop colour of the page, for posters whose colours are not a sky style. */
   mat?: string;
+  /** Width ÷ height of the poster when it is not the usual 2:3 portrait. */
+  aspect?: number;
   /** The poster, drawn at the size the file gives it; it is placed and scaled by the frame. */
   children: ReactNode;
   /** Tallest the page may get on screen, as a share of the viewport height. */
@@ -25,10 +27,11 @@ export function FormatPreviewFrame({
   format,
   style,
   mat: matOverride,
+  aspect: posterAspect,
   children,
   maxViewportHeight = 78,
 }: Props) {
-  const { aspect, poster } = formatFrame(getExportFormat(format));
+  const { aspect, poster } = formatFrame(getExportFormat(format), posterAspect);
   const mat = matOverride ?? formatColors(style).mat;
   const plain = poster.width === 1 && poster.height === 1;
 

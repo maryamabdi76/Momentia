@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { buildTreasureMapSvg, cardSlots, mapTiles, maxMilestones, titleFontSize } from '../lib/map-svg.ts';
+import { buildTreasureMapSvg, cardSlots, mapAspect, mapTiles, maxMilestones, titleFontSize } from '../lib/map-svg.ts';
 import { spreadPins, smoothOpenPath } from '../lib/map-geometry.ts';
 
 const labels = {
@@ -90,10 +90,12 @@ test('escapes user text', () => {
   assert.match(svg, /&lt;script&gt;&quot;&amp;/);
 });
 
-test('heart cut draws a heart and keeps every pin inside the picture', () => {
-  const svg = buildTreasureMapSvg({ data: { ...city, shape: 'heart' }, labels, watermark: false });
-  assert.match(svg, /<path d="M[\d. ]+C/);
-  for (const [x, y] of pinsOf(svg)) assert.ok(x > 150 && x < 750 && y > 300 && y < 940);
+test('arch and square cuts keep every pin inside the picture', () => {
+  for (const shape of ['arch', 'square'] as const) {
+    const svg = buildTreasureMapSvg({ data: { ...city, shape }, labels, watermark: false });
+    assert.match(svg, shape === 'arch' ? /<path d="M[\d. ]+V[\d. ]+A/ : /<rect x="[\d. ]+" y="[\d. ]+" width="[\d. ]+" height="[\d. ]+" rx=/);
+    for (const [x, y] of pinsOf(svg)) assert.ok(x > 150 && x < 750 && y > 300 && y < 940);
+  }
 });
 
 test('night uses a light ink on dark paper; paper the other way round', () => {
@@ -144,7 +146,7 @@ test('the chosen frame is drawn, and none draws no border', () => {
 });
 
 test('cards layout draws one clipped map per moment with its caption', () => {
-  const data = { ...city, layout: 'cards' as const, shape: 'heart' as const };
+  const data = { ...city, layout: 'cards' as const, shape: 'arch' as const };
   const svg = buildTreasureMapSvg({ data, labels, watermark: false });
   assert.equal((svg.match(/<clipPath id="tmap-card\d"/g) ?? []).length, 3);
   for (const m of places) assert.ok(svg.includes(m.title) && svg.includes(m.city));
@@ -152,14 +154,20 @@ test('cards layout draws one clipped map per moment with its caption', () => {
   assert.ok(svg.includes(labels.credit));
 });
 
-test('cards layout needs tiles for every picked moment and no more than four cards', () => {
+test('cards sit in one row on a landscape sheet', () => {
   const data = { ...city, layout: 'cards' as const };
   assert.ok(mapTiles(data).length >= 3);
-  assert.equal(cardSlots(3).length, 3);
-  // the lone card of an odd count is centred
-  assert.equal(cardSlots(3)[2]!.x, 450);
-  assert.equal(cardSlots(2)[0]!.x, 450);
-  const slots = cardSlots(4);
-  assert.ok(slots[0]!.x > slots[1]!.x, 'first moment sits at the right');
+  assert.equal(mapAspect('cards'), 1350 / 900);
+  assert.equal(mapAspect('single'), 900 / 1350);
+  const svg = buildTreasureMapSvg({ data, labels, watermark: true });
+  assert.match(svg, /viewBox="0 0 1350 900"/);
+  for (const count of [2, 3, 4]) {
+    const slots = cardSlots(count);
+    assert.equal(slots.length, count);
+    // one row, first moment at the right, nothing off the sheet, no overlaps
+    assert.ok(slots.every((c) => c.y === slots[0]!.y));
+    for (let i = 1; i < count; i++) assert.ok(slots[i - 1]!.x - slots[i]!.x >= 2 * slots[i]!.r);
+    assert.ok(slots.every((c) => c.x - c.r >= 40 && c.x + c.r <= 1310));
+  }
   assert.equal(maxMilestones('cards'), 4);
 });

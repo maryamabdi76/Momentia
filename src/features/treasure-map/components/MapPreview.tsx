@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Dims } from '@/features/poster/components/FormatPicker';
 import { FormatPreviewFrame } from '@/features/poster/components/FormatPreviewFrame';
 import { formatSpec, getExportFormat, type ExportFormatId } from '@/features/poster/lib/export-formats';
-import { mapPaperColor, type TreasureMapData, type TreasureMapLabels } from '../lib/map-svg';
+import { mapAspect, mapPaperColor, type TreasureMapData, type TreasureMapLabels } from '../lib/map-svg';
 import { MapPoster } from './MapPoster';
 
 type Props = {
@@ -26,7 +26,8 @@ export function MapPreview({ step, data, labels, format, onBack }: Props) {
   const tFormats = useTranslations('CreatePage.step3.formats');
 
   const shown: ExportFormatId = step === 3 ? format : 'poster';
-  const spec = formatSpec(getExportFormat(shown));
+  const aspect = mapAspect(data.layout);
+  const spec = formatSpec(getExportFormat(shown), aspect);
 
   return (
     <aside className="flex w-full min-w-0 flex-col gap-5 md:sticky md:top-8">
@@ -37,7 +38,7 @@ export function MapPreview({ step, data, labels, format, onBack }: Props) {
         </div>
 
         <div className="mt-6 flex justify-center">
-          <FormatPreviewFrame format={shown} style="gold" mat={mapPaperColor(data.theme)}>
+          <FormatPreviewFrame format={shown} style="gold" mat={mapPaperColor(data.theme)} aspect={aspect}>
             <MapPoster data={data} labels={labels} className={shown === 'poster' ? 'shadow-xl' : 'shadow-none'} />
           </FormatPreviewFrame>
         </div>

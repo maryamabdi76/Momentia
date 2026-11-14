@@ -6,7 +6,7 @@ import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { FramePicker } from '@/features/poster/components/FramePicker';
-import { mapFrameColors, mapPaperColor, MAP_THEMES } from '../lib/map-svg';
+import { mapFrameColors, mapPaperColor, MAP_SHAPES, MAP_THEMES } from '../lib/map-svg';
 import type { TreasureMapValues } from '../lib/schemas';
 import { choiceClass, fieldClass } from './field-class';
 
@@ -79,8 +79,8 @@ export function MapStep2({ form, onNext, onBack }: Props) {
               control={control}
               name="shape"
               render={({ field: f }) => (
-                <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label={t('shapeLabel')}>
-                  {(['circle', 'heart'] as const).map((key) => (
+                <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label={t('shapeLabel')}>
+                  {MAP_SHAPES.map((key) => (
                     <button
                       key={key}
                       type="button"

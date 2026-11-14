@@ -10,7 +10,7 @@ import { toPersianDigits } from '@/features/poster/lib/digits';
 import { DEFAULT_FORMAT_ID, type ExportFormatId } from '@/features/poster/lib/export-formats';
 import { useMapExport } from '../hooks/use-map-export';
 import { loadMapDraft, saveMapDraft } from '../lib/draft';
-import type { TreasureMapLabels } from '../lib/map-svg';
+import { mapAspect, type TreasureMapLabels } from '../lib/map-svg';
 import { treasureMapSchema, type TreasureMapValues } from '../lib/schemas';
 import { MapPreview } from './MapPreview';
 import { MapStep1 } from './MapStep1';
@@ -132,7 +132,13 @@ export function TreasureMapMaker() {
             {ready && step === 1 && <MapStep1 form={form} onNext={() => goTo(2)} />}
             {ready && step === 2 && <MapStep2 form={form} onNext={() => goTo(3)} onBack={() => goTo(1)} />}
             {ready && step === 3 && (
-              <MapStep3 exporter={exporter} format={format} onFormatChange={setFormat} valid={valid} />
+              <MapStep3
+                exporter={exporter}
+                format={format}
+                onFormatChange={setFormat}
+                valid={valid}
+                aspect={mapAspect(current.layout)}
+              />
             )}
           </section>
           <MapPreview step={step} data={current} labels={labels} format={format} onBack={() => goTo(2)} />

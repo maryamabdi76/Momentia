@@ -140,3 +140,20 @@ test('thumbnail geometry matches the placement', () => {
   assert.equal(g.pageH, 2796);
   near(g.poster.w / g.poster.h, POSTER_ASPECT, 1e-6);
 });
+
+test('a landscape poster turns the image and paper sizes on their side and keeps the ratio', () => {
+  const aspect = 3 / 2;
+  const a4 = getExportFormat('print-a4');
+  const g = formatGeometry(a4, aspect);
+  assert.ok(g.pageW > g.pageH);
+  near(g.poster.w / g.poster.h, aspect, 1e-6);
+  const plain = formatGeometry(getExportFormat('poster'), aspect);
+  assert.equal(plain.pageW, 4500);
+  assert.equal(plain.pageH, 3000);
+  // phone formats stay portrait, with the poster fitted to their width
+  const story = formatGeometry(getExportFormat('story'), aspect);
+  assert.ok(story.pageH > story.pageW);
+  near(story.poster.w / story.poster.h, aspect, 1e-6);
+  // portrait calls are unchanged
+  assert.deepEqual(formatGeometry(a4), formatGeometry(a4, POSTER_ASPECT));
+});

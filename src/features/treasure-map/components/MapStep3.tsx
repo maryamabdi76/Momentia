@@ -16,10 +16,12 @@ type Props = {
   format: ExportFormatId;
   onFormatChange: (id: ExportFormatId) => void;
   valid: boolean;
+  /** Width ÷ height of the poster. */
+  aspect: number;
 };
 
 /** Step 3: pick the file and pay for it. The map has no free download. */
-export function MapStep3({ exporter, format, onFormatChange, valid }: Props) {
+export function MapStep3({ exporter, format, onFormatChange, valid, aspect }: Props) {
   const t = useTranslations('MapPage');
   const tSupport = useTranslations('Support');
   const price = exporter.premiumUnlocked ? null : PREMIUM_PRICE_TOMAN;
@@ -54,7 +56,7 @@ export function MapStep3({ exporter, format, onFormatChange, valid }: Props) {
           ))}
         </ul>
 
-        <FormatPicker value={format} onChange={onFormatChange} />
+        <FormatPicker value={format} onChange={onFormatChange} aspect={aspect} />
 
         <div className="flex flex-col gap-2.5">
           <Button

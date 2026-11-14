@@ -28,8 +28,8 @@ export function Dims({ w, h, cm }: { w: number; h: number; cm?: boolean }) {
 }
 
 /** The page and the poster on it, drawn to scale. */
-function Thumb({ format, selected }: { format: ExportFormat; selected: boolean }) {
-  const { pageW, pageH, poster } = formatGeometry(format);
+function Thumb({ format, selected, aspect }: { format: ExportFormat; selected: boolean; aspect?: number }) {
+  const { pageW, pageH, poster } = formatGeometry(format, aspect);
   const height = 60;
   const width = Math.round((height * pageW) / pageH);
   return (
@@ -63,10 +63,10 @@ function SpecRow({ label, children }: { label: string; children: ReactNode }) {
   );
 }
 
-function Specs({ id }: { id: ExportFormatId }) {
+function Specs({ id, aspect }: { id: ExportFormatId; aspect?: number }) {
   const t = useTranslations('CreatePage.step3.formats');
   const format = getExportFormat(id);
-  const spec: FormatSpec = formatSpec(format);
+  const spec: FormatSpec = formatSpec(format, aspect);
 
   const quality = (dpi: number) => (dpi >= 300 ? 'great' : dpi >= 180 ? 'good' : 'fair');
 
@@ -120,13 +120,15 @@ function Specs({ id }: { id: ExportFormatId }) {
 type Props = {
   value: ExportFormatId;
   onChange: (id: ExportFormatId) => void;
+  /** Width ÷ height of the poster when it is not the usual 2:3 portrait. */
+  aspect?: number;
 };
 
 /**
  * Which file to download. Two groups (image, print), each format drawn as a
  * page with the poster on it to scale, and the exact sizes of the chosen one below.
  */
-export function FormatPicker({ value, onChange }: Props) {
+export function FormatPicker({ value, onChange, aspect }: Props) {
   const t = useTranslations('CreatePage.step3.formats');
   const current = getExportFormat(value);
   const group = groupOf(current);
@@ -166,7 +168,7 @@ export function FormatPicker({ value, onChange }: Props) {
       <div role="radiogroup" aria-label={t(`groups.${group}`)} className="space-y-2">
         {options.map((f) => {
           const selected = f.id === value;
-          const spec = formatSpec(f);
+          const spec = formatSpec(f, aspect);
           return (
             <button
               key={f.id}
@@ -181,7 +183,7 @@ export function FormatPicker({ value, onChange }: Props) {
                   : 'border-[#33415B] hover:border-[#CEB47B]/40',
               )}
             >
-              <Thumb format={f} selected={selected} />
+              <Thumb format={f} selected={selected} aspect={aspect} />
               <span className="min-w-0 flex-1">
                 <span
                   className={cn(
@@ -206,7 +208,7 @@ export function FormatPicker({ value, onChange }: Props) {
         })}
       </div>
 
-      <Specs id={value} />
+      <Specs id={value} aspect={aspect} />
       <p className="text-[11px] leading-5 text-[#AAB6CD]">{t('note')}</p>
       {group === 'print' && (
         <p className="text-[11px] leading-5 text-[#AAB6CD]">{t('printNote')}</p>

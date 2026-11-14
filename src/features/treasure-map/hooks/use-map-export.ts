@@ -11,7 +11,7 @@ import { PremiumAccessError, ensurePremiumAccess } from '@/features/poster/lib/p
 import { readPremiumToken, subscribePremiumToken } from '@/features/payments/lib/client';
 import { createMapSvg, svgToPngBlob } from '../lib/export-map';
 import { saveMapDraft } from '../lib/draft';
-import { mapPaperColor, type TreasureMapLabels, type TreasureMapData } from '../lib/map-svg';
+import { mapAspect, mapPaperColor, type TreasureMapLabels, type TreasureMapData } from '../lib/map-svg';
 import type { TreasureMapValues } from '../lib/schemas';
 
 const BASENAME = 'momentia-treasure-map';
@@ -65,14 +65,17 @@ export function useMapExport(
     downloadPremium: (format) =>
       run('premium', async () => {
         if (!(await paid())) return;
+        const aspect = mapAspect(data.layout);
         if (format === 'poster') {
-          downloadBlob(await svgToPngBlob(await svg(), PREMIUM_PNG_WIDTH), `${BASENAME}.png`);
+          // the same pixel count whichever way the sheet is turned
+          const wide = aspect > 1 ? Math.round(PREMIUM_PNG_WIDTH * 1.5) : PREMIUM_PNG_WIDTH;
+          downloadBlob(await svgToPngBlob(await svg(), wide, aspect), `${BASENAME}.png`);
           return;
         }
         const paper = mapPaperColor(data.theme);
         const { extension } = getExportFormat(format);
         downloadBlob(
-          await renderFormat(await svg(), format, { paper, mat: paper }),
+          await renderFormat(await svg(), format, { paper, mat: paper }, aspect),
           `${BASENAME}-${format}.${extension}`,
         );
       }),

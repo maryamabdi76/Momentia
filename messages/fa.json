@@ -1040,7 +1040,8 @@
     "shapeLabel": "شکل نقشه",
     "shape": {
       "circle": "دایره",
-      "heart": "قلب"
+      "arch": "طاق",
+      "square": "مربع"
     },
     "theme": {
       "paper": "کاغذی",
