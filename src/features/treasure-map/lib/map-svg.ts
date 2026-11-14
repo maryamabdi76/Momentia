@@ -23,6 +23,11 @@ export const MAP_RADIUS = 296;
 export const MAP_SCOPES = ['city', 'iran'] as const;
 export type MapScope = (typeof MAP_SCOPES)[number];
 export const MAP_THEMES = ['paper', 'blush', 'night'] as const;
+/** `single`: one map with a route. `cards`: a small map for each moment, with its caption beneath. */
+export const MAP_LAYOUTS = ['single', 'cards'] as const;
+export type MapLayout = (typeof MAP_LAYOUTS)[number];
+export const MAX_CARDS = 4;
+export const maxMilestones = (layout: MapLayout) => (layout === 'cards' ? MAX_CARDS : MAX_MILESTONES);
 export const MAP_SHAPES = ['circle', 'heart'] as const;
 export type MapShape = (typeof MAP_SHAPES)[number];
 export type MapTheme = (typeof MAP_THEMES)[number];
@@ -32,6 +37,7 @@ export type Milestone = { title: string; city: string; date: string; lat?: numbe
 export type TreasureMapData = {
   title: string;
   names: string;
+  layout: MapLayout;
   scope: MapScope;
   /** The city a city map is drawn for. */
   area: string;
@@ -204,6 +210,12 @@ const IRAN_PANEL = { x: 90, y: 300, width: 720, height: 620 };
 /** The tiles a map needs: always for Iran, and for a city once all its places are picked. */
 export function mapTiles(data: TreasureMapData): TileSpec[] {
   const style = data.theme === 'night' ? 'dark' : 'light';
+  if (data.layout === 'cards') {
+    const slots = cardSlots(Math.min(data.milestones.length, MAX_CARDS));
+    return data.milestones.slice(0, MAX_CARDS).flatMap((m, i) =>
+      hasPoint(m) ? tilesFor(cardView(m), slots[i]!, CARD_R, style) : [],
+    );
+  }
   if (data.scope === 'iran') {
     const c = { x: IRAN_PANEL.x + IRAN_PANEL.width / 2, y: IRAN_PANEL.y + IRAN_PANEL.height / 2 };
     return tilesFor(IRAN_VIEW, c, { x: IRAN_PANEL.width / 2, y: IRAN_PANEL.height / 2 }, style);
@@ -215,6 +227,36 @@ export function mapTiles(data: TreasureMapData): TileSpec[] {
   const heart = data.shape === 'heart';
   return tilesFor(view, { x: MAP_POSTER_WIDTH / 2, y: heart ? 618 : 610 }, MAP_RADIUS, style);
 }
+
+
+const CARD_R = 150;
+/** How much ground one small map shows, edge to edge, in metres. */
+const CARD_SPAN_M = 2600;
+const cardView = (m: { lat: number; lon: number }) => ({
+  center: { lon: m.lon, lat: m.lat },
+  metresPerPx: CARD_SPAN_M / (CARD_R * 2),
+});
+
+/** Where each small map goes: one column for two moments, two columns for more, the last row centred. */
+export function cardSlots(count: number): Array<{ x: number; y: number }> {
+  const cols = count <= 2 ? 1 : 2;
+  const rows = Math.ceil(count / cols);
+  const top = 310;
+  const cellH = (1240 - top) / rows;
+  return Array.from({ length: count }, (_, i) => {
+    const row = Math.floor(i / cols);
+    const inRow = Math.min(cols, count - row * cols);
+    const col = i % cols;
+    // first moment at the right: Persian reads right to left
+    const x = 450 + (inRow === 1 ? 0 : col === 0 ? 205 : -205);
+    return { x, y: top + row * cellH + CARD_R + 10 };
+  });
+}
+
+const tileImagesMarkup = (tiles: TileSpec[], images?: Record<string, string>) =>
+  tiles
+    .map((t) => `<image href="${esc(images?.[t.url] ?? t.url)}" x="${n(t.left - 0.4)}" y="${n(t.top - 0.4)}" width="${n(t.size + 0.8)}" height="${n(t.size + 0.8)}" preserveAspectRatio="none"/>`)
+    .join('');
 
 /** Points wandering from right to left across the middle of the shape (Persian reads right to left). */
 function cityPins(c: { cx: number; cy: number; r: number }, count: number, seed: string): Point[] {
@@ -288,6 +330,42 @@ export function buildTreasureMapSvg(opts: TreasureMapOptions): string {
   parts.push(text(W / 2, 196, titleFontSize(data.title), 700, p.ink, data.title));
   if (data.names) parts.push(text(W / 2, 250, 28, 400, p.muted, data.names));
 
+  let usedTiles = false;
+  let pins: Point[] = [];
+  let coords = '';
+  if (data.layout === 'cards') {
+    const list = data.milestones.slice(0, MAX_CARDS);
+    const slots = cardSlots(list.length);
+    const tileStyle = data.theme === 'night' ? 'dark' : 'light';
+    list.forEach((m, i) => {
+      const c = slots[i]!;
+      const clipId = `${id}-card${i}`;
+      const shapePath = heart ? heartPath(c.x, c.y + 6, CARD_R) : '';
+      const clip = heart ? `<path d="${shapePath}"/>` : `<circle cx="${c.x}" cy="${c.y}" r="${CARD_R}"/>`;
+      parts.push(`<clipPath id="${clipId}">${clip}</clipPath>`);
+      parts.push(heart ? `<path d="${shapePath}" fill="${p.card}"/>` : `<circle cx="${c.x}" cy="${c.y}" r="${CARD_R}" fill="${p.card}"/>`);
+      if (hasPoint(m)) {
+        const tiles = tilesFor(cardView(m), c, CARD_R, tileStyle);
+        if (tiles.length) usedTiles = true;
+        parts.push(`<g clip-path="url(#${clipId})"><g filter="url(#${id}-tint)">${tileImagesMarkup(tiles, tileImages)}</g></g>`);
+      }
+      parts.push(
+        heart
+          ? `<path d="${shapePath}" fill="none" stroke="${p.ink}" stroke-width="2.5" stroke-linejoin="round"/>`
+          : `<circle cx="${c.x}" cy="${c.y}" r="${CARD_R}" fill="none" stroke="${p.ink}" stroke-width="2.5"/>`,
+      );
+      // the place itself: a pin with a soft halo
+      const py = heart ? c.y - 4 : c.y;
+      parts.push(
+        `<circle cx="${c.x}" cy="${py}" r="22" fill="${p.accent}" fill-opacity="0.2"/>`,
+        `<circle cx="${c.x}" cy="${py}" r="10" fill="${p.accent}" stroke="${p.card}" stroke-width="3"/>`,
+      );
+      const base = c.y + CARD_R + 52;
+      parts.push(text(c.x, base, 28, 700, p.ink, m.title));
+      parts.push(text(c.x, base + 30, 18, 400, p.muted, m.city));
+      if (m.date) parts.push(text(c.x, base + 56, 16, 400, p.accent, toPersianDigits(m.date)));
+    });
+  } else {
   const pts = picked(items.map((x) => x.m));
   const real = pts.length === items.length && pts.length > 0;
   const tiles = mapTiles(data);
@@ -296,9 +374,6 @@ export function buildTreasureMapSvg(opts: TreasureMapOptions): string {
     .join('');
   const tinted = tileMarkup ? `<g filter="url(#${id}-tint)">${tileMarkup}</g>` : '';
 
-  let pins: Point[] = [];
-  let coords = '';
-  let usedTiles = false;
   if (isCity) {
     const shapePath = heart ? heartPath(shape.cx, shape.cy, R) : '';
     const clip = heart ? `<path d="${shapePath}"/>` : `<circle cx="${shape.cx}" cy="${shape.cy}" r="${R}"/>`;
@@ -370,6 +445,8 @@ export function buildTreasureMapSvg(opts: TreasureMapOptions): string {
       text(textCx, y + 40, 17, 400, p.muted, toPersianDigits([m.city, m.date].filter(Boolean).join(' · '))),
     );
   });
+
+  }
 
   if (usedTiles) parts.push(text(W / 2, 1272, 14, 400, p.muted, labels.credit));
   if (watermark) parts.push(text(W / 2, 1296, 17, 400, p.accent, labels.watermark, ' fill-opacity="0.85"'));

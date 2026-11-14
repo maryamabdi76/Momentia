@@ -21,6 +21,7 @@ export function MapStep2({ form, onNext, onBack }: Props) {
   const t = useTranslations('MapPage');
   const { control, register } = form;
   const scope = useWatch({ control, name: 'scope' });
+  const layout = useWatch({ control, name: 'layout' });
   const theme = useWatch({ control, name: 'theme' }) ?? 'paper';
   const title = useWatch({ control, name: 'title' });
 
@@ -71,7 +72,7 @@ export function MapStep2({ form, onNext, onBack }: Props) {
           />
         </div>
 
-        {scope !== 'iran' && (
+        {(layout === 'cards' || scope !== 'iran') && (
           <div className="space-y-2">
             <span className="text-[13px] font-medium text-[#E8D9B8]">{t('shapeLabel')}</span>
             <Controller

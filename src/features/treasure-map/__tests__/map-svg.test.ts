@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { buildTreasureMapSvg, mapTiles, titleFontSize } from '../lib/map-svg.ts';
+import { buildTreasureMapSvg, cardSlots, mapTiles, maxMilestones, titleFontSize } from '../lib/map-svg.ts';
 import { spreadPins, smoothOpenPath } from '../lib/map-geometry.ts';
 
 const labels = {
@@ -18,6 +18,7 @@ const places = [
   { title: 'عروسی', city: 'برج میلاد', date: '20 شهریور 1400', lat: 35.7448, lon: 51.3753 },
 ];
 const city = {
+  layout: 'single' as const,
   scope: 'city' as const,
   area: 'تهران',
   theme: 'paper' as const,
@@ -140,4 +141,25 @@ test('the chosen frame is drawn, and none draws no border', () => {
   assert.notEqual(classic, minimal);
   assert.ok(classic.length > none.length);
   assert.ok(minimal.length > none.length);
+});
+
+test('cards layout draws one clipped map per moment with its caption', () => {
+  const data = { ...city, layout: 'cards' as const, shape: 'heart' as const };
+  const svg = buildTreasureMapSvg({ data, labels, watermark: false });
+  assert.equal((svg.match(/<clipPath id="tmap-card\d"/g) ?? []).length, 3);
+  for (const m of places) assert.ok(svg.includes(m.title) && svg.includes(m.city));
+  assert.ok(svg.includes('tile.openstreetmap.org'));
+  assert.ok(svg.includes(labels.credit));
+});
+
+test('cards layout needs tiles for every picked moment and no more than four cards', () => {
+  const data = { ...city, layout: 'cards' as const };
+  assert.ok(mapTiles(data).length >= 3);
+  assert.equal(cardSlots(3).length, 3);
+  // the lone card of an odd count is centred
+  assert.equal(cardSlots(3)[2]!.x, 450);
+  assert.equal(cardSlots(2)[0]!.x, 450);
+  const slots = cardSlots(4);
+  assert.ok(slots[0]!.x > slots[1]!.x, 'first moment sits at the right');
+  assert.equal(maxMilestones('cards'), 4);
 });

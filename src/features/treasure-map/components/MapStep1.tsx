@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { IRAN_CITIES } from '@/features/poster/lib/cities';
 import { toPersianDigits } from '@/features/poster/lib/digits';
-import { MAX_MILESTONES, MIN_MILESTONES } from '../lib/map-svg';
+import { MAP_LAYOUTS, MIN_MILESTONES, maxMilestones } from '../lib/map-svg';
 import type { TreasureMapValues } from '../lib/schemas';
 import { choiceClass, fieldClass } from './field-class';
 import { PlacePicker } from './PlacePicker';
@@ -27,10 +27,13 @@ export function MapStep1({ form, onNext }: Props) {
   const [pickerFor, setPickerFor] = useState<number | null>(null);
   const { fields, append, remove } = useFieldArray({ control, name: 'milestones' });
   const scope = useWatch({ control, name: 'scope' });
+  const layout = useWatch({ control, name: 'layout' }) ?? 'single';
+  const max = maxMilestones(layout);
   const milestones = useWatch({ control, name: 'milestones' }) ?? [];
 
   const complete =
     milestones.length >= MIN_MILESTONES &&
+    milestones.length <= max &&
     milestones.every((m) => m?.title?.trim() && m?.city?.trim() && m?.lat !== undefined && m?.lon !== undefined);
 
   const here = pickerFor !== null ? milestones[pickerFor] : undefined;
@@ -46,6 +49,31 @@ export function MapStep1({ form, onNext }: Props) {
       </div>
 
       <div className="space-y-4 rounded-2xl border border-[#33415B] bg-[#142039] p-5">
+        <div className="space-y-2">
+          <span className="text-[13px] font-medium text-[#E8D9B8]">{t('layoutLabel')}</span>
+          <Controller
+            control={control}
+            name="layout"
+            render={({ field: f }) => (
+              <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label={t('layoutLabel')}>
+                {MAP_LAYOUTS.map((key) => (
+                  <button
+                    key={key}
+                    type="button"
+                    role="radio"
+                    aria-checked={f.value === key}
+                    onClick={() => f.onChange(key)}
+                    className={`h-auto min-h-10 py-2 ${choiceClass(f.value === key)}`}
+                  >
+                    {t(`layout.${key}.label`)}
+                  </button>
+                ))}
+              </div>
+            )}
+          />
+          <p className="text-[11px] leading-5 text-[#AAB6CD]">{t(`layout.${layout}.hint`)}</p>
+        </div>
+        {layout === 'single' && (
         <div className="space-y-2">
           <span className="text-[13px] font-medium text-[#E8D9B8]">{t('scopeLabel')}</span>
           <Controller
@@ -69,7 +97,8 @@ export function MapStep1({ form, onNext }: Props) {
             )}
           />
         </div>
-        {scope !== 'iran' && (
+        )}
+        {(layout === 'cards' || scope !== 'iran') && (
           <label className="block space-y-1.5">
             <span className="text-[13px] font-medium text-[#E8D9B8]">{t('areaLabel')}</span>
             <select {...register('area')} className={fieldClass}>
@@ -153,7 +182,7 @@ export function MapStep1({ form, onNext }: Props) {
         <Button
           type="button"
           variant="outline"
-          disabled={fields.length >= MAX_MILESTONES}
+          disabled={fields.length >= max}
           onClick={() => append(EMPTY_MILESTONE)}
           className="h-10 w-full gap-2 border-dashed border-[#CEB47B]/50 bg-transparent text-sm text-[#CEB47B] hover:bg-[#CEB47B]/10"
         >
@@ -163,7 +192,7 @@ export function MapStep1({ form, onNext }: Props) {
         <p className="text-[11px] text-[#AAB6CD]">
           {t('limit', {
             min: toPersianDigits(String(MIN_MILESTONES)),
-            max: toPersianDigits(String(MAX_MILESTONES)),
+            max: toPersianDigits(String(max)),
           })}
         </p>
       </div>
@@ -178,12 +207,15 @@ export function MapStep1({ form, onNext }: Props) {
           {t('step1.next')}
           <ArrowLeft className="size-4" />
         </Button>
+        {milestones.length > max && (
+          <p className="text-[12px] leading-6 text-[#E8D9B8]">{t('layout.tooMany', { max: toPersianDigits(String(max)) })}</p>
+        )}
         {!complete && <p className="text-[12px] leading-6 text-[#E8D9B8]">{t('step1.incomplete')}</p>}
       </div>
 
       <PlacePicker
         open={pickerFor !== null}
-        wholeCountry={scope === 'iran'}
+        wholeCountry={layout === 'single' && scope === 'iran'}
         onOpenChange={(o) => {
           if (!o) setPickerFor(null);
         }}

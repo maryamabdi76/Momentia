@@ -22,6 +22,7 @@ const STEP_COUNT = 3;
 const SAMPLE: TreasureMapValues = {
   title: 'جایی که قصهٔ ما رقم خورد',
   names: 'شیرین و فرهاد',
+  layout: 'single',
   scope: 'city',
   area: 'تهران',
   theme: 'paper',
@@ -68,6 +69,7 @@ export function TreasureMapMaker() {
     () => ({
       title: watched.title || SAMPLE.title,
       names: watched.names ?? '',
+      layout: watched.layout ?? 'single',
       scope: watched.scope ?? 'city',
       area: watched.area ?? 'تهران',
       theme: watched.theme ?? 'paper',
