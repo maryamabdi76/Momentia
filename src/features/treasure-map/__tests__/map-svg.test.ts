@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { iconMarkup, MAP_ICONS } from '../lib/illustrations.ts';
-import { roadStops } from '../lib/road.ts';
+import { planRoad } from '../lib/road.ts';
 import { buildTreasureMapSvg, cardSlots, heartGeometry, mapAspect, mapTiles, maxMilestones, titleFontSize } from '../lib/map-svg.ts';
 import { spreadPins, smoothOpenPath } from '../lib/map-geometry.ts';
 
@@ -206,15 +206,28 @@ test('the illustrated road: a numbered stop, a picture and the words for every m
   assert.match(svg, /viewBox="0 0 900 1350"/);
 });
 
-test('road stops alternate sides, the first at the right, and never overlap', () => {
-  for (const count of [2, 3, 5, 8]) {
-    const s = roadStops(count);
-    assert.equal(s.length, count);
-    assert.ok(s[0]!.blockX > 450 && (count < 2 || s[1]!.blockX < 450));
-    // blocks on the same side are far enough apart to hold a picture and three lines
-    for (let i = 2; i < count; i++) assert.ok(s[i]!.y - s[i - 2]!.y >= 200);
-    assert.ok(s.every((p) => p.y > 300 && p.y < 1200));
+test('the road winds across the sheet, in order, and its blocks stay on the page and apart', () => {
+  for (const count of [2, 3, 4, 5, 6, 7, 8]) {
+    const { stops, road } = planRoad(count);
+    assert.equal(stops.length, count);
+    assert.ok(road.length > count);
+    // the first moment is at the right of the first pass
+    assert.ok(stops[0]!.x > 450);
+    for (const s of stops) {
+      assert.ok(s.px - s.r > 40 && s.px + s.r < 860, 'picture on the page');
+      assert.ok(s.y > 285 && s.bottom < 1275, 'block between the title and the foot');
+    }
+    // no two pictures overlap
+    for (let i = 0; i < count; i++) {
+      for (let j = i + 1; j < count; j++) {
+        const a = stops[i]!;
+        const b = stops[j]!;
+        assert.ok(Math.hypot(a.px - b.px, a.py - b.py) > a.r + b.r + 20, `${count}: ${i} and ${j} overlap`);
+      }
+    }
   }
+  // the same plan every time, so a poster does not change between renders
+  assert.deepEqual(planRoad(5), planRoad(5));
 });
 
 test('every illustration is drawn and ready to embed', () => {
