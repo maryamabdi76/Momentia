@@ -1,5 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { iconMarkup, MAP_ICONS } from '../lib/illustrations.ts';
+import { roadStops } from '../lib/road.ts';
 import { buildTreasureMapSvg, cardSlots, heartGeometry, mapAspect, mapTiles, maxMilestones, titleFontSize } from '../lib/map-svg.ts';
 import { spreadPins, smoothOpenPath } from '../lib/map-geometry.ts';
 
@@ -191,4 +193,35 @@ test('the heart is a classic one: 2s wide and tall, pointed, with the date set a
   assert.ok(g.side.normal.x > 0 && g.side.normal.y > 0, 'outwards is down and to the right');
   const svg = buildTreasureMapSvg({ data: { ...city, layout: 'cards' as const, shape: 'heart' as const }, labels, watermark: false });
   assert.match(svg, /<text [^>]*transform="rotate\(-[\d.]+ /);
+});
+
+test('the illustrated road: a numbered stop, a picture and the words for every moment, no map tiles', () => {
+  const data = { ...city, layout: 'road' as const, milestones: places.map((m, i) => ({ title: m.title, city: m.city, date: m.date, icon: (['cafe', 'ring', 'cake'] as const)[i] })) };
+  const svg = buildTreasureMapSvg({ data, labels, watermark: false });
+  assert.equal(mapTiles(data).length, 0);
+  assert.ok(!svg.includes('<image'));
+  for (const m of places) assert.ok(svg.includes(m.title) && svg.includes(m.city));
+  for (const digit of ['۱', '۲', '۳']) assert.ok(svg.includes(`>${digit}</text>`));
+  assert.match(svg, /<filter id="tmap-wobble"/);
+  assert.match(svg, /viewBox="0 0 900 1350"/);
+});
+
+test('road stops alternate sides, the first at the right, and never overlap', () => {
+  for (const count of [2, 3, 5, 8]) {
+    const s = roadStops(count);
+    assert.equal(s.length, count);
+    assert.ok(s[0]!.blockX > 450 && (count < 2 || s[1]!.blockX < 450));
+    // blocks on the same side are far enough apart to hold a picture and three lines
+    for (let i = 2; i < count; i++) assert.ok(s[i]!.y - s[i - 2]!.y >= 200);
+    assert.ok(s.every((p) => p.y > 300 && p.y < 1200));
+  }
+});
+
+test('every illustration is drawn and ready to embed', () => {
+  assert.ok(MAP_ICONS.length >= 20);
+  const palette = { ink: '#000', card: '#fff', accent: '#f00', land: '#eee', water: '#ccf', park: '#cfc' };
+  for (const icon of MAP_ICONS) {
+    const markup = iconMarkup(icon, palette);
+    assert.ok(markup.startsWith('<') && !/undefined|NaN/.test(markup), icon);
+  }
 });

@@ -11,9 +11,10 @@ import { toPersianDigits } from '@/features/poster/lib/digits';
 import { MAP_LAYOUTS, MIN_MILESTONES, maxMilestones } from '../lib/map-svg';
 import type { TreasureMapValues } from '../lib/schemas';
 import { choiceClass, fieldClass } from './field-class';
+import { MapIconPicker } from './MapIconPicker';
 import { PlacePicker } from './PlacePicker';
 
-const EMPTY_MILESTONE = { title: '', city: '', date: '' };
+const EMPTY_MILESTONE = { title: '', city: '', date: '', icon: 'love' as const };
 
 type Props = {
   form: UseFormReturn<TreasureMapValues>;
@@ -34,7 +35,9 @@ export function MapStep1({ form, onNext }: Props) {
   const complete =
     milestones.length >= MIN_MILESTONES &&
     milestones.length <= max &&
-    milestones.every((m) => m?.title?.trim() && m?.city?.trim() && m?.lat !== undefined && m?.lon !== undefined);
+    milestones.every(
+      (m) => m?.title?.trim() && m?.city?.trim() && (layout === 'road' || (m?.lat !== undefined && m?.lon !== undefined)),
+    );
 
   const here = pickerFor !== null ? milestones[pickerFor] : undefined;
   const hasHere = here?.lat !== undefined && here?.lon !== undefined;
@@ -98,7 +101,7 @@ export function MapStep1({ form, onNext }: Props) {
           />
         </div>
         )}
-        {(layout === 'cards' || scope !== 'iran') && (
+        {layout !== 'road' && (layout === 'cards' || scope !== 'iran') && (
           <label className="block space-y-1.5">
             <span className="text-[13px] font-medium text-[#E8D9B8]">{t('areaLabel')}</span>
             <select {...register('area')} className={fieldClass}>
@@ -163,6 +166,16 @@ export function MapStep1({ form, onNext }: Props) {
                       placeholder={t('datePlaceholder')}
                     />
                   </label>
+                  {layout === 'road' && (
+                    <div className="sm:col-span-2">
+                      <Controller
+                        control={control}
+                        name={`milestones.${i}.icon`}
+                        render={({ field: f }) => <MapIconPicker value={f.value} onChange={f.onChange} />}
+                      />
+                    </div>
+                  )}
+                  {layout !== 'road' && (
                   <div className="sm:col-span-2">
                     <Button
                       type="button"
@@ -174,6 +187,7 @@ export function MapStep1({ form, onNext }: Props) {
                       {picked ? t('pickedOnMap') : t('pickOnMap')}
                     </Button>
                   </div>
+                  )}
                 </div>
               </li>
             );

@@ -72,7 +72,7 @@ export function MapStep2({ form, onNext, onBack }: Props) {
           />
         </div>
 
-        {(layout === 'cards' || scope !== 'iran') && (
+        {layout !== 'road' && (layout === 'cards' || scope !== 'iran') && (
           <div className="space-y-2">
             <span className="text-[13px] font-medium text-[#E8D9B8]">{t('shapeLabel')}</span>
             <Controller

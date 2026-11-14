@@ -29,9 +29,9 @@ const SAMPLE: TreasureMapValues = {
   shape: 'circle',
   frame: 'minimal',
   milestones: [
-    { title: 'اولین قرار', city: 'پل طبیعت', date: '۱۴ مهر ۱۳۹۸', lat: 35.7611, lon: 51.4143 },
-    { title: 'خواستگاری', city: 'برج آزادی', date: '۲ اردیبهشت ۱۴۰۰', lat: 35.6997, lon: 51.338 },
-    { title: 'جشن عروسی', city: 'برج میلاد', date: '۲۰ شهریور ۱۴۰۰', lat: 35.7448, lon: 51.3753 },
+    { title: 'اولین قرار', city: 'پل طبیعت', date: '۱۴ مهر ۱۳۹۸', icon: 'cafe', lat: 35.7611, lon: 51.4143 },
+    { title: 'خواستگاری', city: 'برج آزادی', date: '۲ اردیبهشت ۱۴۰۰', icon: 'ring', lat: 35.6997, lon: 51.338 },
+    { title: 'جشن عروسی', city: 'برج میلاد', date: '۲۰ شهریور ۱۴۰۰', icon: 'cake', lat: 35.7448, lon: 51.3753 },
   ],
 };
 
@@ -81,6 +81,7 @@ export function TreasureMapMaker() {
         date: m?.date ?? '',
         lat: m?.lat,
         lon: m?.lon,
+        icon: m?.icon,
       })),
     }),
     [watched],

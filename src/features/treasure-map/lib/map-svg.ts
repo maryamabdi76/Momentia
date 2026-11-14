@@ -6,6 +6,8 @@ import { frameSvg, type PosterFrame } from '../../poster/lib/frames.ts';
 import { mulberry32 } from '../../moon/lib/random.ts';
 import { frameView, projectToPoster } from './mercator.ts';
 import { tilesFor, type TileSpec } from './tiles.ts';
+import type { MapIcon } from './illustrations.ts';
+import { roadSvg } from './road.ts';
 import {
   smoothClosedPath,
   smoothOpenPath,
@@ -30,8 +32,8 @@ export const MAP_RADIUS = 296;
 export const MAP_SCOPES = ['city', 'iran'] as const;
 export type MapScope = (typeof MAP_SCOPES)[number];
 export const MAP_THEMES = ['paper', 'blush', 'night'] as const;
-/** `single`: one map with a route. `cards`: a small map for each moment, with its caption beneath. */
-export const MAP_LAYOUTS = ['single', 'cards'] as const;
+/** `single`: one map with a route. `cards`: a small map for each moment. `road`: an illustrated winding road with a picture for each moment. */
+export const MAP_LAYOUTS = ['single', 'cards', 'road'] as const;
 export type MapLayout = (typeof MAP_LAYOUTS)[number];
 export const MAX_CARDS = 4;
 export const maxMilestones = (layout: MapLayout) => (layout === 'cards' ? MAX_CARDS : MAX_MILESTONES);
@@ -40,7 +42,7 @@ export type MapShape = (typeof MAP_SHAPES)[number];
 export type MapTheme = (typeof MAP_THEMES)[number];
 
 /** `city` is a place name in the chosen city (city map) or an Iranian city (Iran map). */
-export type Milestone = { title: string; city: string; date: string; lat?: number; lon?: number };
+export type Milestone = { title: string; city: string; date: string; lat?: number; lon?: number; icon?: MapIcon };
 export type TreasureMapData = {
   title: string;
   names: string;
@@ -269,6 +271,8 @@ const IRAN_PANEL = { x: 90, y: 300, width: 720, height: 620 };
  */
 export function mapTiles(data: TreasureMapData, detail = 0): TileSpec[] {
   const style = data.theme === 'night' ? 'dark' : 'light';
+  // the illustrated road is drawn, not taken from a map
+  if (data.layout === 'road') return [];
   if (data.layout === 'cards') {
     const slots = cardSlots(Math.min(data.milestones.length, MAX_CARDS));
     return data.milestones.slice(0, MAX_CARDS).flatMap((m, i) =>
@@ -388,7 +392,16 @@ export function buildTreasureMapSvg(opts: TreasureMapOptions): string {
   let usedTiles = false;
   let pins: Point[] = [];
   let coords = '';
-  if (data.layout === 'cards') {
+  let extraDefs = '';
+  if (data.layout === 'road') {
+    const road = roadSvg(data.milestones.slice(0, MAX_MILESTONES), p, id, {
+      text: (x, y, size, weight, fill, s) => text(x, y, size, weight, fill, s),
+      digits: toPersianDigits,
+      num: n,
+    });
+    extraDefs = road.defs;
+    parts.push(road.body);
+  } else if (data.layout === 'cards') {
     const list = data.milestones.slice(0, MAX_CARDS);
     const slots = cardSlots(list.length);
     const tileStyle = data.theme === 'night' ? 'dark' : 'light';
@@ -514,7 +527,7 @@ export function buildTreasureMapSvg(opts: TreasureMapOptions): string {
 
   return (
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="${esc(labels.alt)}">` +
-    `<defs><style>${fontCss}text{font-family:'Vazirmatn',Tahoma,sans-serif}</style>${tintFilter(id, data.theme)}</defs>` +
+    `<defs><style>${fontCss}text{font-family:'Vazirmatn',Tahoma,sans-serif}</style>${tintFilter(id, data.theme)}${extraDefs}</defs>` +
     `<rect width="${W}" height="${H}" fill="${p.bg}"/>` +
     parts.join('') +
     `</svg>`

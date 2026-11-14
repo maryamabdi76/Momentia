@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { IRAN_CITIES } from '@/features/poster/lib/cities';
 import { POSTER_FRAMES } from '@/features/poster/lib/frames';
+import { MAP_ICONS } from './illustrations';
 import { MAP_LAYOUTS, MAP_SCOPES, MAP_SHAPES, MAP_THEMES, MAX_MILESTONES, MIN_MILESTONES, maxMilestones } from './map-svg';
 
 const CITY_NAMES = IRAN_CITIES.map((c) => c.name);
@@ -13,6 +14,8 @@ export const milestoneSchema = z.object({
   /** Where it happened, picked on the map (city maps). */
   lat: z.number().min(-90).max(90).optional(),
   lon: z.number().min(-180).max(180).optional(),
+  /** The picture drawn for this moment on the illustrated road. */
+  icon: z.enum(MAP_ICONS).optional(),
 });
 
 export const treasureMapSchema = z
@@ -29,8 +32,8 @@ export const treasureMapSchema = z
   })
   // small maps leave room for fewer moments
   .refine((v) => v.milestones.length <= maxMilestones(v.layout), { path: ['milestones'] })
-  // every map is drawn around places picked on the map
-  .refine((v) => v.milestones.every((m) => m.lat !== undefined && m.lon !== undefined), {
+  // a map is drawn around places picked on it; the illustrated road needs only their names
+  .refine((v) => v.layout === 'road' || v.milestones.every((m) => m.lat !== undefined && m.lon !== undefined), {
     path: ['milestones'],
   });
 
