@@ -1,6 +1,8 @@
 'use client';
 
 import { useCallback, useState, useSyncExternalStore } from 'react';
+import { getExportFormat, type ExportFormatId } from '@/features/poster/lib/export-formats';
+import { renderFormat } from '@/features/poster/lib/render-format';
 import {
   PREMIUM_PNG_WIDTH,
   downloadBlob,
@@ -9,17 +11,17 @@ import { PremiumAccessError, ensurePremiumAccess } from '@/features/poster/lib/p
 import { readPremiumToken, subscribePremiumToken } from '@/features/payments/lib/client';
 import { createMapSvg, svgToPngBlob } from '../lib/export-map';
 import { saveMapDraft } from '../lib/draft';
-import type { TreasureMapLabels, TreasureMapData } from '../lib/map-svg';
+import { mapPaperColor, type TreasureMapLabels, type TreasureMapData } from '../lib/map-svg';
 import type { TreasureMapValues } from '../lib/schemas';
 
 const BASENAME = 'momentia-treasure-map';
 
 export type MapExport = {
-  busy: 'png' | 'svg' | null;
+  busy: 'premium' | 'svg' | null;
   notice: 'error' | 'payment' | null;
   premiumUnlocked: boolean;
-  /** Both files are premium: without a payment this opens the payment window instead. */
-  downloadPng: () => void;
+  /** Every file is premium: without a payment this opens the payment window instead. */
+  downloadPremium: (format: ExportFormatId) => void;
   downloadSvg: () => void;
 };
 
@@ -60,10 +62,19 @@ export function useMapExport(
     busy,
     notice,
     premiumUnlocked,
-    downloadPng: () =>
-      run('png', async () => {
+    downloadPremium: (format) =>
+      run('premium', async () => {
         if (!(await paid())) return;
-        downloadBlob(await svgToPngBlob(await svg(), PREMIUM_PNG_WIDTH), `${BASENAME}.png`);
+        if (format === 'poster') {
+          downloadBlob(await svgToPngBlob(await svg(), PREMIUM_PNG_WIDTH), `${BASENAME}.png`);
+          return;
+        }
+        const paper = mapPaperColor(data.theme);
+        const { extension } = getExportFormat(format);
+        downloadBlob(
+          await renderFormat(await svg(), format, { paper, mat: paper }),
+          `${BASENAME}-${format}.${extension}`,
+        );
       }),
     downloadSvg: () =>
       run('svg', async () => {

@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { IRAN_CITIES } from '@/features/poster/lib/cities';
+import { POSTER_FRAMES } from '@/features/poster/lib/frames';
 import { MAP_SCOPES, MAP_SHAPES, MAP_THEMES, MAX_MILESTONES, MIN_MILESTONES } from './map-svg';
 
 const CITY_NAMES = IRAN_CITIES.map((c) => c.name);
@@ -22,6 +23,7 @@ export const treasureMapSchema = z
     area: z.string().refine((v) => CITY_NAMES.includes(v)),
     theme: z.enum(MAP_THEMES),
     shape: z.enum(MAP_SHAPES),
+    frame: z.enum(POSTER_FRAMES),
     milestones: z.array(milestoneSchema).min(MIN_MILESTONES).max(MAX_MILESTONES),
   })
   // every map is drawn around places picked on the map

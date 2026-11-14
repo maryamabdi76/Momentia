@@ -2,6 +2,7 @@ import type { PosterFonts } from '../../poster/lib/poster-svg.ts';
 import { formatDecimal, toPersianDigits } from '../../poster/lib/digits.ts';
 import { IRAN_CITIES } from '../../poster/lib/cities.ts';
 import { IRAN_OUTLINE } from './iran-outline.ts';
+import { frameSvg, type PosterFrame } from '../../poster/lib/frames.ts';
 import { mulberry32 } from '../../moon/lib/random.ts';
 import { frameView, projectToPoster } from './mercator.ts';
 import { tilesFor, type TileSpec } from './tiles.ts';
@@ -37,6 +38,8 @@ export type TreasureMapData = {
   theme: MapTheme;
   /** The cut of a city map. */
   shape: MapShape;
+  /** The border around the poster. */
+  frame: PosterFrame;
   milestones: Milestone[];
 };
 export type TreasureMapLabels = {
@@ -81,6 +84,18 @@ export function titleFontSize(text: string): number {
 const hash = (s: string) => [...s].reduce((h, ch) => (Math.imul(h, 31) + ch.charCodeAt(0)) >>> 0, 7);
 
 type Pal = (typeof PALETTES)[MapTheme];
+
+/** The map's paper colour, for the page behind the poster in story/wallpaper/print files. */
+export function mapPaperColor(theme: MapTheme): string {
+  return PALETTES[theme].bg;
+}
+
+/** Border colours for a theme: the ink, and the same ink at half strength. */
+export function mapFrameColors(theme: MapTheme): { frame: string; frameSoft: string } {
+  const { ink } = PALETTES[theme];
+  const [r, g, b] = [1, 3, 5].map((i) => parseInt(ink.slice(i, i + 2), 16));
+  return { frame: ink, frameSoft: `rgba(${r},${g},${b},0.45)` };
+}
 
 /** A heart, `s` wide on each side of `cx`, as an absolute path. */
 export function heartPath(cx: number, cy: number, s: number): string {
@@ -265,10 +280,8 @@ export function buildTreasureMapSvg(opts: TreasureMapOptions): string {
   const text = (x: number, y: number, size: number, weight: number, fill: string, s: string, extra = '') =>
     `<text x="${n(x)}" y="${n(y)}" font-size="${size}" font-weight="${weight}" fill="${fill}" text-anchor="middle" direction="rtl"${extra}>${esc(s)}</text>`;
 
-  // a single thin frame, like a matted print
-  parts.push(
-    `<rect x="36" y="36" width="${W - 72}" height="${H - 72}" fill="none" stroke="${p.ink}" stroke-opacity="0.5" stroke-width="2"/>`,
-  );
+  // the chosen border (none draws nothing)
+  parts.push(frameSvg(data.frame, mapFrameColors(data.theme), W, H));
 
   // heading (no letter-spacing: it breaks the joined Persian letters)
   parts.push(text(W / 2, 114, 22, 400, p.accent, labels.kicker));

@@ -1,22 +1,23 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { Controller, useFieldArray, useForm, useWatch } from 'react-hook-form';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
-import { Crown, Download, Loader2, Lock, MapPin, Plus, Trash2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { PaymentDialog } from '@/features/payments/components/PaymentDialog';
-import { PREMIUM_PRICE_TOMAN } from '@/features/payments/lib/client';
-import { IRAN_CITIES } from '@/features/poster/lib/cities';
-import { formatToman, toPersianDigits } from '@/features/poster/lib/digits';
+import { Stepper, type StepItem, type StepStatus } from '@/components/ui/stepper';
+import { toPersianDigits } from '@/features/poster/lib/digits';
+import { DEFAULT_FORMAT_ID, type ExportFormatId } from '@/features/poster/lib/export-formats';
 import { useMapExport } from '../hooks/use-map-export';
 import { loadMapDraft, saveMapDraft } from '../lib/draft';
-import { MAX_MILESTONES, MIN_MILESTONES, type TreasureMapLabels } from '../lib/map-svg';
+import type { TreasureMapLabels } from '../lib/map-svg';
 import { treasureMapSchema, type TreasureMapValues } from '../lib/schemas';
-import { MapPoster } from './MapPoster';
-import { PlacePicker } from './PlacePicker';
+import { MapPreview } from './MapPreview';
+import { MapStep1 } from './MapStep1';
+import { MapStep2 } from './MapStep2';
+import { MapStep3 } from './MapStep3';
+
+const STEP_COUNT = 3;
 
 const SAMPLE: TreasureMapValues = {
   title: 'جایی که قصهٔ ما رقم خورد',
@@ -25,6 +26,7 @@ const SAMPLE: TreasureMapValues = {
   area: 'تهران',
   theme: 'paper',
   shape: 'circle',
+  frame: 'minimal',
   milestones: [
     { title: 'اولین قرار', city: 'پل طبیعت', date: '۱۴ مهر ۱۳۹۸', lat: 35.7611, lon: 51.4143 },
     { title: 'خواستگاری', city: 'برج آزادی', date: '۲ اردیبهشت ۱۴۰۰', lat: 35.6997, lon: 51.338 },
@@ -32,22 +34,27 @@ const SAMPLE: TreasureMapValues = {
   ],
 };
 
-const EMPTY_MILESTONE = { title: '', city: '', date: '' };
-
-const fieldClass =
-  'h-10 w-full rounded-lg border border-[#33415B] bg-[#0c142b] px-3 text-sm text-white placeholder:text-[#6f7c97] focus-visible:border-[#CEB47B] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#CEB47B]/30';
+function parseStep(value: string | null): number {
+  const n = Number(value ?? '1');
+  return Number.isInteger(n) && n >= 1 && n <= STEP_COUNT ? n : 1;
+}
 
 export function TreasureMapMaker() {
   const t = useTranslations('MapPage');
+  const tSteps = useTranslations('MapPage.steps');
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const step = parseStep(searchParams.get('step'));
   const [ready, setReady] = useState(false);
-  const [pickerFor, setPickerFor] = useState<number | null>(null);
+  const [format, setFormat] = useState<ExportFormatId>(DEFAULT_FORMAT_ID);
 
-  const { control, register, reset, setValue, getValues } = useForm<TreasureMapValues>({
+  // one form for all three steps, so nothing is lost when moving between them
+  const form = useForm<TreasureMapValues>({
     resolver: zodResolver(treasureMapSchema),
     defaultValues: SAMPLE,
     mode: 'onChange',
   });
-  const { fields, append, remove } = useFieldArray({ control, name: 'milestones' });
+  const { control, reset } = form;
   const watched = useWatch({ control }) as Partial<TreasureMapValues>;
 
   // a map being edited before the payment trip comes back from this browser's storage
@@ -65,6 +72,7 @@ export function TreasureMapMaker() {
       area: watched.area ?? 'تهران',
       theme: watched.theme ?? 'paper',
       shape: watched.shape ?? 'circle',
+      frame: watched.frame ?? 'minimal',
       milestones: (watched.milestones ?? []).map((m) => ({
         title: m?.title || '…',
         city: m?.city || '…',
@@ -97,282 +105,37 @@ export function TreasureMapMaker() {
     if (ready && valid) saveMapDraft(current);
   }, [ready, valid, current]);
 
-  const busyIcon = (action: 'png' | 'svg') =>
-    exporter.busy === action ? (
-      <Loader2 className="size-4 animate-spin" />
-    ) : exporter.premiumUnlocked ? (
-      <Download className="size-4" />
-    ) : (
-      <Lock className="size-4" />
-    );
+  function goTo(n: number) {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('step', String(n));
+    router.push(`/map?${params.toString()}`);
+  }
+
+  const stepItems: StepItem[] = [1, 2, 3].map((n) => {
+    const status: StepStatus = step === n ? 'active' : step > n ? 'done' : 'upcoming';
+    return { label: tSteps(String(n)), status };
+  });
 
   return (
-    <main className="mx-auto grid w-full max-w-6xl flex-1 gap-8 px-4 py-8 sm:px-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,26rem)] lg:gap-12 lg:py-12">
-      <section className="min-w-0 space-y-6" aria-labelledby="map-heading">
-        <div className="space-y-2">
-          <p className="text-xs tracking-wide text-[#CEB47B]">{t('eyebrow')}</p>
-          <h1 id="map-heading" className="text-2xl font-bold leading-tight sm:text-3xl">
-            {t('heading')}
-          </h1>
-          <p className="text-sm leading-7 text-[#AAB6CD]">{t('intro')}</p>
+    <main className="flex-1">
+      <div className="border-b border-[#33415B]">
+        <div className="mx-auto flex items-center px-6 py-2 md:px-20">
+          <Stepper steps={stepItems} onStepClick={(i) => goTo(i + 1)} ariaLabel={t('stepsNav')} />
         </div>
+      </div>
 
-        <div className="space-y-4 rounded-2xl border border-[#33415B] bg-[#142039] p-5">
-          <div className="space-y-2">
-            <span className="text-[13px] font-medium text-[#E8D9B8]">{t('scopeLabel')}</span>
-            <Controller
-              control={control}
-              name="scope"
-              render={({ field: f }) => (
-                <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label={t('scopeLabel')}>
-                  {(['city', 'iran'] as const).map((key) => (
-                    <button
-                      key={key}
-                      type="button"
-                      role="radio"
-                      aria-checked={f.value === key}
-                      onClick={() => f.onChange(key)}
-                      className={`h-10 rounded-lg border text-sm transition-colors ${f.value === key ? 'border-[#CEB47B] bg-[#CEB47B]/15 text-[#CEB47B]' : 'border-[#33415B] text-white/70 hover:bg-white/5'}`}
-                    >
-                      {t(`scope.${key}`)}
-                    </button>
-                  ))}
-                </div>
-              )}
-            />
-          </div>
-          {watched.scope !== 'iran' && (
-            <label className="block space-y-1.5">
-              <span className="text-[13px] font-medium text-[#E8D9B8]">{t('areaLabel')}</span>
-              <select {...register('area')} className={fieldClass}>
-                {IRAN_CITIES.map((c) => (
-                  <option key={c.name} value={c.name}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-          )}
-          {watched.scope !== 'iran' && (
-            <div className="space-y-2">
-              <span className="text-[13px] font-medium text-[#E8D9B8]">{t('shapeLabel')}</span>
-              <Controller
-                control={control}
-                name="shape"
-                render={({ field: f }) => (
-                  <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label={t('shapeLabel')}>
-                    {(['circle', 'heart'] as const).map((key) => (
-                      <button
-                        key={key}
-                        type="button"
-                        role="radio"
-                        aria-checked={f.value === key}
-                        onClick={() => f.onChange(key)}
-                        className={`h-10 rounded-lg border text-sm transition-colors ${f.value === key ? 'border-[#CEB47B] bg-[#CEB47B]/15 text-[#CEB47B]' : 'border-[#33415B] text-white/70 hover:bg-white/5'}`}
-                      >
-                        {t(`shape.${key}`)}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              />
-            </div>
-          )}
-          <div className="space-y-2">
-            <span className="text-[13px] font-medium text-[#E8D9B8]">{t('themeLabel')}</span>
-            <Controller
-              control={control}
-              name="theme"
-              render={({ field: f }) => (
-                <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label={t('themeLabel')}>
-                  {(['paper', 'blush', 'night'] as const).map((key) => (
-                    <button
-                      key={key}
-                      type="button"
-                      role="radio"
-                      aria-checked={f.value === key}
-                      onClick={() => f.onChange(key)}
-                      className={`h-10 rounded-lg border text-sm transition-colors ${f.value === key ? 'border-[#CEB47B] bg-[#CEB47B]/15 text-[#CEB47B]' : 'border-[#33415B] text-white/70 hover:bg-white/5'}`}
-                    >
-                      {t(`theme.${key}`)}
-                    </button>
-                  ))}
-                </div>
-              )}
-            />
-          </div>
-          <label className="block space-y-1.5">
-            <span className="text-[13px] font-medium text-[#E8D9B8]">{t('titleLabel')}</span>
-            <Input {...register('title')} maxLength={40} className={fieldClass} placeholder={t('titlePlaceholder')} />
-          </label>
-          <label className="block space-y-1.5">
-            <span className="text-[13px] font-medium text-[#E8D9B8]">{t('namesLabel')}</span>
-            <Input {...register('names')} maxLength={40} className={fieldClass} placeholder={t('namesPlaceholder')} />
-          </label>
+      <div className="mx-auto px-6 py-10 md:px-20 md:py-16">
+        <div className="grid gap-10 md:grid-cols-2 md:items-start md:gap-16">
+          <section className="min-w-0">
+            {ready && step === 1 && <MapStep1 form={form} onNext={() => goTo(2)} />}
+            {ready && step === 2 && <MapStep2 form={form} onNext={() => goTo(3)} onBack={() => goTo(1)} />}
+            {ready && step === 3 && (
+              <MapStep3 exporter={exporter} format={format} onFormatChange={setFormat} valid={valid} />
+            )}
+          </section>
+          <MapPreview step={step} data={current} labels={labels} format={format} onBack={() => goTo(2)} />
         </div>
-
-        <div className="space-y-3">
-          <h2 className="text-base font-bold text-[#CEB47B]">{t('milestonesTitle')}</h2>
-          <ol className="space-y-3">
-            {fields.map((field, i) => (
-              <li key={field.id} className="rounded-2xl border border-[#33415B] bg-[#142039] p-4">
-                <div className="mb-3 flex items-center justify-between">
-                  <span className="flex size-6 items-center justify-center rounded-full bg-[#CEB47B] text-xs font-bold text-[#0c142b]">
-                    {toPersianDigits(String(i + 1))}
-                  </span>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    disabled={fields.length <= MIN_MILESTONES}
-                    onClick={() => remove(i)}
-                    className="h-8 gap-1 text-xs text-[#AAB6CD] hover:bg-white/5 hover:text-white"
-                  >
-                    <Trash2 className="size-3.5" />
-                    {t('remove')}
-                  </Button>
-                </div>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <label className="block space-y-1.5 sm:col-span-2">
-                    <span className="text-[12px] text-[#AAB6CD]">{t('milestoneTitle')}</span>
-                    <Input
-                      {...register(`milestones.${i}.title`)}
-                      maxLength={24}
-                      className={fieldClass}
-                      placeholder={t('milestonePlaceholder')}
-                    />
-                  </label>
-                  <label className="block space-y-1.5">
-                    <span className="text-[12px] text-[#AAB6CD]">{t('milestonePlace')}</span>
-                    <Input
-                      {...register(`milestones.${i}.city`)}
-                      maxLength={22}
-                      className={fieldClass}
-                      placeholder={t('placePlaceholder')}
-                    />
-                  </label>
-                  <label className="block space-y-1.5">
-                    <span className="text-[12px] text-[#AAB6CD]">{t('milestoneDate')}</span>
-                    <Input
-                      {...register(`milestones.${i}.date`)}
-                      maxLength={18}
-                      className={fieldClass}
-                      placeholder={t('datePlaceholder')}
-                    />
-                  </label>
-                    <div className="sm:col-span-2">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => setPickerFor(i)}
-                        className={`h-10 w-full gap-2 bg-transparent text-sm hover:bg-white/5 ${watched.milestones?.[i]?.lat === undefined ? 'border-dashed border-[#CEB47B]/60 text-[#CEB47B]' : 'border-[#33415B] text-white/80'}`}
-                      >
-                        <MapPin className="size-4" />
-                        {watched.milestones?.[i]?.lat === undefined ? t('pickOnMap') : t('pickedOnMap')}
-                      </Button>
-                    </div>
-                </div>
-              </li>
-            ))}
-          </ol>
-          <Button
-            type="button"
-            variant="outline"
-            disabled={fields.length >= MAX_MILESTONES}
-            onClick={() => append(EMPTY_MILESTONE)}
-            className="h-10 w-full gap-2 border-dashed border-[#CEB47B]/50 bg-transparent text-sm text-[#CEB47B] hover:bg-[#CEB47B]/10"
-          >
-            <Plus className="size-4" />
-            {t('add')}
-          </Button>
-          <p className="text-[11px] text-[#AAB6CD]">
-            {t('limit', {
-              min: toPersianDigits(String(MIN_MILESTONES)),
-              max: toPersianDigits(String(MAX_MILESTONES)),
-            })}
-          </p>
-        </div>
-      </section>
-
-      <aside className="min-w-0 space-y-5 lg:sticky lg:top-6 lg:self-start">
-        <MapPoster data={current} labels={labels} />
-
-        <div className="space-y-4 rounded-2xl border border-[#CEB47B] bg-[#142039] p-5">
-          <div className="flex items-center justify-between gap-2">
-            <p className="flex items-center gap-2 text-base font-bold text-[#CEB47B]">
-              <Crown aria-hidden className="size-4" />
-              {t('premium.title')}
-            </p>
-            <span className="rounded-full border border-[#CEB47B] px-2.5 py-0.5 text-[10px] text-[#CEB47B]">
-              {t('premium.badge')}
-            </span>
-          </div>
-          <PaymentDialog />
-          <p className="text-[12px] leading-6 text-[#AAB6CD]">{t('premium.desc')}</p>
-          <div className="flex flex-col gap-2.5">
-            <Button
-              type="button"
-              onClick={exporter.downloadPng}
-              disabled={!valid || exporter.busy !== null}
-              className="h-11 w-full gap-2 bg-[#CEB47B] text-sm font-bold text-[#0c142b] hover:bg-[#e0c180]"
-            >
-              {busyIcon('png')}
-              {exporter.premiumUnlocked || !PREMIUM_PRICE_TOMAN
-                ? t('premium.downloadPng')
-                : t('premium.payBtn', { price: formatToman(PREMIUM_PRICE_TOMAN) })}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={exporter.downloadSvg}
-              disabled={!valid || exporter.busy !== null}
-              className="h-11 w-full gap-2 border-[#33415B] bg-transparent text-sm text-white/80 hover:bg-white/5"
-            >
-              {busyIcon('svg')}
-              {t('premium.downloadSvg')}
-            </Button>
-          </div>
-          {!valid && (
-            <p className="text-[12px] leading-6 text-[#E8D9B8]">{t('premium.incomplete')}</p>
-          )}
-          {exporter.notice && (
-            <p role="alert" className="rounded-lg border border-red-300/30 px-3 py-2 text-[12px] leading-6 text-red-300">
-              {exporter.notice === 'payment' ? t('premium.paymentUnavailable') : t('premium.error')}
-            </p>
-          )}
-          <p className="text-center text-[11px] leading-5 text-[#AAB6CD]">{t('premium.note')}</p>
-        </div>
-      </aside>
-      <PlacePicker
-        open={pickerFor !== null}
-        wholeCountry={current.scope === 'iran'}
-        onOpenChange={(o) => {
-          if (!o) setPickerFor(null);
-        }}
-        start={
-          pickerFor !== null && current.milestones[pickerFor]?.lat !== undefined
-            ? { lat: current.milestones[pickerFor]!.lat!, lon: current.milestones[pickerFor]!.lon! }
-            : (() => {
-                const first = current.milestones.find((m) => m.lat !== undefined);
-                return first ? { lat: first.lat!, lon: first.lon! } : null;
-              })()
-        }
-        current={
-          pickerFor !== null && current.milestones[pickerFor]?.lat !== undefined
-            ? { lat: current.milestones[pickerFor]!.lat!, lon: current.milestones[pickerFor]!.lon! }
-            : null
-        }
-        others={current.milestones
-          .filter((m, i) => i !== pickerFor && m.lat !== undefined)
-          .map((m) => ({ lat: m.lat!, lon: m.lon! }))}
-        onPick={({ lat, lon, name }) => {
-          if (pickerFor === null) return;
-          setValue(`milestones.${pickerFor}.lat`, lat, { shouldValidate: true });
-          setValue(`milestones.${pickerFor}.lon`, lon, { shouldValidate: true });
-          const label = getValues(`milestones.${pickerFor}.city`);
-          if (name && !label) setValue(`milestones.${pickerFor}.city`, name.slice(0, 22), { shouldValidate: true });
-        }}
-      />
+      </div>
     </main>
   );
 }

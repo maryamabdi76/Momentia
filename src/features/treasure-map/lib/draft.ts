@@ -14,10 +14,10 @@ export function loadMapDraft(): TreasureMapValues | null {
     const raw = localStorage.getItem(KEY);
     if (!raw) return null;
     const stored: unknown = JSON.parse(raw);
-    // drafts saved before maps had a scope or theme get the defaults
+    // drafts saved before maps had a scope, theme or frame get the defaults
     const withDefaults =
       typeof stored === 'object' && stored !== null
-        ? { scope: 'city', area: 'تهران', theme: 'paper', shape: 'circle', ...stored }
+        ? { scope: 'city', area: 'تهران', theme: 'paper', shape: 'circle', frame: 'minimal', ...stored }
         : stored;
     const parsed = treasureMapSchema.safeParse(withDefaults);
     return parsed.success ? parsed.data : null;

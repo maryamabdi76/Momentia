@@ -22,6 +22,7 @@ const city = {
   area: 'تهران',
   theme: 'paper' as const,
   shape: 'circle' as const,
+  frame: 'minimal' as const,
   title: 'قصهٔ ما',
   names: 'شیرین و فرهاد',
   milestones: places,
@@ -129,4 +130,14 @@ test('smooth path needs two points and starts at the first', () => {
 test('long titles get a smaller, but never tiny, font', () => {
   assert.ok(titleFontSize('کوتاه') > titleFontSize('یک عنوان بسیار بسیار بلند برای نقشه'));
   assert.ok(titleFontSize('x'.repeat(200)) >= 40);
+});
+
+test('the chosen frame is drawn, and none draws no border', () => {
+  const opts = { labels, watermark: false };
+  const classic = buildTreasureMapSvg({ ...opts, data: { ...city, frame: 'classic' } });
+  const none = buildTreasureMapSvg({ ...opts, data: { ...city, frame: 'none' } });
+  const minimal = buildTreasureMapSvg({ ...opts, data: city });
+  assert.notEqual(classic, minimal);
+  assert.ok(classic.length > none.length);
+  assert.ok(minimal.length > none.length);
 });

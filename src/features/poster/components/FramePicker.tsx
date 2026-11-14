@@ -10,9 +10,8 @@ import { ChoiceGroup } from './ChoiceGroup';
 const CROP = 170;
 
 /** A corner of the poster in the chosen colours, with this frame drawn on it. */
-function FrameThumb({ frame, style }: { frame: PosterFrame; style: PosterStyle }) {
-  const theme = POSTER_THEMES[style];
-  const paper = theme.paperStops[theme.paperStops.length - 1]![1];
+function FrameThumb({ frame, colors }: { frame: PosterFrame; colors: ThumbColors }) {
+  const { paper } = colors;
   return (
     <svg
       aria-hidden
@@ -22,22 +21,32 @@ function FrameThumb({ frame, style }: { frame: PosterFrame; style: PosterStyle }
       dangerouslySetInnerHTML={{
         __html:
           `<rect width="${CROP}" height="${CROP}" fill="${paper}"/>` +
-          frameSvg(frame, theme, POSTER_WIDTH, POSTER_HEIGHT, { strokeScale: 2.5 }),
+          frameSvg(frame, colors, POSTER_WIDTH, POSTER_HEIGHT, { strokeScale: 2.5 }),
       }}
     />
   );
 }
 
+type ThumbColors = { paper: string; frame: string; frameSoft: string };
+
 type Props = {
   value: PosterFrame;
   onChange: (frame: PosterFrame) => void;
   /** Colours the thumbnails are drawn in, so each one shows the border as it will look. */
-  style: PosterStyle;
+  style?: PosterStyle;
+  /** The same, for posters that are not a sky style (the treasure map). */
+  colors?: ThumbColors;
 };
 
 /** Which border goes around the poster. */
-export function FramePicker({ value, onChange, style }: Props) {
+export function FramePicker({ value, onChange, style = 'gold', colors }: Props) {
   const t = useTranslations('CreatePage.step2');
+  const theme = POSTER_THEMES[style];
+  const thumb: ThumbColors = colors ?? {
+    paper: theme.paperStops[theme.paperStops.length - 1]![1],
+    frame: theme.frame,
+    frameSoft: theme.frameSoft,
+  };
 
   return (
     <ChoiceGroup
@@ -61,7 +70,7 @@ export function FramePicker({ value, onChange, style }: Props) {
                 —
               </span>
             ) : (
-              <FrameThumb frame={frame} style={style} />
+              <FrameThumb frame={frame} colors={thumb} />
             )}
             <span className="text-center text-[11px] leading-4 text-white/60 group-has-[:checked]/choice:font-medium group-has-[:checked]/choice:text-white">
               {t(`borders.${frame}.label`)}
