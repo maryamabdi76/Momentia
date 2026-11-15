@@ -7,6 +7,7 @@ import { mulberry32 } from '../../moon/lib/random.ts';
 import { frameView, projectToPoster } from './mercator.ts';
 import { tilesFor, type TileSpec } from './tiles.ts';
 import type { MapIcon } from './illustrations.ts';
+import type { MapArt } from './art.ts';
 import { roadSvg } from './road.ts';
 import {
   smoothClosedPath,
@@ -42,7 +43,7 @@ export type MapShape = (typeof MAP_SHAPES)[number];
 export type MapTheme = (typeof MAP_THEMES)[number];
 
 /** `city` is a place name in the chosen city (city map) or an Iranian city (Iran map). */
-export type Milestone = { title: string; city: string; date: string; lat?: number; lon?: number; icon?: MapIcon };
+export type Milestone = { title: string; city: string; date: string; lat?: number; lon?: number; icon?: MapIcon; art?: MapArt };
 export type TreasureMapData = {
   title: string;
   names: string;
@@ -74,6 +75,8 @@ export type TreasureMapOptions = {
   fonts?: PosterFonts;
   /** Tile pictures as data: URIs, by tile URL, so an exported file stands on its own. */
   tileImages?: Record<string, string>;
+  /** The watercolour pictures as data: URIs, by id, for the same reason; without them the files are linked. */
+  artImages?: Partial<Record<MapArt, string>>;
   /** The small site mark at the foot; the premium file leaves it out. */
   watermark: boolean;
   /** Zoom levels sharper than the preview; must match what `mapTiles` was asked for when the tile pictures were loaded. */
@@ -398,6 +401,8 @@ export function buildTreasureMapSvg(opts: TreasureMapOptions): string {
       text: (x, y, size, weight, fill, s) => text(x, y, size, weight, fill, s),
       digits: toPersianDigits,
       num: n,
+      dark: data.theme === 'night',
+      artImages: opts.artImages,
     });
     extraDefs = road.defs;
     parts.push(road.body);

@@ -1,4 +1,5 @@
 import { loadFonts, svgToPngBlob } from '@/features/poster/lib/export-poster';
+import { artSrc, type MapArt } from './art';
 import {
   buildTreasureMapSvg,
   mapTiles,
@@ -54,9 +55,19 @@ export async function createMapSvg(input: {
   watermark: boolean;
 }): Promise<string> {
   const tiles = mapTiles(input.data, EXPORT_TILE_DETAIL);
-  const [fonts, images] = await Promise.all([
+  // the road's watercolour pictures, once each, embedded like the tiles
+  const arts = input.data.layout === 'road' ? [...new Set(input.data.milestones.flatMap((m) => (m.art ? [m.art] : [])))] : [];
+  const [fonts, images, artImages] = await Promise.all([
     loadFonts(),
     Promise.all(tiles.map(async (t) => [t.url, await loadTileWithRetry(t.url)] as const)),
+    Promise.all(arts.map(async (a) => [a, await loadTileWithRetry(artSrc(a))] as const)),
   ]);
-  return buildTreasureMapSvg({ ...input, fonts, tileImages: Object.fromEntries(images), idPrefix: 'export', tileDetail: EXPORT_TILE_DETAIL });
+  return buildTreasureMapSvg({
+    ...input,
+    fonts,
+    tileImages: Object.fromEntries(images),
+    artImages: Object.fromEntries(artImages) as Partial<Record<MapArt, string>>,
+    idPrefix: 'export',
+    tileDetail: EXPORT_TILE_DETAIL,
+  });
 }

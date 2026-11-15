@@ -1,17 +1,22 @@
 import { mulberry32 } from '../../moon/lib/random.ts';
 import { smoothOpenPath, type Point } from './map-geometry.ts';
+import { artSrc, type MapArt } from './art.ts';
 import { iconMarkup, type IconPalette, type MapIcon } from './illustrations.ts';
 
 /** What the road layout takes from the theme, on top of what the pictures need. */
 export type RoadPalette = IconPalette & { muted: string; onAccent: string };
 
-export type RoadStop = { title: string; city: string; date: string; icon?: MapIcon };
+export type RoadStop = { title: string; city: string; date: string; icon?: MapIcon; art?: MapArt };
 
 type Helpers = {
   /** Centred, right-to-left text. */
   text: (x: number, y: number, size: number, weight: number, fill: string, s: string) => string;
   digits: (s: string) => string;
   num: (v: number) => number;
+  /** A dark theme: watercolour pictures get a light patch to sit on. */
+  dark?: boolean;
+  /** Embedded pictures by id (an exported file); otherwise they are linked. */
+  artImages?: Partial<Record<MapArt, string>>;
 };
 
 export type RoadPlan = {
@@ -216,13 +221,13 @@ export function roadSvg(stops: RoadStop[], p: RoadPalette, id: string, h: Helper
         : h.text(s.px, s.textY + 26, 17, 400, p.muted, m.city),
       !plan.compact && m.date ? h.text(s.px, s.textY + 49, 16, 400, p.accent, h.digits(m.date)) : '',
     ].join('');
-    body.push(
-      `<g transform="rotate(${n(s.tilt)} ${n(s.px)} ${n(s.py)})">` +
-        `<circle cx="${n(s.px)}" cy="${n(s.py)}" r="${n(s.r)}" fill="${p.land}" fill-opacity="0.7"/>` +
-        `<g filter="url(#${id}-wobble)" transform="translate(${n(s.px - 50 * s.scale)} ${n(s.py - 50 * s.scale)}) scale(${n(s.scale * 100) / 100})">${iconMarkup(m.icon ?? 'star', p)}</g>` +
-        words +
-        `</g>`,
-    );
+    const picture = m.art
+      ? // a ready-made watercolour picture, fitted inside the patch; it has its own outline
+        (h.dark ? `<rect x="${n(s.px - s.r)}" y="${n(s.py - s.r)}" width="${n(2 * s.r)}" height="${n(2 * s.r)}" rx="${n(s.r * 0.3)}" fill="#FBF8F1" fill-opacity="0.92"/>` : '') +
+        `<image href="${h.artImages?.[m.art] ?? artSrc(m.art)}" x="${n(s.px - s.r * 1.08)}" y="${n(s.py - s.r * 1.08)}" width="${n(s.r * 2.16)}" height="${n(s.r * 2.16)}" preserveAspectRatio="xMidYMid meet"/>`
+      : `<circle cx="${n(s.px)}" cy="${n(s.py)}" r="${n(s.r)}" fill="${p.land}" fill-opacity="0.7"/>` +
+        `<g filter="url(#${id}-wobble)" transform="translate(${n(s.px - 50 * s.scale)} ${n(s.py - 50 * s.scale)}) scale(${n(s.scale * 100) / 100})">${iconMarkup(m.icon ?? 'star', p)}</g>`;
+    body.push(`<g transform="rotate(${n(s.tilt)} ${n(s.px)} ${n(s.py)})">${picture}${words}</g>`);
     // a short dotted line from the road down to the picture, then the number on the road
     body.push(
       `<path d="M${n(s.x)} ${n(s.y + 20)}L${n(s.px)} ${n(s.py - s.r)}" fill="none" stroke="${p.ink}" stroke-opacity="0.4" stroke-width="2.2" stroke-dasharray="1 8" stroke-linecap="round"/>`,

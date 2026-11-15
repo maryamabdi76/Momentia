@@ -206,6 +206,23 @@ test('the illustrated road: a numbered stop, a picture and the words for every m
   assert.match(svg, /viewBox="0 0 900 1350"/);
 });
 
+test('the road draws a watercolour picture for a moment that has one, linked or embedded, and the drawn icon otherwise', () => {
+  const data = {
+    ...city,
+    layout: 'road' as const,
+    milestones: places.map((m, i) => ({ title: m.title, city: m.city, date: m.date, ...(i < 2 ? { art: (['cafe', 'ring'] as const)[i] } : { icon: 'cake' as const }) })),
+  };
+  const linked = buildTreasureMapSvg({ data, labels, watermark: false });
+  assert.equal(linked.match(/<image /g)?.length, 2);
+  assert.ok(linked.includes('href="/map-art/cafe.webp"') && linked.includes('href="/map-art/ring.webp"'));
+  const embedded = buildTreasureMapSvg({ data, labels, watermark: false, artImages: { cafe: 'data:image/webp;base64,AAA', ring: 'data:image/webp;base64,BBB' } });
+  assert.ok(embedded.includes('href="data:image/webp;base64,AAA"') && !embedded.includes('/map-art/'));
+  // a light patch only behind pictures on the dark theme
+  assert.ok(!linked.includes('#FBF8F1" fill-opacity="0.92"'));
+  const dark = buildTreasureMapSvg({ data: { ...data, theme: 'night' as const }, labels, watermark: false });
+  assert.equal(dark.match(/fill-opacity="0.92"/g)?.length, 2);
+});
+
 test('the road winds across the sheet, in order, and its blocks stay on the page and apart', () => {
   for (const count of [2, 3, 4, 5, 6, 7, 8]) {
     const { stops, road } = planRoad(count);

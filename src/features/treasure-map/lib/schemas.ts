@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { IRAN_CITIES } from '@/features/poster/lib/cities';
 import { POSTER_FRAMES } from '@/features/poster/lib/frames';
+import { MAP_ART } from './art';
 import { MAP_ICONS } from './illustrations';
 import { MAP_LAYOUTS, MAP_SCOPES, MAP_SHAPES, MAP_THEMES, MAX_MILESTONES, MIN_MILESTONES, maxMilestones } from './map-svg';
 
@@ -16,6 +17,8 @@ export const milestoneSchema = z.object({
   lon: z.number().min(-180).max(180).optional(),
   /** The picture drawn for this moment on the illustrated road. */
   icon: z.enum(MAP_ICONS).optional(),
+  /** A ready-made watercolour picture; when set it is drawn instead of the icon. */
+  art: z.enum(MAP_ART).optional(),
 });
 
 export const treasureMapSchema = z

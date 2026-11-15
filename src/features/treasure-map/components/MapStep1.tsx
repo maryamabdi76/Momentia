@@ -14,7 +14,7 @@ import { choiceClass, fieldClass } from './field-class';
 import { MapIconPicker } from './MapIconPicker';
 import { PlacePicker } from './PlacePicker';
 
-const EMPTY_MILESTONE = { title: '', city: '', date: '', icon: 'love' as const };
+const EMPTY_MILESTONE = { title: '', city: '', date: '', art: 'love' as const };
 
 type Props = {
   form: UseFormReturn<TreasureMapValues>;
@@ -168,10 +168,12 @@ export function MapStep1({ form, onNext }: Props) {
                   </label>
                   {layout === 'road' && (
                     <div className="sm:col-span-2">
-                      <Controller
-                        control={control}
-                        name={`milestones.${i}.icon`}
-                        render={({ field: f }) => <MapIconPicker value={f.value} onChange={f.onChange} />}
+                      <MapIconPicker
+                        value={{ icon: milestones[i]?.icon, art: milestones[i]?.art }}
+                        onChange={(c) => {
+                          setValue(`milestones.${i}.icon`, c.icon, { shouldDirty: true });
+                          setValue(`milestones.${i}.art`, c.art, { shouldDirty: true });
+                        }}
                       />
                     </div>
                   )}
