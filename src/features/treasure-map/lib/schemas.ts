@@ -8,9 +8,10 @@ import { MAP_LAYOUTS, MAP_SCOPES, MAP_SHAPES, MAP_THEMES, MAX_MILESTONES, MIN_MI
 const CITY_NAMES = IRAN_CITIES.map((c) => c.name);
 
 export const milestoneSchema = z.object({
-  title: z.string().trim().min(1).max(24),
+  /** Everything written on the map is optional. */
+  title: z.string().trim().max(24),
   /** The place's name, as the user wants it on the poster. */
-  city: z.string().trim().min(1).max(22),
+  city: z.string().trim().max(22),
   date: z.string().trim().max(18),
   /** Where it happened, picked on the map (city maps). */
   lat: z.number().min(-90).max(90).optional(),
@@ -23,7 +24,7 @@ export const milestoneSchema = z.object({
 
 export const treasureMapSchema = z
   .object({
-    title: z.string().trim().min(1).max(40),
+    title: z.string().trim().max(40),
     names: z.string().trim().max(40),
     layout: z.enum(MAP_LAYOUTS),
     scope: z.enum(MAP_SCOPES),

@@ -59,7 +59,6 @@ export type TreasureMapData = {
   milestones: Milestone[];
 };
 export type TreasureMapLabels = {
-  kicker: string;
   /** "{count} لحظه" already filled in. */
   count: string;
   watermark: string;
@@ -381,16 +380,16 @@ export function buildTreasureMapSvg(opts: TreasureMapOptions): string {
 
   const items = data.milestones.slice(0, MAX_MILESTONES).map((m) => ({ m }));
   const parts: string[] = [];
+  // empty words draw nothing: a title, place or date can be left out
   const text = (x: number, y: number, size: number, weight: number, fill: string, s: string, extra = '') =>
-    `<text x="${n(x)}" y="${n(y)}" font-size="${size}" font-weight="${weight}" fill="${fill}" text-anchor="middle" direction="rtl"${extra}>${esc(s)}</text>`;
+    !s.trim() ? '' : `<text x="${n(x)}" y="${n(y)}" font-size="${size}" font-weight="${weight}" fill="${fill}" text-anchor="middle" direction="rtl"${extra}>${esc(s)}</text>`;
 
   // the chosen border (none draws nothing)
   parts.push(frameSvg(data.frame, mapFrameColors(data.theme), W, H));
 
   // heading (no letter-spacing: it breaks the joined Persian letters)
   const landscape = data.layout === 'cards';
-  const [kickerY, titleY, namesY] = landscape ? [96, 164, 212] : [114, 196, 250];
-  parts.push(text(W / 2, kickerY, 22, 400, p.accent, labels.kicker));
+  const [titleY, namesY] = landscape ? [150, 200] : [170, 232];
   parts.push(text(W / 2, titleY, titleFontSize(data.title), 700, p.ink, data.title));
   if (data.names) parts.push(text(W / 2, namesY, 28, 400, p.muted, data.names));
 

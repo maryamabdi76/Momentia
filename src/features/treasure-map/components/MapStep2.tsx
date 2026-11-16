@@ -23,7 +23,6 @@ export function MapStep2({ form, onNext, onBack }: Props) {
   const scope = useWatch({ control, name: 'scope' });
   const layout = useWatch({ control, name: 'layout' });
   const theme = useWatch({ control, name: 'theme' }) ?? 'paper';
-  const title = useWatch({ control, name: 'title' });
 
   return (
     <div className="space-y-6">
@@ -124,7 +123,6 @@ export function MapStep2({ form, onNext, onBack }: Props) {
         <Button
           type="button"
           onClick={onNext}
-          disabled={!title?.trim()}
           className="h-12 gap-2 bg-[#CEB47B] text-sm font-bold text-[#0c142b] hover:bg-[#e0c180]"
         >
           {t('step2.next')}

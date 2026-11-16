@@ -6,7 +6,6 @@ import { buildTreasureMapSvg, cardSlots, heartGeometry, mapAspect, mapTiles, max
 import { spreadPins, smoothOpenPath } from '../lib/map-geometry.ts';
 
 const labels = {
-  kicker: 'نقشهٔ گنج',
   count: '۳ لحظه',
   watermark: 'آسمان شب ما',
   credit: '© OpenStreetMap',
@@ -236,6 +235,21 @@ test('the ink theme draws pen versions of the pictures on a crisp road with more
   assert.ok(!svg.includes('fill-opacity="0.92"'), 'no dark-theme patch');
   const paper = buildTreasureMapSvg({ data: { ...data, theme: 'paper' as const }, labels, watermark: false });
   assert.ok((svg.match(/<path d="M0-18L-11 2H11Z/g)?.length ?? 0) > (paper.match(/<path d="M0-18L-11 2H11Z/g)?.length ?? 0), 'more trees');
+});
+
+test('a map with no title, names, place or date draws no empty text, and has no kicker line', () => {
+  for (const layout of ['single', 'cards', 'road'] as const) {
+    const data = {
+      ...city,
+      layout,
+      title: '',
+      names: '',
+      milestones: places.map((m) => ({ title: '', city: '', date: '', lat: m.lat, lon: m.lon, art: 'love' as const })),
+    };
+    const svg = buildTreasureMapSvg({ data, labels, watermark: false });
+    assert.ok(!/<text [^>]*>\s*<\/text>/.test(svg), `${layout}: an empty <text>`);
+    assert.ok(!svg.includes('نقشهٔ گنج'), `${layout}: kicker`);
+  }
 });
 
 test('the road winds across the sheet, in order, and its blocks stay on the page and apart', () => {

@@ -40,12 +40,10 @@ export function MapStep1({ form, onNext }: Props) {
   const complete =
     milestones.length >= MIN_MILESTONES &&
     milestones.length <= max &&
-    milestones.every(
-      (m) => m?.title?.trim() && m?.city?.trim() && (layout === 'road' || (m?.lat !== undefined && m?.lon !== undefined)),
-    );
+    milestones.every((m) => layout === 'road' || (m?.lat !== undefined && m?.lon !== undefined));
 
-  const isDone = (m: (typeof milestones)[number] | undefined) =>
-    !!(m?.title?.trim() && m?.city?.trim() && (layout === 'road' || (m?.lat !== undefined && m?.lon !== undefined)));
+  // the words are optional; a map layout needs the place picked on the map
+  const isDone = (m: (typeof milestones)[number] | undefined) => layout === 'road' || (m?.lat !== undefined && m?.lon !== undefined);
   const doneCount = milestones.filter(isDone).length;
   const suggestions = (t.raw('titleSuggestions') as string[]) ?? [];
 
@@ -296,7 +294,7 @@ export function MapStep1({ form, onNext }: Props) {
         {milestones.length > max && (
           <p className="text-[12px] leading-6 text-[#E8D9B8]">{t('layout.tooMany', { max: toPersianDigits(String(max)) })}</p>
         )}
-        {!complete && <p className="text-[12px] leading-6 text-[#E8D9B8]">{layout === 'road' ? t('step1.incompleteRoad') : t('step1.incomplete')}</p>}
+        {!complete && <p className="text-[12px] leading-6 text-[#E8D9B8]">{t('step1.incomplete')}</p>}
       </div>
 
       <PlacePicker

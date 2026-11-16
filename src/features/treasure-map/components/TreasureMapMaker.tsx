@@ -67,7 +67,7 @@ export function TreasureMapMaker() {
 
   const current = useMemo<TreasureMapValues>(
     () => ({
-      title: watched.title || SAMPLE.title,
+      title: watched.title ?? '',
       names: watched.names ?? '',
       layout: watched.layout ?? 'single',
       scope: watched.scope ?? 'city',
@@ -76,8 +76,8 @@ export function TreasureMapMaker() {
       shape: watched.shape ?? 'circle',
       frame: watched.frame ?? 'minimal',
       milestones: (watched.milestones ?? []).map((m) => ({
-        title: m?.title || '…',
-        city: m?.city || '…',
+        title: m?.title ?? '',
+        city: m?.city ?? '',
         date: m?.date ?? '',
         lat: m?.lat,
         lon: m?.lon,
@@ -90,7 +90,6 @@ export function TreasureMapMaker() {
 
   const labels = useMemo<TreasureMapLabels>(
     () => ({
-      kicker: t('poster.kicker'),
       count: t('poster.count', { count: toPersianDigits(String(current.milestones.length)) }),
       watermark: t('poster.watermark'),
       credit: t('poster.credit'),
