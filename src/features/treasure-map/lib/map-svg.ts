@@ -32,7 +32,7 @@ export const MAP_RADIUS = 296;
 
 export const MAP_SCOPES = ['city', 'iran'] as const;
 export type MapScope = (typeof MAP_SCOPES)[number];
-export const MAP_THEMES = ['paper', 'blush', 'night'] as const;
+export const MAP_THEMES = ['paper', 'blush', 'night', 'ink'] as const;
 /** `single`: one map with a route. `cards`: a small map for each moment. `road`: an illustrated winding road with a picture for each moment. */
 export const MAP_LAYOUTS = ['single', 'cards', 'road'] as const;
 export type MapLayout = (typeof MAP_LAYOUTS)[number];
@@ -89,6 +89,8 @@ const PALETTES = {
   // warm paper, charcoal ink and one clay-rose accent: the look of printed love-story maps
   paper: { bg: '#F6F0E4', card: '#FBF8F1', ink: '#2A2733', accent: '#B4513C', muted: '#7A7684', land: '#EFE6D5', water: '#C9DADD', park: '#D8E1CC', onAccent: '#FFFFFF' },
   blush: { bg: '#F7E9E5', card: '#FCF4F1', ink: '#3A2A2E', accent: '#A8324A', muted: '#8A7479', land: '#F0DAD5', water: '#E0CFD2', park: '#E6D9CF', onAccent: '#FFFFFF' },
+  // black pen on cream, nothing else: the look of the printed line-drawn love maps
+  ink: { bg: '#FBF6E9', card: '#FFFDF6', ink: '#26232B', accent: '#26232B', muted: '#5E5A64', land: '#F4EEDD', water: '#FFFDF6', park: '#FFFDF6', onAccent: '#FFFDF6' },
   night: { bg: '#0c142b', card: '#101a38', ink: '#F4EFE6', accent: '#CEB47B', muted: '#AAB6CD', land: '#1a2850', water: '#1a2d5e', park: '#142447', onAccent: '#0c142b' },
 } as const;
 
@@ -402,6 +404,7 @@ export function buildTreasureMapSvg(opts: TreasureMapOptions): string {
       digits: toPersianDigits,
       num: n,
       dark: data.theme === 'night',
+      lineArt: data.theme === 'ink',
       artImages: opts.artImages,
     });
     extraDefs = road.defs;

@@ -30,5 +30,8 @@ export const MAP_ART = [
 ] as const;
 export type MapArt = (typeof MAP_ART)[number];
 
+/** The same pictures also come as black pen drawings, for the ink theme. */
+export type ArtStyle = 'color' | 'line';
+
 /** Where a picture is served from. */
-export const artSrc = (id: MapArt) => `/map-art/${id}.webp`;
+export const artSrc = (id: MapArt, style: ArtStyle = 'color') => (style === 'line' ? `/map-art/line/${id}.webp` : `/map-art/${id}.webp`);

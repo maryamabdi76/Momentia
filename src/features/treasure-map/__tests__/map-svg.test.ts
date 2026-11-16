@@ -223,6 +223,20 @@ test('the road draws a watercolour picture for a moment that has one, linked or 
   assert.equal(dark.match(/fill-opacity="0.92"/g)?.length, 2);
 });
 
+test('the ink theme draws pen versions of the pictures on a crisp road with more trees', () => {
+  const data = {
+    ...city,
+    theme: 'ink' as const,
+    layout: 'road' as const,
+    milestones: places.map((m) => ({ title: m.title, city: m.city, date: m.date, art: 'cafe' as const })),
+  };
+  const svg = buildTreasureMapSvg({ data, labels, watermark: false });
+  assert.ok(svg.includes('href="/map-art/line/cafe.webp"') && !svg.includes('href="/map-art/cafe.webp"'));
+  assert.ok(!svg.includes('fill-opacity="0.92"'), 'no dark-theme patch');
+  const paper = buildTreasureMapSvg({ data: { ...data, theme: 'paper' as const }, labels, watermark: false });
+  assert.ok((svg.match(/<path d="M0-18L-11 2H11Z/g)?.length ?? 0) > (paper.match(/<path d="M0-18L-11 2H11Z/g)?.length ?? 0), 'more trees');
+});
+
 test('the road winds across the sheet, in order, and its blocks stay on the page and apart', () => {
   for (const count of [2, 3, 4, 5, 6, 7, 8]) {
     const { stops, road } = planRoad(count);

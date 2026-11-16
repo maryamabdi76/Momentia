@@ -49,7 +49,7 @@ export function MapStep2({ form, onNext, onBack }: Props) {
             control={control}
             name="theme"
             render={({ field: f }) => (
-              <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label={t('themeLabel')}>
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4" role="radiogroup" aria-label={t('themeLabel')}>
                 {MAP_THEMES.map((key) => (
                   <button
                     key={key}

@@ -15,6 +15,8 @@ type Helpers = {
   num: (v: number) => number;
   /** A dark theme: watercolour pictures get a light patch to sit on. */
   dark?: boolean;
+  /** The ink theme: black pen drawings, a crisp road and no colour fills. */
+  lineArt?: boolean;
   /** Embedded pictures by id (an exported file); otherwise they are linked. */
   artImages?: Partial<Record<MapArt, string>>;
 };
@@ -140,16 +142,18 @@ function sampleRoad(points: Point[], per = 10): Point[] {
 
 type Doodle = 'heart' | 'tree' | 'star' | 'sparkle' | 'cloud' | 'flower' | 'compass';
 
-function doodle(kind: Doodle, x: number, y: number, size: number, p: RoadPalette, turn: number): string {
+function doodle(kind: Doodle, x: number, y: number, size: number, p: RoadPalette, turn: number, lineArt = false): string {
+  // in line art a shape is outlined and left paper-coloured instead of washed with the accent
+  const wash = (op: number) => (lineArt ? `fill="${p.card}"` : `fill="${p.accent}" fill-opacity="${op}"`);
   const s = `stroke="${p.ink}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"`;
   const g = (inner: string) => `<g transform="translate(${x.toFixed(1)} ${y.toFixed(1)}) rotate(${turn.toFixed(1)}) scale(${(size / 40).toFixed(3)})">${inner}</g>`;
   switch (kind) {
     case 'heart':
-      return g(`<path d="M0 14C-18 2-16-12-6-13C-2-13.5 0-10 0-8C0-10 2-13.5 6-13C16-12 18 2 0 14Z" fill="${p.accent}" fill-opacity="0.75" ${s}/>`);
+      return g(`<path d="M0 14C-18 2-16-12-6-13C-2-13.5 0-10 0-8C0-10 2-13.5 6-13C16-12 18 2 0 14Z" ${wash(0.75)} ${s}/>`);
     case 'tree':
       return g(`<path d="M0-18L-11 2H11ZM0-6L-14 12H14Z" fill="${p.park}" ${s}/><path d="M0 12V19" fill="none" ${s}/>`);
     case 'star':
-      return g(`<path d="M0-15L4-4L15-3L7 5L9 16L0 10L-9 16L-7 5L-15-3L-4-4Z" fill="${p.accent}" fill-opacity="0.6" ${s}/>`);
+      return g(`<path d="M0-15L4-4L15-3L7 5L9 16L0 10L-9 16L-7 5L-15-3L-4-4Z" ${wash(0.6)} ${s}/>`);
     case 'sparkle':
       return g(`<path d="M0-14V14M-14 0H14M-7-7L7 7M7-7L-7 7" fill="none" stroke="${p.accent}" stroke-width="2.4" stroke-linecap="round"/>`);
     case 'cloud':
@@ -157,13 +161,13 @@ function doodle(kind: Doodle, x: number, y: number, size: number, p: RoadPalette
     case 'flower':
       return g(
         `<path d="M0 4V18" fill="none" ${s}/>` +
-          [0, 72, 144, 216, 288].map((a) => `<ellipse cx="0" cy="-8" rx="4.5" ry="7" transform="rotate(${a})" fill="${p.accent}" fill-opacity="0.45" ${s}/>`).join('') +
+          [0, 72, 144, 216, 288].map((a) => `<ellipse cx="0" cy="-8" rx="4.5" ry="7" transform="rotate(${a})" ${wash(0.45)} ${s}/>`).join('') +
           `<circle r="3.5" fill="${p.card}" ${s}/>`,
       );
     case 'compass':
       return g(
         `<circle r="18" fill="${p.card}" ${s}/><circle r="13" fill="none" stroke="${p.ink}" stroke-opacity="0.5" stroke-width="1"/>` +
-          `<path d="M0-13L4 0L0 13L-4 0Z" fill="${p.accent}" fill-opacity="0.85" ${s}/><path d="M0 0L4 0" fill="none" ${s}/>` +
+          `<path d="M0-13L4 0L0 13L-4 0Z" ${wash(0.85)} ${s}/><path d="M0 0L4 0" fill="none" ${s}/>` +
           `<path d="M0-22V-18M0 18V22M-22 0H-18M18 0H22" fill="none" ${s}/>`,
       );
   }
@@ -180,10 +184,12 @@ export function roadSvg(stops: RoadStop[], p: RoadPalette, id: string, h: Helper
 
   const road = smoothOpenPath(plan.road);
   const line = `fill="none" stroke-linecap="round" stroke-linejoin="round"`;
+  // line art: a crisp pen edge on the paper, the centre dashes thin and dark
+  const [edge, edgeOpacity, lane] = h.lineArt ? [32, 1, 1.8] : [34, 0.5, 2.4];
   body.push(
-    `<path d="${road}" ${line} stroke="${p.ink}" stroke-opacity="0.5" stroke-width="34"/>`,
-    `<path d="${road}" ${line} stroke="${p.card}" stroke-width="29"/>`,
-    `<path d="${road}" ${line} stroke="${p.ink}" stroke-opacity="0.45" stroke-width="2.4" stroke-dasharray="9 11"/>`,
+    `<path d="${road}" ${line} stroke="${p.ink}" stroke-opacity="${edgeOpacity}" stroke-width="${edge}"/>`,
+    `<path d="${road}" ${line} stroke="${p.card}" stroke-width="${edge - (h.lineArt ? 3.2 : 5)}"/>`,
+    `<path d="${road}" ${line} stroke="${p.ink}" stroke-opacity="${h.lineArt ? 0.8 : 0.45}" stroke-width="${lane}" stroke-dasharray="9 11"/>`,
   );
 
   // doodles go where nothing else is: off the road, the pictures and the words
@@ -194,7 +200,10 @@ export function roadSvg(stops: RoadStop[], p: RoadPalette, id: string, h: Helper
     x > 80 && x < 820 && y > 300 && y < 1255 &&
     track.every((t) => Math.hypot(t.x - x, t.y - y) > 36 + r) &&
     taken.every((o) => Math.hypot(o.x - x, o.y - y) > o.r + r);
-  const kinds: Doodle[] = ['heart', 'tree', 'star', 'sparkle', 'cloud', 'flower', 'heart', 'tree', 'sparkle'];
+  // the line-art prints are full of small trees
+  const kinds: Doodle[] = h.lineArt
+    ? ['tree', 'tree', 'sparkle', 'tree', 'heart', 'tree', 'tree', 'flower', 'tree', 'star']
+    : ['heart', 'tree', 'star', 'sparkle', 'cloud', 'flower', 'heart', 'tree', 'sparkle'];
   const placed: string[] = [];
   const place = (kind: Doodle, size: number, tries: number) => {
     for (let i = 0; i < tries; i++) {
@@ -202,12 +211,12 @@ export function roadSvg(stops: RoadStop[], p: RoadPalette, id: string, h: Helper
       const y = 300 + rnd() * 955;
       if (!free(x, y, size * 0.6)) continue;
       taken.push({ x, y, r: size * 0.9 });
-      placed.push(doodle(kind, x, y, size, p, (rnd() - 0.5) * 24));
+      placed.push(doodle(kind, x, y, size, p, (rnd() - 0.5) * 24, h.lineArt));
       return;
     }
   };
   place('compass', 58, 500);
-  const budget = 12 + Math.max(0, 8 - stops.length) * 2;
+  const budget = (h.lineArt ? 30 : 12) + Math.max(0, 8 - stops.length) * 2;
   for (let i = 0; i < budget; i++) place(kinds[i % kinds.length]!, 22 + rnd() * 14, 160);
   body.push(...placed);
 
@@ -222,9 +231,9 @@ export function roadSvg(stops: RoadStop[], p: RoadPalette, id: string, h: Helper
       !plan.compact && m.date ? h.text(s.px, s.textY + 49, 16, 400, p.accent, h.digits(m.date)) : '',
     ].join('');
     const picture = m.art
-      ? // a ready-made watercolour picture, fitted inside the patch; it has its own outline
+      ? // a ready-made picture, fitted inside the patch; it has its own outline
         (h.dark ? `<rect x="${n(s.px - s.r)}" y="${n(s.py - s.r)}" width="${n(2 * s.r)}" height="${n(2 * s.r)}" rx="${n(s.r * 0.3)}" fill="#FBF8F1" fill-opacity="0.92"/>` : '') +
-        `<image href="${h.artImages?.[m.art] ?? artSrc(m.art)}" x="${n(s.px - s.r * 1.08)}" y="${n(s.py - s.r * 1.08)}" width="${n(s.r * 2.16)}" height="${n(s.r * 2.16)}" preserveAspectRatio="xMidYMid meet"/>`
+        `<image href="${h.artImages?.[m.art] ?? artSrc(m.art, h.lineArt ? 'line' : 'color')}" x="${n(s.px - s.r * 1.08)}" y="${n(s.py - s.r * 1.08)}" width="${n(s.r * 2.16)}" height="${n(s.r * 2.16)}" preserveAspectRatio="xMidYMid meet"/>`
       : `<circle cx="${n(s.px)}" cy="${n(s.py)}" r="${n(s.r)}" fill="${p.land}" fill-opacity="0.7"/>` +
         `<g filter="url(#${id}-wobble)" transform="translate(${n(s.px - 50 * s.scale)} ${n(s.py - 50 * s.scale)}) scale(${n(s.scale * 100) / 100})">${iconMarkup(m.icon ?? 'star', p)}</g>`;
     body.push(`<g transform="rotate(${n(s.tilt)} ${n(s.px)} ${n(s.py)})">${picture}${words}</g>`);

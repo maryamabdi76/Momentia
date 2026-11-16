@@ -60,7 +60,7 @@ export async function createMapSvg(input: {
   const [fonts, images, artImages] = await Promise.all([
     loadFonts(),
     Promise.all(tiles.map(async (t) => [t.url, await loadTileWithRetry(t.url)] as const)),
-    Promise.all(arts.map(async (a) => [a, await loadTileWithRetry(artSrc(a))] as const)),
+    Promise.all(arts.map(async (a) => [a, await loadTileWithRetry(artSrc(a, input.data.theme === 'ink' ? 'line' : 'color'))] as const)),
   ]);
   return buildTreasureMapSvg({
     ...input,
