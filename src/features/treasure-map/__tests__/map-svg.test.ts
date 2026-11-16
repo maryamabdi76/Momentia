@@ -201,7 +201,8 @@ test('the illustrated road: a numbered stop, a picture and the words for every m
   assert.equal(mapTiles(data).length, 0);
   assert.ok(!svg.includes('<image'));
   for (const m of places) assert.ok(svg.includes(m.title) && svg.includes(m.city));
-  for (const digit of ['۱', '۲', '۳']) assert.ok(svg.includes(`>${digit}</text>`));
+  // the road itself leads from place to place: no numbered badges
+  assert.ok(!svg.includes('>۱</text>'));
   assert.match(svg, /<filter id="tmap-wobble"/);
   assert.match(svg, /viewBox="0 0 900 1350"/);
 });
@@ -246,7 +247,8 @@ test('the road winds across the sheet, in order, and its blocks stay on the page
     assert.ok(stops[0]!.x > 450);
     for (const s of stops) {
       assert.ok(s.px - s.r > 40 && s.px + s.r < 860, 'picture on the page');
-      assert.ok(s.y > 285 && s.bottom < 1275, 'block between the title and the foot');
+      assert.ok(s.py - s.r > 285 && s.bottom < 1275, 'block between the title and the foot');
+      assert.equal(s.py, s.y, 'the picture sits on the road');
     }
     // no two pictures overlap
     for (let i = 0; i < count; i++) {

@@ -4,7 +4,7 @@ import { artSrc, type MapArt } from './art.ts';
 import { iconMarkup, type IconPalette, type MapIcon } from './illustrations.ts';
 
 /** What the road layout takes from the theme, on top of what the pictures need. */
-export type RoadPalette = IconPalette & { muted: string; onAccent: string };
+export type RoadPalette = IconPalette & { muted: string; onAccent: string; /** The paper, so a picture can clear the road behind it. */ bg: string };
 
 export type RoadStop = { title: string; city: string; date: string; icon?: MapIcon; art?: MapArt };
 
@@ -27,10 +27,10 @@ export type RoadPlan = {
   /** The road, as points to draw a smooth curve through. */
   road: Point[];
   stops: Array<{
-    /** Where the number sits, on the road. */
+    /** The place on the road the picture sits at. */
     x: number;
     y: number;
-    /** The picture's centre, below the road. */
+    /** The picture's centre: on the road, so the road runs into it and out again. */
     px: number;
     py: number;
     /** Half the width of the picture's patch. */
@@ -61,16 +61,14 @@ export function planRoad(count: number, seed = 7): RoadPlan {
   const passes = Math.max(2, Math.ceil(count / 2));
   // few moments get big pictures; many get small ones so everything fits
   const compact = count > 6;
-  const scale = count <= 3 ? 1.4 : count <= 4 ? 1.3 : count <= 6 ? 1.1 : 0.74;
+  const scale = count <= 3 ? 1.4 : count <= 4 ? 1.3 : count <= 6 ? 1.1 : 0.95;
   const textH = compact ? 62 : 96;
-  const r = 56 * scale;
-  const gapBelowRoad = 20;
-  // room for the biggest picture, the words below it and the extra drop of the lower one
-  const blockH = gapBelowRoad + 2 * r * 1.12 + textH + 36;
-  const top = compact ? 312 : 340;
-  const bottom = 1258;
-  const gap = Math.min(340, (bottom - top - blockH) / (passes - 1));
-  const y0 = top + (bottom - top - blockH - gap * (passes - 1)) / 2;
+  // the biggest a picture can get, and the room its words need below it
+  const rMax = 56 * scale * 1.12;
+  const startMin = 300 + rMax + 26;
+  const lastMax = 1262 - rMax - textH - 14;
+  const gap = Math.min(340, (lastMax - startMin) / (passes - 1));
+  const y0 = startMin + (lastMax - startMin - gap * (passes - 1)) / 2;
 
   const road: Point[] = [{ x: RIGHT + 60, y: y0 - 80 }];
   const stops: RoadPlan['stops'] = [];
@@ -89,20 +87,18 @@ export function planRoad(count: number, seed = 7): RoadPlan {
     const marks = inPass === 0 ? [] : inPass === 2 ? [0.2 + rnd() * 0.08, 0.64 + rnd() * 0.1] : [0.42 + rnd() * 0.16];
     marks.forEach((t, j) => {
       const p = at(t);
-      // the second picture hangs a little lower than the first
-      const drop = j === 1 ? 20 + rnd() * 14 : rnd() * 10;
       const sz = scale * (0.92 + rnd() * 0.2);
       const rr = 56 * sz;
       stops.push({
         x: p.x,
         y: p.y,
-        px: p.x + (rnd() - 0.5) * 26,
-        py: p.y + gapBelowRoad + rr + drop,
+        px: p.x,
+        py: p.y,
         r: rr,
         scale: sz,
-        tilt: (rnd() - 0.5) * 7,
-        textY: p.y + gapBelowRoad + 2 * rr + drop + 30,
-        bottom: p.y + gapBelowRoad + 2 * rr + drop + textH,
+        tilt: (rnd() - 0.5) * 6,
+        textY: p.y + rr * 1.12 + 30,
+        bottom: p.y + rr * 1.12 + textH,
       });
     });
     made += inPass;
@@ -195,7 +191,10 @@ export function roadSvg(stops: RoadStop[], p: RoadPalette, id: string, h: Helper
   // doodles go where nothing else is: off the road, the pictures and the words
   const rnd = mulberry32(99 + stops.length);
   const track = sampleRoad(plan.road);
-  const taken: Array<{ x: number; y: number; r: number }> = plan.stops.map((s) => ({ x: s.px, y: (s.py + s.bottom) / 2, r: Math.max(s.r + 60, 130) }));
+  const taken: Array<{ x: number; y: number; r: number }> = plan.stops.map((s) => {
+    const top = s.py - s.r * 1.12;
+    return { x: s.px, y: (top + s.bottom) / 2, r: (s.bottom - top) / 2 + 40 };
+  });
   const free = (x: number, y: number, r: number) =>
     x > 80 && x < 820 && y > 300 && y < 1255 &&
     track.every((t) => Math.hypot(t.x - x, t.y - y) > 36 + r) &&
@@ -230,19 +229,15 @@ export function roadSvg(stops: RoadStop[], p: RoadPalette, id: string, h: Helper
         : h.text(s.px, s.textY + 26, 17, 400, p.muted, m.city),
       !plan.compact && m.date ? h.text(s.px, s.textY + 49, 16, 400, p.accent, h.digits(m.date)) : '',
     ].join('');
+    // the picture sits on the road: a clearing of paper hides the road behind it, so the road
+    // runs up to the picture and out the other side
+    const clearing = `<ellipse cx="${n(s.px)}" cy="${n(s.py)}" rx="${n(s.r * 1.2)}" ry="${n(s.r * 1.12)}" fill="${p.bg}"/>`;
     const picture = m.art
-      ? // a ready-made picture, fitted inside the patch; it has its own outline
-        (h.dark ? `<rect x="${n(s.px - s.r)}" y="${n(s.py - s.r)}" width="${n(2 * s.r)}" height="${n(2 * s.r)}" rx="${n(s.r * 0.3)}" fill="#FBF8F1" fill-opacity="0.92"/>` : '') +
+      ? (h.dark ? `<rect x="${n(s.px - s.r)}" y="${n(s.py - s.r)}" width="${n(2 * s.r)}" height="${n(2 * s.r)}" rx="${n(s.r * 0.3)}" fill="#FBF8F1" fill-opacity="0.92"/>` : '') +
         `<image href="${h.artImages?.[m.art] ?? artSrc(m.art, h.lineArt ? 'line' : 'color')}" x="${n(s.px - s.r * 1.08)}" y="${n(s.py - s.r * 1.08)}" width="${n(s.r * 2.16)}" height="${n(s.r * 2.16)}" preserveAspectRatio="xMidYMid meet"/>`
       : `<circle cx="${n(s.px)}" cy="${n(s.py)}" r="${n(s.r)}" fill="${p.land}" fill-opacity="0.7"/>` +
         `<g filter="url(#${id}-wobble)" transform="translate(${n(s.px - 50 * s.scale)} ${n(s.py - 50 * s.scale)}) scale(${n(s.scale * 100) / 100})">${iconMarkup(m.icon ?? 'star', p)}</g>`;
-    body.push(`<g transform="rotate(${n(s.tilt)} ${n(s.px)} ${n(s.py)})">${picture}${words}</g>`);
-    // a short dotted line from the road down to the picture, then the number on the road
-    body.push(
-      `<path d="M${n(s.x)} ${n(s.y + 20)}L${n(s.px)} ${n(s.py - s.r)}" fill="none" stroke="${p.ink}" stroke-opacity="0.4" stroke-width="2.2" stroke-dasharray="1 8" stroke-linecap="round"/>`,
-      `<circle cx="${n(s.x)}" cy="${n(s.y)}" r="20" fill="${p.accent}" stroke="${p.card}" stroke-width="3.5"/>`,
-      h.text(s.x, s.y + 7, 20, 700, p.onAccent, h.digits(String(i + 1))),
-    );
+    body.push(`<g transform="rotate(${n(s.tilt)} ${n(s.px)} ${n(s.py)})">${clearing}${picture}${words}</g>`);
   });
 
   const defs =
