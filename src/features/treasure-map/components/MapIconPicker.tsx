@@ -19,7 +19,7 @@ type Props = {
 const tile = (on: boolean) =>
   `aspect-square rounded-lg bg-[#F6F0E4] p-1 transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#CEB47B] ${on ? 'ring-2 ring-[#CEB47B]' : 'opacity-80 hover:opacity-100'}`;
 
-function Thumb({ value }: { value: PictureChoice }) {
+export function Thumb({ value }: { value: PictureChoice }) {
   return value.art ? (
     // eslint-disable-next-line @next/next/no-img-element -- small decorative thumbnails of a fixed set
     <img src={artSrc(value.art)} alt="" width={64} height={64} className="size-full object-contain" />
