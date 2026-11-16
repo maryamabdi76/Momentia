@@ -3,7 +3,9 @@ import { ArrowLeft, Orbit, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { MoonPoster } from '@/features/moon/components/MoonPoster';
 import { HomePosterPreview } from './HomePosterPreview';
+import { MapPoster } from '@/features/treasure-map/components/MapPoster';
 import { MOON_SAMPLE_BASE, getMoonSamples } from './moon-sample';
+import { getMapSample } from './map-sample';
 import { SAMPLE_NIGHT } from './sample-night';
 
 export async function HomeHero() {
@@ -11,6 +13,7 @@ export async function HomeHero() {
   const tMoon = await getTranslations('HomePage.moon');
   const { labels: moonLabels, factsFor } = await getMoonSamples();
   const moonFacts = factsFor(SAMPLE_NIGHT);
+  const { data: mapData, labels: mapLabels } = await getMapSample('paper');
   const [line1, line2] = t('hero.title').split('\n');
 
   return (
@@ -47,7 +50,7 @@ export async function HomeHero() {
             size="lg"
             className="bg-[#CEB47B] p-6! font-bold text-[#0c142b] hover:bg-[#e0c180] px-5 py-2 text-sm"
           >
-            <a href="/create">
+            <a href="#choose">
               {t('cta')}
               <ArrowLeft data-icon="inline-end" />
             </a>
@@ -120,6 +123,9 @@ export async function HomeHero() {
                   />
                 </div>
               ) : null}
+              <div className="absolute -bottom-[2%] end-[-4%] z-20 w-[50%] rotate-3 transform-gpu shadow-[0_30px_70px_-20px_rgba(0,0,0,0.7)]">
+                <MapPoster data={mapData} labels={mapLabels} className="rounded-none shadow-none" />
+              </div>
             </div>
           </div>
         </div>

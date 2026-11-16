@@ -29,8 +29,16 @@ export async function HomeHeader({ variant = 'home' }: HomeHeaderProps) {
   const isMoon = variant === 'moon';
   const isPosters = variant === 'posters';
 
+  const isHome = variant === 'home';
   const navLinks: Array<{ href: string; label: string; active?: boolean }> = [
     { href: '/posters', label: t('nav.gallery'), active: isPosters },
+    // on the landing page the three makers sit in the menu; elsewhere the buttons carry them
+    ...(isHome
+      ? [
+          { href: '/create', label: t('nav.skyShort') },
+          { href: '/moon', label: t('nav.moonShort') },
+        ]
+      : []),
     { href: '/map', label: t('nav.map') },
   ];
 
@@ -76,6 +84,7 @@ export async function HomeHeader({ variant = 'home' }: HomeHeaderProps) {
         </div>
 
         <div className="flex items-center gap-2 md:gap-3">
+          {!isHome && (
           <Button
             asChild
             variant="outline"
@@ -86,6 +95,7 @@ export async function HomeHeader({ variant = 'home' }: HomeHeaderProps) {
               <span className="hidden md:inline">{other.label}</span>
             </Link>
           </Button>
+          )}
 
           {isCreate ? (
             <Button
@@ -100,7 +110,7 @@ export async function HomeHeader({ variant = 'home' }: HomeHeaderProps) {
               asChild
               className="bg-[#CEB47B] px-3! py-5! text-sm font-bold text-[#0c142b] hover:bg-[#e0c180] md:px-5!"
             >
-              <Link href="/create">{t('nav.sky')}</Link>
+              <Link href={isHome ? '/#choose' : '/create'}>{isHome ? t('nav.start') : t('nav.sky')}</Link>
             </Button>
           )}
         </div>

@@ -4,7 +4,9 @@ import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { MoonPoster } from '@/features/moon/components/MoonPoster';
 import { FULL_SKY_DEPTH } from '@/features/poster/lib/templates';
 import { skyForMoment } from '@/features/poster/lib/sky-for-moment';
+import { MapPoster } from '@/features/treasure-map/components/MapPoster';
 import { HomePosterPreview } from './HomePosterPreview';
+import { getMapSample } from './map-sample';
 import { PosterCard } from './PosterCard';
 import { MOON_SAMPLE_BASE, getMoonSamples } from './moon-sample';
 import { SAMPLE_NIGHT } from './sample-night';
@@ -25,6 +27,7 @@ const FRAMES = [
     premium: true,
   },
   { key: 'moon' as const, style: 'violet' as const },
+  { key: 'map' as const, style: 'parchment' as const, premium: true },
 ] as const;
 
 export async function HomeGifts() {
@@ -33,6 +36,7 @@ export async function HomeGifts() {
   const tPosters = await getTranslations('PostersPage');
   const { labels: moonLabels, factsFor } = await getMoonSamples();
   const moonFacts = factsFor(SAMPLE_NIGHT);
+  const { data: mapData, labels: mapLabels } = await getMapSample('paper');
   const sky = skyForMoment(SAMPLE_NIGHT)?.sky ?? null;
   const fullSky = skyForMoment(SAMPLE_NIGHT, FULL_SKY_DEPTH)?.sky ?? null;
 
@@ -52,6 +56,12 @@ export async function HomeGifts() {
       />
     </HomePosterPreview>
   ) : null;
+
+  const mapPreview = (
+    <HomePosterPreview variant="parchment" size="product">
+      <MapPoster data={mapData} labels={mapLabels} className="rounded-none shadow-none" />
+    </HomePosterPreview>
+  );
 
   return (
     <section id="gifts" className="bg-[#F9F7F0] px-6 py-20 text-[#17233B] ">
@@ -82,10 +92,11 @@ export async function HomeGifts() {
 
         <div
           data-animate="stagger"
-          className="mt-14 grid gap-10 sm:grid-cols-3 lg:gap-8"
+          className="mt-14 grid gap-10 sm:grid-cols-2 lg:grid-cols-4 lg:gap-8"
         >
           {FRAMES.map(({ key, style, ...rest }) => {
             const isMoon = key === 'moon';
+            const isMap = key === 'map';
             const template = 'template' in rest ? rest.template : 'circle';
             const cardSky = template === 'full' ? fullSky : sky;
 
@@ -93,13 +104,13 @@ export async function HomeGifts() {
               <PosterCard
                 key={key}
                 align="start"
-                style={isMoon ? undefined : style}
+                style={isMoon || isMap ? undefined : style}
                 template={template}
-                sky={isMoon ? undefined : cardSky}
+                sky={isMoon || isMap ? undefined : cardSky}
                 layers={CARD_LAYERS}
                 title={t(`items.${key}.title`)}
                 body={t(`items.${key}.body`)}
-                preview={isMoon ? moonPreview : undefined}
+                preview={isMoon ? moonPreview : isMap ? mapPreview : undefined}
                 premium={
                   'premium' in rest && rest.premium
                     ? {
