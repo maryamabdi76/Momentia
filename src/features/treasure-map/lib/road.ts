@@ -180,12 +180,20 @@ export function roadSvg(stops: RoadStop[], p: RoadPalette, id: string, h: Helper
 
   const road = smoothOpenPath(plan.road);
   const line = `fill="none" stroke-linecap="round" stroke-linejoin="round"`;
-  // line art: a crisp pen edge on the paper, the centre dashes thin and dark
-  const [edge, edgeOpacity, lane] = h.lineArt ? [32, 1, 1.8] : [34, 0.5, 2.4];
+  // painted like the pictures: a dark-brown pen edge, a sandy wash inside and dotted stitches down the middle
+  // (line art: black pen on paper; dark theme: a pale path)
+  const look = h.lineArt
+    ? { edge: p.ink, edgeOp: 1, edgeW: 31, sand: p.card, sandOp: 1, sandW: 27.8, lane: p.ink, laneOp: 0.8, laneW: 1.8, dash: '9 11' }
+    : h.dark
+      ? { edge: '#E6D3A8', edgeOp: 0.85, edgeW: 32, sand: '#8A7552', sandOp: 0.55, sandW: 28.6, lane: '#F1E3BF', laneOp: 0.8, laneW: 2.2, dash: '2 10' }
+      : { edge: '#6E4E36', edgeOp: 0.9, edgeW: 32, sand: '#EBDCB8', sandOp: 1, sandW: 28.6, lane: '#8A6A4C', laneOp: 0.75, laneW: 2.4, dash: '2 10' };
   body.push(
-    `<path d="${road}" ${line} stroke="${p.ink}" stroke-opacity="${edgeOpacity}" stroke-width="${edge}"/>`,
-    `<path d="${road}" ${line} stroke="${p.card}" stroke-width="${edge - (h.lineArt ? 3.2 : 5)}"/>`,
-    `<path d="${road}" ${line} stroke="${p.ink}" stroke-opacity="${h.lineArt ? 0.8 : 0.45}" stroke-width="${lane}" stroke-dasharray="9 11"/>`,
+    `<g filter="url(#${id}-paint)">` +
+      `<path d="${road}" ${line} stroke="${look.edge}" stroke-opacity="${look.edgeOp}" stroke-width="${look.edgeW}"/>` +
+      `<path d="${road}" ${line} stroke="${look.sand}" stroke-opacity="${look.sandOp}" stroke-width="${look.sandW}"/>` +
+      (h.lineArt ? '' : `<path d="${road}" ${line} stroke="#FFF6DC" stroke-opacity="0.35" stroke-width="12"/>`) +
+      `<path d="${road}" ${line} stroke="${look.lane}" stroke-opacity="${look.laneOp}" stroke-width="${look.laneW}" stroke-dasharray="${look.dash}"/>` +
+      `</g>`,
   );
 
   // doodles go where nothing else is: off the road, the pictures and the words
@@ -240,9 +248,20 @@ export function roadSvg(stops: RoadStop[], p: RoadPalette, id: string, h: Helper
     body.push(`<g transform="rotate(${n(s.tilt)} ${n(s.px)} ${n(s.py)})">${clearing}${picture}${words}</g>`);
   });
 
+  // the road's edges wander a little, and the painted ones get a fine grain, like watercolour on rough paper
+  const grain = h.lineArt
+    ? ''
+    : `<feTurbulence type="fractalNoise" baseFrequency="0.7" numOctaves="2" seed="2" result="g"/>` +
+      `<feColorMatrix in="g" type="matrix" values="0 0 0 0 0.43  0 0 0 0 0.31  0 0 0 0 0.2  0 0 0 0.9 -0.34" result="speck"/>` +
+      `<feComposite in="speck" in2="d" operator="in" result="sp"/><feMerge><feMergeNode in="d"/><feMergeNode in="sp"/></feMerge>`;
   const defs =
     `<filter id="${id}-wobble" x="-5%" y="-5%" width="110%" height="110%">` +
     `<feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="2" seed="3" result="noise"/>` +
-    `<feDisplacementMap in="SourceGraphic" in2="noise" scale="3"/></filter>`;
+    `<feDisplacementMap in="SourceGraphic" in2="noise" scale="3"/></filter>` +
+    `<filter id="${id}-paint" filterUnits="userSpaceOnUse" x="0" y="0" width="900" height="1350">` +
+    `<feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="3" seed="5" result="n"/>` +
+    `<feDisplacementMap in="SourceGraphic" in2="n" scale="3.5" result="d"/>` +
+    (grain || `<feMerge><feMergeNode in="d"/></feMerge>`) +
+    `</filter>`;
   return { defs, body: body.join('') };
 }
