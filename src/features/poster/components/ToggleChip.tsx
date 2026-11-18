@@ -23,8 +23,8 @@ export function ToggleChip({ pressed, onPressedChange, children, title }: Props)
       className={cn(
         'inline-flex cursor-pointer items-center gap-2 rounded-full border px-3.5 py-2 text-[13px] outline-none transition-colors focus-visible:ring-2 focus-visible:ring-[#CEB47B]/50',
         pressed
-          ? 'border-[#CEB47B]/70 bg-[#CEB47B]/10 text-white'
-          : 'border-[#33415B] text-white/60 hover:border-[#CEB47B]/40',
+          ? 'border-[#CEB47B]/70 bg-[#CEB47B]/10 text-white shadow-[0_0_0_3px_rgba(206,180,123,0.10)]'
+          : 'border-white/10 text-white/60 hover:border-white/25 hover:bg-white/5',
       )}
     >
       <span

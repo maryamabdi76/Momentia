@@ -49,8 +49,8 @@ export function ChoiceGroup<V extends string>({
             key={c.value}
             title={c.title}
             className={cn(
-              'group/choice relative cursor-pointer rounded-xl border border-[#33415B] transition-colors',
-              'hover:border-[#CEB47B]/40 has-[:checked]:border-[#CEB47B]/70 has-[:checked]:bg-[#CEB47B]/10',
+              'group/choice relative cursor-pointer rounded-2xl border border-white/10 transition-all',
+              'hover:border-white/25 has-[:checked]:border-[#CEB47B] has-[:checked]:bg-[#CEB47B]/10 has-[:checked]:shadow-[0_0_0_4px_rgba(206,180,123,0.12)]',
               'has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-[#CEB47B]/50',
               choiceClassName,
               c.className,

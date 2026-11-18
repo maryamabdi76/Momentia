@@ -1,0 +1,47 @@
+import { z } from 'zod';
+import { IRAN_CITIES } from '@/features/poster/lib/cities';
+import { POSTER_FRAMES } from '@/features/poster/lib/frames';
+import { MAP_ART } from './art';
+import { MAP_ICONS } from './illustrations';
+import { MAX_LENGTH } from './sanitize';
+import { MAP_LAYOUTS, MAP_SCOPES, MAP_SHAPES, MAP_THEMES, MAX_MILESTONES, MIN_MILESTONES, maxMilestones } from './map-svg';
+
+const CITY_NAMES = IRAN_CITIES.map((c) => c.name);
+
+export const milestoneSchema = z.object({
+  /** Everything written on the map is optional. */
+  title: z.string().trim().max(MAX_LENGTH.momentTitle),
+  /** The place's name, as the user wants it on the poster. */
+  city: z.string().trim().max(MAX_LENGTH.place),
+  date: z.string().trim().max(MAX_LENGTH.date),
+  /** Where it happened, picked on the map (city maps). */
+  lat: z.number().min(-90).max(90).optional(),
+  lon: z.number().min(-180).max(180).optional(),
+  /** The picture drawn for this moment on the illustrated road. */
+  icon: z.enum(MAP_ICONS).optional(),
+  /** A ready-made watercolour picture; when set it is drawn instead of the icon. */
+  art: z.enum(MAP_ART).optional(),
+});
+
+export const treasureMapSchema = z
+  .object({
+    title: z.string().trim().max(MAX_LENGTH.title),
+    names: z.string().trim().max(MAX_LENGTH.names),
+    layout: z.enum(MAP_LAYOUTS),
+    scope: z.enum(MAP_SCOPES),
+    area: z.string().refine((v) => CITY_NAMES.includes(v)),
+    theme: z.enum(MAP_THEMES),
+    shape: z.enum(MAP_SHAPES),
+    frame: z.enum(POSTER_FRAMES),
+    showArea: z.boolean(),
+    showCoords: z.boolean(),
+    milestones: z.array(milestoneSchema).min(MIN_MILESTONES).max(MAX_MILESTONES),
+  })
+  // small maps leave room for fewer moments
+  .refine((v) => v.milestones.length <= maxMilestones(v.layout), { path: ['milestones'] })
+  // a map is drawn around places picked on it; the illustrated road needs only their names
+  .refine((v) => v.layout === 'road' || v.milestones.every((m) => m.lat !== undefined && m.lon !== undefined), {
+    path: ['milestones'],
+  });
+
+export type TreasureMapValues = z.infer<typeof treasureMapSchema>;

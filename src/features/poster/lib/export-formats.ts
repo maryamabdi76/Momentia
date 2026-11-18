@@ -12,6 +12,13 @@ export const POSTER_ASPECT = 900 / 1350;
 export const PDF_IMAGE_WIDTH = 3000;
 export const PDF_IMAGE_HEIGHT = 4500;
 
+/** The poster image embedded in a PDF, in pixels; a landscape poster turns it on its side. */
+export function pdfImageSize(aspect: number = POSTER_ASPECT): { width: number; height: number } {
+  return aspect > 1
+    ? { width: PDF_IMAGE_HEIGHT, height: PDF_IMAGE_WIDTH }
+    : { width: PDF_IMAGE_WIDTH, height: PDF_IMAGE_HEIGHT };
+}
+
 const MM_PER_INCH = 25.4;
 const PT_PER_INCH = 72;
 
@@ -44,6 +51,18 @@ export type PdfFormat = {
 
 export type ExportFormat = RasterFormat | PdfFormat;
 export type ExportFormatId = ExportFormat['id'];
+
+/**
+ * A landscape poster (aspect above 1) turns the formats that are shaped like the poster
+ * (the plain image and the paper sizes) on their side. Phone formats stay portrait.
+ */
+export function orient(format: ExportFormat, aspect: number = POSTER_ASPECT): ExportFormat {
+  if (aspect <= 1) return format;
+  if (format.kind === 'raster') {
+    return format.id === 'poster' ? { ...format, width: format.height, height: format.width } : format;
+  }
+  return { ...format, pageMm: [format.pageMm[1], format.pageMm[0]] };
+}
 
 export const EXPORT_FORMATS: readonly ExportFormat[] = [
   {
@@ -100,23 +119,27 @@ export function getExportFormat(id: ExportFormatId): ExportFormat {
   return format;
 }
 
-/** The biggest box with the poster's 2:3 ratio that fits inside `area`, centred in it. */
-export function fitPoster(area: Box): Box {
-  const w = Math.min(area.w, area.h * POSTER_ASPECT);
-  const h = w / POSTER_ASPECT;
+/** The biggest box with the poster's ratio (2:3 unless told otherwise) that fits inside `area`, centred in it. */
+export function fitPoster(area: Box, aspect: number = POSTER_ASPECT): Box {
+  const w = Math.min(area.w, area.h * aspect);
+  const h = w / aspect;
   return { x: area.x + (area.w - w) / 2, y: area.y + (area.h - h) / 2, w, h };
 }
 
 /** Where the poster goes on a raster canvas, in pixels from the top-left. */
-export function rasterPlacement(format: RasterFormat): Box {
+export function rasterPlacement(raw: RasterFormat, aspect: number = POSTER_ASPECT): Box {
+  const format = orient(raw, aspect) as RasterFormat;
   const sideX = format.width * format.side;
   const top = format.height * format.safeTop;
-  return fitPoster({
-    x: sideX,
-    y: top,
-    w: format.width - 2 * sideX,
-    h: format.height - top - format.height * format.safeBottom,
-  });
+  return fitPoster(
+    {
+      x: sideX,
+      y: top,
+      w: format.width - 2 * sideX,
+      h: format.height - top - format.height * format.safeBottom,
+    },
+    aspect,
+  );
 }
 
 export type PdfLayout = {
@@ -128,22 +151,26 @@ export type PdfLayout = {
 
 const mmToPt = (mm: number) => (mm / MM_PER_INCH) * PT_PER_INCH;
 
-export function pdfLayout(format: PdfFormat): PdfLayout {
+export function pdfLayout(raw: PdfFormat, aspect: number = POSTER_ASPECT): PdfLayout {
+  const format = orient(raw, aspect) as PdfFormat;
   const [wMm, hMm] = format.pageMm;
   const m = format.marginMm;
-  const image = fitPoster({
-    x: mmToPt(m),
-    y: mmToPt(m),
-    w: mmToPt(wMm - 2 * m),
-    h: mmToPt(hMm - 2 * m),
-  });
+  const image = fitPoster(
+    {
+      x: mmToPt(m),
+      y: mmToPt(m),
+      w: mmToPt(wMm - 2 * m),
+      h: mmToPt(hMm - 2 * m),
+    },
+    aspect,
+  );
   return { widthPt: mmToPt(wMm), heightPt: mmToPt(hMm), image };
 }
 
 /** Resolution of the embedded poster once printed on this page. */
-export function pdfDpi(format: PdfFormat): number {
-  const { image } = pdfLayout(format);
-  return Math.round(PDF_IMAGE_WIDTH / (image.w / PT_PER_INCH));
+export function pdfDpi(format: PdfFormat, aspect: number = POSTER_ASPECT): number {
+  const { image } = pdfLayout(format, aspect);
+  return Math.round(pdfImageSize(aspect).width / (image.w / PT_PER_INCH));
 }
 
 /** `#rrggbb` → [r, g, b] in 0…1, or null when it isn't a six-digit hex colour. */
@@ -156,11 +183,15 @@ export function hexToRgb01(hex: string): [number, number, number] | null {
 const MM_PER_PT = MM_PER_INCH / PT_PER_INCH;
 
 /** Page and poster rectangles in one shared unit (pixels or points), for drawing a thumbnail. */
-export function formatGeometry(format: ExportFormat): { pageW: number; pageH: number; poster: Box } {
+export function formatGeometry(
+  raw: ExportFormat,
+  aspect: number = POSTER_ASPECT,
+): { pageW: number; pageH: number; poster: Box } {
+  const format = orient(raw, aspect);
   if (format.kind === 'raster') {
-    return { pageW: format.width, pageH: format.height, poster: rasterPlacement(format) };
+    return { pageW: format.width, pageH: format.height, poster: rasterPlacement(raw as RasterFormat, aspect) };
   }
-  const layout = pdfLayout(format);
+  const layout = pdfLayout(raw as PdfFormat, aspect);
   return { pageW: layout.widthPt, pageH: layout.heightPt, poster: layout.image };
 }
 
@@ -169,11 +200,11 @@ export function formatGeometry(format: ExportFormat): { pageW: number; pageH: nu
  * the page's width and height. This is what an on-screen preview needs to show
  * exactly the file that will be downloaded, at any size.
  */
-export function formatFrame(format: ExportFormat): {
+export function formatFrame(format: ExportFormat, aspect: number = POSTER_ASPECT): {
   aspect: number;
   poster: { left: number; top: number; width: number; height: number };
 } {
-  const { pageW, pageH, poster } = formatGeometry(format);
+  const { pageW, pageH, poster } = formatGeometry(format, aspect);
   return {
     aspect: pageW / pageH,
     poster: {
@@ -206,16 +237,17 @@ export type FormatSpec =
       dpi: number;
     };
 
-export function formatSpec(format: ExportFormat): FormatSpec {
+export function formatSpec(raw: ExportFormat, aspect: number = POSTER_ASPECT): FormatSpec {
+  const format = orient(raw, aspect);
   if (format.kind === 'raster') {
-    const p = rasterPlacement(format);
+    const p = rasterPlacement(raw as RasterFormat, aspect);
     return {
       kind: 'raster',
       page: { w: format.width, h: format.height },
       poster: { w: Math.round(p.w), h: Math.round(p.h) },
     };
   }
-  const { image } = pdfLayout(format);
+  const { image } = pdfLayout(raw as PdfFormat, aspect);
   const poster = { w: image.w * MM_PER_PT, h: image.h * MM_PER_PT };
   const [pageW, pageH] = format.pageMm;
   return {
@@ -224,6 +256,6 @@ export function formatSpec(format: ExportFormat): FormatSpec {
     poster,
     gapX: (pageW - poster.w) / 2,
     gapY: (pageH - poster.h) / 2,
-    dpi: pdfDpi(format),
+    dpi: pdfDpi(raw as PdfFormat, aspect),
   };
 }

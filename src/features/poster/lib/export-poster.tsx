@@ -129,8 +129,10 @@ export async function createPosterSvg({
   });
 }
 
-export async function svgToPngBlob(svg: string, width: number): Promise<Blob> {
-  const height = Math.round((width * POSTER_HEIGHT) / POSTER_WIDTH);
+export async function svgToPngBlob(svg: string, width: number, aspect?: number): Promise<Blob> {
+  const height = aspect
+    ? Math.round(width / aspect)
+    : Math.round((width * POSTER_HEIGHT) / POSTER_WIDTH);
   const url = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml' }));
   try {
     const img = new Image();

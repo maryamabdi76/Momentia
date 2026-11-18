@@ -17,18 +17,21 @@ export function saveMoonDraft(draft: MoonDraft) {
 const isRecord = (v: unknown): v is Record<string, unknown> =>
   typeof v === 'object' && v !== null;
 
+/** Checks untrusted data (storage, a shared link) and returns it as a moon draft, or null. */
+export function parseMoonDraft(parsed: unknown): MoonDraft | null {
+  if (!isRecord(parsed) || !isRecord(parsed.moment) || !isRecord(parsed.personal)) return null;
+  const { moment: m, personal: p } = parsed;
+  const strings = [m.city, m.timezone, m.day, m.month, m.year, m.time, p.title, p.names, p.quote];
+  if (strings.some((v) => typeof v !== 'string') || !isPosterStyle(p.style)) return null;
+  // drafts saved before frames existed have none; the stepper fills in the default
+  if (p.frame !== undefined && !isPosterFrame(p.frame)) return null;
+  return parsed as unknown as MoonDraft;
+}
+
 export function loadMoonDraft(): MoonDraft | null {
   try {
     const raw = localStorage.getItem(KEY);
-    if (!raw) return null;
-    const parsed: unknown = JSON.parse(raw);
-    if (!isRecord(parsed) || !isRecord(parsed.moment) || !isRecord(parsed.personal)) return null;
-    const { moment: m, personal: p } = parsed;
-    const strings = [m.city, m.timezone, m.day, m.month, m.year, m.time, p.title, p.names, p.quote];
-    if (strings.some((v) => typeof v !== 'string') || !isPosterStyle(p.style)) return null;
-    // drafts saved before frames existed have none; the stepper fills in the default
-    if (p.frame !== undefined && !isPosterFrame(p.frame)) return null;
-    return parsed as unknown as MoonDraft;
+    return raw ? parseMoonDraft(JSON.parse(raw)) : null;
   } catch {
     return null;
   }

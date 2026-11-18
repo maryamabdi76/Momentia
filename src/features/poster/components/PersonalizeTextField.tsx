@@ -24,7 +24,7 @@ export function PersonalizeTextField<T extends FieldValues>({
 }: Props<T>) {
   return (
     <div className="space-y-1.5">
-      <Label htmlFor={`personalize-${name}`} className="text-[13px] font-medium text-[#E8D9B8]">
+      <Label htmlFor={`personalize-${name}`} className="text-[12px] text-[#AAB6CD]">
         {label}
       </Label>
       <Controller
@@ -32,7 +32,7 @@ export function PersonalizeTextField<T extends FieldValues>({
         name={name}
         render={({ field, fieldState }) => (
           <>
-            <InputGroup className="h-11 has-[[data-slot=input-group-control]:focus-visible]:border-[#CEB47B]/50 has-[[data-slot=input-group-control]:focus-visible]:ring-2 has-[[data-slot=input-group-control]:focus-visible]:ring-[#CEB47B]/10">
+            <InputGroup className="h-11 rounded-xl border-white/10 bg-[#0a1226]/80 has-[[data-slot=input-group-control]:focus-visible]:border-[#CEB47B]/50 has-[[data-slot=input-group-control]:focus-visible]:ring-2 has-[[data-slot=input-group-control]:focus-visible]:ring-[#CEB47B]/10">
               <InputGroupAddon>
                 <Pencil className="size-4 text-white/25" />
               </InputGroupAddon>

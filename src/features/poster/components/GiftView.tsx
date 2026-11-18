@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from 'react';
+import { useMemo, useSyncExternalStore } from 'react';
 import { useTranslations } from 'next-intl';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -10,35 +10,18 @@ import { readGiftHash } from '../lib/gift-link';
 import { skyForMoment } from '../lib/sky-for-moment';
 import { DEFAULT_TEMPLATE, FULL_SKY_DEPTH } from '../lib/templates';
 import { PosterPreview, type PosterData } from './PosterPreview';
+import { Reveal } from './Reveal';
+import { MoonGiftView } from '@/features/moon/components/MoonGiftView';
+import { MapGiftView } from '@/features/treasure-map/components/MapGiftView';
+import { readGiftToken } from '../lib/gift-link';
 
 function subscribeToHash(onChange: () => void) {
   window.addEventListener('hashchange', onChange);
   return () => window.removeEventListener('hashchange', onChange);
 }
 
-/** Fades and scales its children in one frame after they first appear (skipped for reduced motion). */
-function Reveal({ children }: { children: ReactNode }) {
-  const [shown, setShown] = useState(false);
-
-  useEffect(() => {
-    const id = window.requestAnimationFrame(() => setShown(true));
-    return () => window.cancelAnimationFrame(id);
-  }, []);
-
-  return (
-    <div
-      className={
-        'w-full motion-safe:transition-all motion-safe:duration-[1400ms] motion-safe:ease-out ' +
-        (shown ? 'opacity-100 motion-safe:scale-100' : 'opacity-0 motion-safe:scale-95')
-      }
-    >
-      {children}
-    </div>
-  );
-}
-
 /** What the person who received a gift link sees: the poster, revealed on screen. */
-export function GiftView() {
+function SkyGiftView() {
   const t = useTranslations('GiftPage');
   const tPoster = useTranslations('Poster');
   // null on the server: the fragment never leaves the browser
@@ -124,4 +107,18 @@ export function GiftView() {
       {cta}
     </div>
   );
+}
+
+/** What the person who received a gift link sees: the sky, the moon or the map, revealed on screen. */
+export function GiftView() {
+  // null on the server: the fragment never leaves the browser
+  const hash = useSyncExternalStore(
+    subscribeToHash,
+    () => window.location.hash,
+    () => null,
+  );
+  const product = hash === null ? null : (readGiftToken(hash)?.product ?? 'sky');
+  if (product === 'moon') return <MoonGiftView hash={hash ?? ''} />;
+  if (product === 'map') return <MapGiftView hash={hash ?? ''} />;
+  return <SkyGiftView />;
 }

@@ -10,6 +10,7 @@ import { HomeSteps } from '@/features/home/components/HomeSteps';
 import { HomeGifts } from '@/features/home/components/HomeGifts';
 import { HomeTestimonials } from '@/features/home/components/HomeTestimonials';
 import { HomeMoon } from '@/features/home/components/HomeMoon';
+import { HomeMap } from '@/features/home/components/HomeMap';
 import { HomeYalda } from '@/features/home/components/HomeYalda';
 import { HomeCreate } from '@/features/home/components/HomeCreate';
 import { HomeFaq } from '@/features/home/components/HomeFaq';
@@ -40,6 +41,7 @@ export default function Home() {
       <HomeHeader />
       <HomeHero />
       <HomeChoosePoster />
+      <HomeMap />
       <Separator />
       <HomeStories />
       <HomeSteps />

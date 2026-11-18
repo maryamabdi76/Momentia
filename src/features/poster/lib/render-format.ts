@@ -1,7 +1,8 @@
 import {
-  PDF_IMAGE_HEIGHT,
-  PDF_IMAGE_WIDTH,
+  POSTER_ASPECT,
   getExportFormat,
+  orient,
+  pdfImageSize,
   hexToRgb01,
   pdfLayout,
   rasterPlacement,
@@ -65,14 +66,16 @@ async function renderRaster(
   svg: string,
   id: 'poster' | 'story' | 'wallpaper',
   colors: FormatColors,
+  aspect: number,
 ): Promise<Blob> {
-  const format = getExportFormat(id);
-  if (format.kind !== 'raster') throw new Error(`${id} is not an image format`);
+  const raw = getExportFormat(id);
+  if (raw.kind !== 'raster') throw new Error(`${id} is not an image format`);
+  const format = orient(raw, aspect) as typeof raw;
   const { img, dispose } = await loadSvg(svg);
   try {
     const { canvas, ctx } = makeCanvas(format.width, format.height);
     const fill = format.backdrop === 'mat' ? colors.mat : colors.paper;
-    await paint(ctx, img, format, fill, rasterPlacement(format));
+    await paint(ctx, img, format, fill, rasterPlacement(raw, aspect));
     return await toBlob(canvas, 'image/png');
   } finally {
     dispose();
@@ -80,7 +83,12 @@ async function renderRaster(
 }
 
 /** A one-page PDF in a paper size, the poster centred on a page of the paper colour. */
-async function renderPdf(svg: string, id: ExportFormatId, colors: FormatColors): Promise<Blob> {
+async function renderPdf(
+  svg: string,
+  id: ExportFormatId,
+  colors: FormatColors,
+  aspect: number,
+): Promise<Blob> {
   const format = getExportFormat(id);
   if (format.kind !== 'pdf') throw new Error(`${id} is not a PDF format`);
   const background = hexToRgb01(colors.paper);
@@ -88,11 +96,11 @@ async function renderPdf(svg: string, id: ExportFormatId, colors: FormatColors):
 
   const { img, dispose } = await loadSvg(svg);
   try {
-    const size = { width: PDF_IMAGE_WIDTH, height: PDF_IMAGE_HEIGHT };
+    const size = pdfImageSize(aspect);
     const { canvas, ctx } = makeCanvas(size.width, size.height);
     await paint(ctx, img, size, colors.paper, { x: 0, y: 0, w: size.width, h: size.height });
     const jpeg = await toBlob(canvas, 'image/jpeg', 0.93);
-    const layout = pdfLayout(format);
+    const layout = pdfLayout(format, aspect);
     const pdf = buildPdf({
       widthPt: layout.widthPt,
       heightPt: layout.heightPt,
@@ -112,8 +120,10 @@ export function renderFormat(
   svg: string,
   id: Exclude<ExportFormatId, 'poster'>,
   colors: FormatColors,
+  /** Width ÷ height of the poster; above 1 for a landscape poster. */
+  aspect: number = POSTER_ASPECT,
 ): Promise<Blob> {
   return id === 'story' || id === 'wallpaper'
-    ? renderRaster(svg, id, colors)
-    : renderPdf(svg, id, colors);
+    ? renderRaster(svg, id, colors, aspect)
+    : renderPdf(svg, id, colors, aspect);
 }

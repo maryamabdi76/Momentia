@@ -2,11 +2,13 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { ArrowRight, Info, Link2, Share2 } from 'lucide-react';
+import { ArrowRight, Info, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { PosterPreview, type PosterData } from './PosterPreview';
 import { Dims } from './FormatPicker';
 import { FormatPreviewFrame } from './FormatPreviewFrame';
+import { ShareActions } from './ShareActions';
+import { SceneToggle, type PreviewScene } from './SceneToggle';
 import { WallScene } from './WallScene';
 import { toPersianDigits } from '../lib/digits';
 import {
@@ -57,7 +59,7 @@ export function CreatePreview({
   const tMoment = useTranslations('CreatePage.step1');
   const tReceive = useTranslations('CreatePage.step3');
   // step 3 can show the poster on a wall; everywhere else it is just the poster
-  const [scene, setScene] = useState<'poster' | 'wall'>('poster');
+  const [scene, setScene] = useState<PreviewScene>('poster');
 
   // "شب یلدا", "نوروز" … when the chosen day matches one of the quick occasions.
   const occasion = [0, 1]
@@ -92,29 +94,7 @@ export function CreatePreview({
           <span className="text-[#1c2540]/70">{t('preview.label')}</span>
         </div>
 
-        {step === 3 && (
-          <div
-            role="group"
-            aria-label={t('preview.sceneLabel')}
-            className="mt-5 flex justify-center gap-1 text-xs"
-          >
-            {(['poster', 'wall'] as const).map((kind) => (
-              <button
-                key={kind}
-                type="button"
-                aria-pressed={scene === kind}
-                onClick={() => setScene(kind)}
-                className={`rounded-full px-3.5 py-1.5 transition-colors ${
-                  scene === kind
-                    ? 'bg-[#1c2540] text-[#F4EFE6]'
-                    : 'text-[#1c2540]/70 hover:bg-[#1c2540]/10'
-                }`}
-              >
-                {t(kind === 'poster' ? 'preview.scenePoster' : 'preview.sceneWall')}
-              </button>
-            ))}
-          </div>
-        )}
+        {step === 3 && <SceneToggle value={scene} onChange={setScene} />}
 
         <div className="mt-6 flex justify-center">
           {step === 3 && scene === 'wall' ? (
@@ -224,45 +204,7 @@ export function CreatePreview({
               <Share2 className="size-4" />
             </Button>
           </div>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onCopyGift}
-            className="cursor-pointer p-7! gap-2 rounded-xl border-[#CEB47B]/50 bg-transparent text-sm font-bold text-[#E8D9B8] hover:bg-[#CEB47B]/10 hover:text-[#CEB47B]"
-          >
-            {giftStatus === 'copied'
-              ? tReceive('giftCopied')
-              : giftStatus === 'error'
-                ? tReceive('giftError')
-                : tReceive('giftLink')}
-            <Link2 className="size-4" />
-          </Button>
-          {onShareGift && (
-            <div className="grid grid-cols-2 gap-3">
-              {(['telegram', 'whatsapp'] as const).map((app) => (
-                <Button
-                  key={app}
-                  type="button"
-                  variant="outline"
-                  onClick={() => onShareGift(app)}
-                  className="h-11 cursor-pointer rounded-xl border-[#33415B] bg-transparent text-xs font-bold text-[#E8D9B8] hover:bg-white/5 hover:text-[#E8D9B8]"
-                >
-                  {tReceive(app === 'telegram' ? 'giftShareTelegram' : 'giftShareWhatsapp')}
-                </Button>
-              ))}
-            </div>
-          )}
-          {onCopyEdit && (
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={onCopyEdit}
-              className="h-10 cursor-pointer text-xs text-[#AAB6CD] hover:bg-white/5 hover:text-[#E8D9B8]"
-            >
-              {giftStatus === 'edit' ? tReceive('editLinkCopied') : tReceive('editLink')}
-            </Button>
-          )}
-          <p className="text-xs leading-6 text-[#AAB6CD]">{tReceive('giftNote')}</p>
+          <ShareActions onCopyGift={onCopyGift} giftStatus={giftStatus} onShareGift={(app) => onShareGift?.(app)} onCopyEdit={onCopyEdit} />
           <p className="text-xs pb-8 leading-6 text-[#AAB6CD]">
             {t('preview.shareNote')}
           </p>

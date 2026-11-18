@@ -1,7 +1,16 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { decodeGift, encodeGift,
-  encodeGiftLegacy, giftUrl, readGiftHash } from '../lib/gift-link.ts';
+import {
+  decodeGift,
+  encodeGift,
+  encodeGiftLegacy,
+  giftUrl,
+  packJson,
+  packedGiftUrl,
+  readGiftHash,
+  readGiftToken,
+  unpackJson,
+} from '../lib/gift-link.ts';
 import type { PosterDraft } from '../lib/draft.ts';
 
 const draft = {
@@ -69,4 +78,22 @@ test('the compact link is much shorter than the old one, and old links still ope
 test('a choice nobody defined is refused, not guessed', () => {
   const next = { ...draft, personal: { ...draft.personal, frame: 'aurora' } } as unknown as PosterDraft;
   assert.equal(decodeGift(encodeGift(next)), null);
+});
+
+test('a packed value survives the trip, and a damaged token is null', () => {
+  const value = { a: 'سلام', b: [1, 2, 3], c: null };
+  assert.deepEqual(unpackJson(packJson(value)), value);
+  assert.equal(unpackJson('1.@@@'), null);
+  assert.equal(unpackJson('nope'), null);
+});
+
+test('a gift link says which poster it carries', () => {
+  const sky = readGiftToken('#g=abc');
+  assert.deepEqual(sky, { product: 'sky', token: 'abc' });
+  const moon = packedGiftUrl('https://x.test', 'moon', { z: 1 });
+  assert.equal(readGiftToken(moon.slice(moon.indexOf('#')))?.product, 'moon');
+  const map = packedGiftUrl('https://x.test', 'map', { z: 1 });
+  assert.equal(readGiftToken(map.slice(map.indexOf('#')))?.product, 'map');
+  assert.equal(readGiftToken(''), null);
+  assert.equal(readGiftToken('#other=1'), null);
 });

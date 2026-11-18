@@ -9,7 +9,7 @@ import {
 import { saveDraft, type PosterDraft } from './draft';
 
 /** Which Momentia product is requesting the watermark-free export (for callers / future analytics). */
-export type PremiumProduct = 'moon' | 'sky';
+export type PremiumProduct = 'moon' | 'sky' | 'map';
 
 export class PremiumAccessError extends Error {
   constructor() {

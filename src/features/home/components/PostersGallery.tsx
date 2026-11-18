@@ -5,7 +5,9 @@ import { FULL_SKY_DEPTH } from '@/features/poster/lib/templates';
 import { POSTER_STYLES, type PosterStyle } from '@/features/poster/lib/themes';
 import type { PosterLabels } from '@/features/poster/components/PosterPreview';
 import { SAMPLE_NIGHT } from './sample-night';
+import { MAP_THEMES, type MapTheme } from '@/features/treasure-map/lib/map-svg';
 import { MOON_SAMPLE_BASE, getMoonSamples } from './moon-sample';
+import { getMapSample } from './map-sample';
 import {
   PostersGalleryClient,
   type PostersGalleryLabels,
@@ -20,6 +22,9 @@ export async function PostersGallery() {
   const tHome = await getTranslations('HomePage');
   const tHero = await getTranslations('HomePage.hero');
   const tStep2 = await getTranslations('CreatePage.step2');
+  const tMap = await getTranslations('MapPage');
+  const { data: mapData, labels: mapLabels } = await getMapSample('paper');
+  const mapThemeNames = Object.fromEntries(MAP_THEMES.map((k) => [k, tMap(`theme.${k}`)])) as Record<MapTheme, string>;
 
   const { labels: moonLabels, factsFor } = await getMoonSamples();
   const moonFacts = factsFor(SAMPLE_NIGHT);
@@ -41,6 +46,7 @@ export async function PostersGallery() {
       productAll: t('filters.productAll'),
       productSky: t('filters.productSky'),
       productMoon: t('filters.productMoon'),
+      productMap: t('filters.productMap'),
       template: t('filters.template'),
       templateAll: t('filters.templateAll'),
       templateCircle: t('filters.templateCircle'),
@@ -77,6 +83,14 @@ export async function PostersGallery() {
         badges: t.raw('sections.moon.badges') as string[],
         footnote: t('sections.moon.footnote'),
       },
+      map: {
+        collection: t('sections.map.collection'),
+        family: t('sections.map.family'),
+        title: t('sections.map.title'),
+        description: t('sections.map.description'),
+        badges: t.raw('sections.map.badges') as string[],
+        footnote: t('sections.map.footnote'),
+      },
     },
   };
 
@@ -112,6 +126,9 @@ export async function PostersGallery() {
         moonFacts={moonFacts}
         moonLabels={moonLabels}
         moonSample={MOON_SAMPLE_BASE}
+        mapData={mapData}
+        mapLabels={mapLabels}
+        mapThemeNames={mapThemeNames}
         layers={CARD_LAYERS}
       />
 
@@ -129,16 +146,17 @@ export async function PostersGallery() {
             </p>
           </div>
           <div className="overflow-hidden rounded-md border border-[#dad4c7] min-w-0 flex-1 max-w-none ">
-            <div className="grid grid-cols-[minmax(5.5rem,1fr)_repeat(3,minmax(0,1fr))] gap-3  bg-[#e8e3d9] px-3 py-3.5 text-[13px] font-semibold text-[#172338] md:gap-5 md:text-[15px]">
+            <div className="grid grid-cols-[minmax(4.5rem,1fr)_repeat(4,minmax(0,1fr))] gap-2 bg-[#e8e3d9] px-3 py-3.5 text-[13px] font-semibold text-[#172338] md:gap-5 md:text-[15px]">
               <p className="text-start" />
               <p className="text-center">{t('compare.columns.circle')}</p>
               <p className="text-center">{t('compare.columns.full')}</p>
               <p className="text-center">{t('compare.columns.moon')}</p>
+              <p className="text-center">{t('compare.columns.map')}</p>
             </div>
             {compareRows.map((row) => (
               <div
                 key={row.label}
-                className="grid grid-cols-[minmax(5.5rem,1fr)_repeat(3,minmax(0,1fr))] gap-3 border-t border-[#dad4c7] px-3 py-3.5 text-[12px] text-[#69717c] md:gap-5 md:text-[13px]"
+                className="grid grid-cols-[minmax(4.5rem,1fr)_repeat(4,minmax(0,1fr))] gap-2 border-t border-[#dad4c7] px-3 py-3.5 text-[12px] text-[#69717c] md:gap-5 md:text-[13px]"
               >
                 <p className="text-start font-medium text-[#172338]">
                   {row.label}
@@ -146,6 +164,7 @@ export async function PostersGallery() {
                 <p className="text-center">{row.cells.circle}</p>
                 <p className="text-center">{row.cells.full}</p>
                 <p className="text-center">{row.cells.moon}</p>
+                <p className="text-center">{row.cells.map}</p>
               </div>
             ))}
           </div>

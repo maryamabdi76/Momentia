@@ -19,7 +19,7 @@ export async function HomeFinalCta() {
         asChild
         className="mt-7 p-6! bg-[#CEB47B] font-bold text-[#0c142b] hover:bg-[#e0c180]"
       >
-        <a href="/create">
+        <a href="/#choose">
           {t('cta')}
           <ArrowLeft data-icon="inline-end" />
         </a>
