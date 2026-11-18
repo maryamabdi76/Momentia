@@ -13,7 +13,7 @@ import type { MapExport } from '../hooks/use-map-export';
 import { MAX_MILESTONES, MIN_MILESTONES, maxMilestones } from '../lib/map-svg';
 import type { MapProblem } from '../lib/problems';
 import type { TreasureMapValues } from '../lib/schemas';
-import { StepHeader } from './FormShell';
+import { StepHeader } from '@/components/form/FormShell';
 
 type Props = {
   exporter: MapExport;

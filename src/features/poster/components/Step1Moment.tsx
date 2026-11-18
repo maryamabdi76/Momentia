@@ -11,6 +11,7 @@ import {
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Sparkles, ArrowLeft, Moon, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Panel, StepHeader } from '@/components/form/FormShell';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -102,52 +103,12 @@ export function Step1Moment({ data, onChange, onNext }: Props) {
   }));
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-7" noValidate>
-      {/* Step label + title */}
-      <div>
-        <p className="text-sm text-[#CEB47B]">{t('stepLabel')}</p>
-        <h1 className="mt-2 text-3xl font-bold text-white">{t('title')}</h1>
-        <p className="mt-2 text-base leading-7 text-[#AAB6CD]">
-          {t('description')}
-        </p>
-      </div>
-
-      {/* Occasion chips */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-base text-[#AAB6CD]">{t('occasionLabel')}</p>
-        <div className="flex flex-wrap gap-2">
-          {occasions.map((o) => {
-            const selected = occasionIsActive(
-              watched.day ?? data.day,
-              watched.month ?? data.month,
-              o,
-            );
-            return (
-              <button
-                key={o.label}
-                type="button"
-                aria-pressed={selected}
-                onClick={() => applyOccasion(o.day, o.month, o.year)}
-                className={cn(
-                  'flex items-center cursor-pointer gap-2 rounded-full border px-4 py-2 text-base font-medium transition-colors',
-                  selected
-                    ? 'border-[#CEB47B] bg-[#CEB47B] text-[#0c142b] shadow-sm hover:bg-[#e0c180]'
-                    : 'border-[#CEB47B]/60 text-[#CEB47B] hover:bg-[#CEB47B]/10',
-                )}
-              >
-                <Sparkles className="size-3 shrink-0" />
-                {o.label}
-              </button>
-            );
-          })}
-        </div>
-      </div>
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" noValidate>
+      <StepHeader title={t('title')} description={t('description')} />
 
       {/* City */}
+      <Panel title={t('cityLabel')}>
       <div>
-        <Label className="mb-2.5 text-base font-medium text-[#E8D9B8]">
-          {t('cityLabel')}
-        </Label>
         <Controller
           control={control}
           name="city"
@@ -182,11 +143,40 @@ export function Step1Moment({ data, onChange, onNext }: Props) {
         />
       </div>
 
-      {/* Date pickers */}
-      <div>
-        <p className="mb-2.5 text-base font-medium text-[#E8D9B8]">
-          {t('dateLabel')}
-        </p>
+      </Panel>
+
+      {/* The day: occasions, the three pickers, and a Gregorian shortcut */}
+      <Panel title={t('dateLabel')}>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <p className="text-base text-[#AAB6CD]">{t('occasionLabel')}</p>
+        <div className="flex flex-wrap gap-2">
+          {occasions.map((o) => {
+            const selected = occasionIsActive(
+              watched.day ?? data.day,
+              watched.month ?? data.month,
+              o,
+            );
+            return (
+              <button
+                key={o.label}
+                type="button"
+                aria-pressed={selected}
+                onClick={() => applyOccasion(o.day, o.month, o.year)}
+                className={cn(
+                  'flex items-center cursor-pointer gap-2 rounded-full border px-4 py-2 text-base font-medium transition-colors',
+                  selected
+                    ? 'border-[#CEB47B] bg-[#CEB47B] text-[#0c142b] shadow-sm hover:bg-[#e0c180]'
+                    : 'border-[#CEB47B]/60 text-[#CEB47B] hover:bg-[#CEB47B]/10',
+                )}
+              >
+                <Sparkles className="size-3 shrink-0" />
+                {o.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+      <div className="mt-1">
         <div className="grid grid-cols-3 gap-3">
           <div>
             <p className="mb-1.5 text-sm text-[#E8D9B8]">{t('day')}</p>
@@ -235,15 +225,11 @@ export function Step1Moment({ data, onChange, onNext }: Props) {
           onPick={({ day, month, year }) => applyOccasion(day, month, year)}
         />
       </div>
+      </Panel>
 
       {/* Time */}
+      <Panel title={t('timeLabel')}>
       <div>
-        <Label
-          htmlFor="moment-time"
-          className="mb-2.5 text-base font-medium text-[#E8D9B8]"
-        >
-          {t('timeLabel')}
-        </Label>
         <Controller
           control={control}
           name="time"
@@ -286,9 +272,10 @@ export function Step1Moment({ data, onChange, onNext }: Props) {
           )}
         />
       </div>
+      </Panel>
 
       {/* Night note */}
-      <div className="flex gap-3 rounded-xl bg-[#142039] p-4 text-sm leading-6 text-[#AAB6CD]">
+      <div className="flex gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-sm leading-6 text-[#AAB6CD]">
         <Moon className="mt-0.5 size-4 shrink-0 text-[#CEB47B]" />
         <span>{t('nightNote')}</span>
       </div>
@@ -296,7 +283,7 @@ export function Step1Moment({ data, onChange, onNext }: Props) {
       {/* CTA */}
       <Button
         type="submit"
-        className="w-full py-6 bg-[#CEB47B] text-base font-bold text-[#0c142b] hover:bg-[#e0c180] gap-2"
+        className="h-12 w-full gap-2 rounded-xl bg-[#CEB47B] text-base font-bold text-[#0c142b] hover:bg-[#e0c180]"
       >
         {t('cta')}
         <ArrowLeft className="size-4" />
@@ -320,7 +307,7 @@ function SelectField({
 }) {
   return (
     <Select value={value} onValueChange={onChange}>
-      <SelectTrigger className="h-12 w-full py-6! text-base">
+      <SelectTrigger className="h-12 w-full rounded-xl border-white/10 bg-[#0a1226]/80 py-6! text-base">
         <SelectValue />
       </SelectTrigger>
       <SelectContent className="bg-[#0c1a38] border-white/15 text-white max-h-64">

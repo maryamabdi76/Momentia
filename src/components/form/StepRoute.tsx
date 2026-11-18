@@ -13,10 +13,10 @@ type Props = {
 };
 
 /**
- * The progress of the form, drawn as a route: pins joined by a dashed line, the line drawn
+ * The progress of a creator form, drawn as a route: pins joined by a dashed line, the line drawn
  * on to the step you are at. The one thing on the page that moves by itself.
  */
-export function MapRoute({ labels, step, canOpen, onOpen, ariaLabel }: Props) {
+export function StepRoute({ labels, step, canOpen, onOpen, ariaLabel }: Props) {
   const last = labels.length - 1;
   // the line runs from the first pin's centre to the last pin's centre
   const progress = last > 0 ? ((step - 1) / last) * 100 : 0;

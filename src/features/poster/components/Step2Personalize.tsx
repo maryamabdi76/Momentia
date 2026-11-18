@@ -11,6 +11,7 @@ import { useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { ArrowLeft, ArrowRight, Palette, Pencil, PenLine, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { StepHeader } from '@/components/form/FormShell';
 import {
   personalizeSchema,
   type PersonalizeValues,
@@ -97,18 +98,11 @@ export function Step2Personalize({
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
-      {/* Step label + title */}
-      <div className="space-y-2 pb-1">
-        <p className="text-xs text-[#CEB47B]">{t('stepLabel')}</p>
-        <h1 className="text-3xl font-bold text-white">{t('title')}</h1>
-        <p className="text-sm leading-7 text-white/55">
-          {t('description', { city: moment.city })}
-        </p>
-      </div>
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" noValidate>
+      <StepHeader title={t('title')} description={t('description', { city: moment.city })} />
 
       {/* Moment summary row */}
-      <div className="flex items-center justify-between rounded-xl bg-[#142039] p-3">
+      <div className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-2">
         <span className="text-sm text-[#AAB6CD]">{momentSummary}</span>
         <Button
           type="button"
@@ -135,7 +129,7 @@ export function Step2Personalize({
                   setValue('title', t(`ideas.items.${i}.title`), { shouldDirty: true });
                   setValue('quote', t(`ideas.items.${i}.quote`), { shouldDirty: true });
                 }}
-                className="cursor-pointer rounded-full border border-[#33415B] px-3 py-1.5 text-xs text-[#E8D9B8] transition-colors hover:border-[#CEB47B]/60 hover:bg-[#CEB47B]/10 focus-visible:ring-2 focus-visible:ring-[#CEB47B]/50 focus-visible:outline-none"
+                className="cursor-pointer rounded-full border border-white/10 px-3 py-1.5 text-xs text-[#E8D9B8] transition-colors hover:border-[#CEB47B]/60 hover:bg-[#CEB47B]/10 focus-visible:ring-2 focus-visible:ring-[#CEB47B]/50 focus-visible:outline-none"
               >
                 {t(`ideas.items.${i}.label`)}
               </button>
@@ -232,7 +226,7 @@ export function Step2Personalize({
         <Button
           type="button"
           variant="outline"
-          className="flex-1 py-6 text-[#E8D9B8] hover:text-[#E8D9B8] gap-2"
+          className="h-12 flex-1 gap-2 rounded-xl border-white/10 bg-transparent text-[#E8D9B8] hover:bg-white/5 hover:text-[#E8D9B8]"
           onClick={onBack}
         >
           <ArrowRight className="size-4" />
@@ -240,7 +234,7 @@ export function Step2Personalize({
         </Button>
         <Button
           type="submit"
-          className="flex-1 py-6 bg-[#CEB47B] text-base font-bold text-[#0c142b] hover:bg-[#e0c180] gap-2"
+          className="h-12 flex-1 gap-2 rounded-xl bg-[#CEB47B] text-base font-bold text-[#0c142b] hover:bg-[#e0c180]"
         >
           {t('ctaNext')}
           <ArrowLeft className="size-4" />

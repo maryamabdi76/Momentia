@@ -13,7 +13,7 @@ import { mapProblems } from '../lib/problems';
 import { MAX_LENGTH } from '../lib/sanitize';
 import type { TreasureMapValues } from '../lib/schemas';
 import { fieldClass } from './field-class';
-import { Panel, StepHeader, Toggle } from './FormShell';
+import { Panel, StepHeader, Toggle } from '@/components/form/FormShell';
 import { LayoutChoice } from './LayoutChoice';
 import { MapIconPicker, Thumb } from './MapIconPicker';
 import { PlacePicker } from './PlacePicker';

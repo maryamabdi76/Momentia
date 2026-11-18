@@ -11,7 +11,7 @@ import { MAX_LENGTH } from '../lib/sanitize';
 import { mapFrameColors, mapPaperColor, mapThemeSwatch, MAP_SHAPES, MAP_THEMES } from '../lib/map-svg';
 import type { TreasureMapValues } from '../lib/schemas';
 import { choiceClass, fieldClass } from './field-class';
-import { Panel, StepHeader } from './FormShell';
+import { Panel, StepHeader } from '@/components/form/FormShell';
 
 type Props = {
   form: UseFormReturn<TreasureMapValues>;

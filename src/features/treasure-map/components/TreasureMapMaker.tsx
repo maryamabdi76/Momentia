@@ -12,8 +12,9 @@ import { loadMapDraft, saveMapDraft } from '../lib/draft';
 import { mapProblems } from '../lib/problems';
 import { mapAspect, type TreasureMapLabels } from '../lib/map-svg';
 import { treasureMapSchema, type TreasureMapValues } from '../lib/schemas';
+import { StepRoute } from '@/components/form/StepRoute';
 import { MapPreview } from './MapPreview';
-import { MapRoute } from './MapRoute';
+
 import { MobilePreview } from './MobilePreview';
 import { MapStep1 } from './MapStep1';
 import { MapStep2 } from './MapStep2';
@@ -131,7 +132,7 @@ export function TreasureMapMaker() {
     <main className="flex-1 bg-[radial-gradient(60rem_30rem_at_50%_-10%,rgba(206,180,123,0.08),transparent)]">
       <div className="border-b border-white/10 bg-[#0c142b]/80 backdrop-blur">
         <div className="mx-auto px-6 pb-3 pt-5 md:px-20">
-          <MapRoute
+          <StepRoute
             labels={stepLabels}
             step={activeStep}
             // only steps already passed can be opened by clicking, as before

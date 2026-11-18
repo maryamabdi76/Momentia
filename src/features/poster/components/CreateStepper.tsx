@@ -7,11 +7,7 @@ import { editUrl, giftUrl, readEditHash } from '../lib/gift-link';
 import { isOccasionSlug } from '../lib/occasions';
 import { shareLink, type ShareApp } from '../lib/share-links';
 import { useTranslations } from 'next-intl';
-import {
-  Stepper,
-  type StepItem,
-  type StepStatus,
-} from '@/components/ui/stepper';
+import { StepRoute } from '@/components/form/StepRoute';
 import { toPersianDigits } from '../lib/digits';
 import { usePosterExport } from '../hooks/use-poster-export';
 import { loadDraft, saveDraft } from '../lib/draft';
@@ -221,20 +217,18 @@ function StepperInner() {
     personal,
   });
 
-  const stepItems: StepItem[] = [1, 2, 3].map((n) => {
-    const status: StepStatus =
-      step === n ? 'active' : step > n ? 'done' : 'upcoming';
-    return { label: t(`steps.${n}`), status };
-  });
+  const stepLabels = [1, 2, 3].map((n) => t(`steps.${n}`));
 
   return (
-    <main className="flex-1">
+    <main className="flex-1 bg-[radial-gradient(60rem_30rem_at_50%_-10%,rgba(206,180,123,0.08),transparent)]">
       {/* Step indicator */}
-      <div className="border-b border-[#33415B]">
-        <div className="mx-auto flex items-center px-6 py-2 md:px-20">
-          <Stepper
-            steps={stepItems}
-            onStepClick={(i) => goTo(i + 1)}
+      <div className="border-b border-white/10 bg-[#0c142b]/80 backdrop-blur">
+        <div className="mx-auto px-6 pb-3 pt-5 md:px-20">
+          <StepRoute
+            labels={stepLabels}
+            step={step}
+            canOpen={(n) => n < step}
+            onOpen={goTo}
             ariaLabel={t('stepsNav')}
           />
         </div>

@@ -18,6 +18,7 @@ import { formatToman } from '../lib/digits';
 import type { ExportFormatId } from '../lib/export-formats';
 import { FormatPicker } from './FormatPicker';
 import { Button } from '@/components/ui/button';
+import { StepHeader } from '@/components/form/FormShell';
 import type { PosterExport } from '../hooks/use-poster-export';
 import type { MomentData, PersonalizeData } from './CreateStepper';
 
@@ -83,7 +84,7 @@ export function Step3Receive({
 
   const digitalCard = (
     <div
-      className={`rounded-2xl border border-[#33415B] bg-[#142039] p-5 space-y-4 ${locked ? 'opacity-90' : ''}`}
+      className={`space-y-4 rounded-3xl border border-white/10 bg-gradient-to-b from-[#18253f]/90 to-[#111b33]/90 p-5 shadow-xl shadow-black/20 md:p-6 ${locked ? 'opacity-90' : ''}`}
     >
       <div className="flex items-center justify-between gap-3">
         <p className="text-base font-bold text-white">{t('digitalTitle')}</p>
@@ -122,7 +123,7 @@ export function Step3Receive({
           type="button"
           onClick={exporter.downloadPng}
           disabled={locked || exporter.busy !== null}
-          className="h-11 w-full bg-[#CEB47B] text-sm font-bold text-[#0c142b] hover:bg-[#e0c180] gap-2"
+          className="h-12 w-full gap-2 rounded-xl bg-[#CEB47B] text-base font-bold text-[#0c142b] shadow-lg shadow-[#CEB47B]/20 hover:bg-[#e0c180]"
         >
           {icon('png')}
           {t('downloadPng')}
@@ -132,7 +133,7 @@ export function Step3Receive({
           variant="outline"
           onClick={exporter.downloadSvg}
           disabled={locked || exporter.busy !== null}
-          className="h-11 w-full border-[#33415B] bg-transparent text-sm text-white/70 hover:bg-white/5 gap-2"
+          className="h-11 w-full gap-2 rounded-xl border-white/10 bg-transparent text-sm text-white/70 hover:bg-white/5"
         >
           {icon('svg', 'size-4 opacity-70')}
           {t('downloadSvg')}
@@ -145,7 +146,8 @@ export function Step3Receive({
   );
 
   const premiumCard = (
-    <div className="rounded-2xl border border-[#CEB47B] bg-[#142039] p-5 space-y-4">
+    <div className="relative space-y-5 overflow-hidden rounded-3xl border border-[#CEB47B]/70 bg-gradient-to-b from-[#1d2c4a] to-[#111b33] p-5 shadow-[0_20px_60px_-20px_rgba(206,180,123,0.35)] md:p-6">
+      <div aria-hidden className="pointer-events-none absolute -end-16 -top-16 size-48 rounded-full bg-[#CEB47B]/15 blur-3xl" />
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-base font-bold text-[#CEB47B]">
           {t('premiumTitle')}
@@ -175,7 +177,7 @@ export function Step3Receive({
         type="button"
         onClick={() => exporter.downloadPremium(format)}
         disabled={exporter.busy !== null}
-        className="h-11 w-full bg-[#CEB47B] text-sm font-bold text-[#0c142b] hover:bg-[#e0c180] gap-2"
+        className="h-12 w-full gap-2 rounded-xl bg-[#CEB47B] text-base font-bold text-[#0c142b] shadow-lg shadow-[#CEB47B]/20 hover:bg-[#e0c180]"
       >
         {icon('premium')}
         {!exporter.premiumUnlocked && PREMIUM_PRICE_TOMAN
@@ -199,14 +201,9 @@ export function Step3Receive({
 
   return (
     <div className="space-y-7">
-      {/* Step label + title */}
-      <div>
-        <p className="text-xs text-[#CEB47B]">{t('stepLabel')}</p>
-        <h1 className="mt-2 text-3xl font-bold text-white">{t('title')}</h1>
-        <p className="mt-2 text-sm leading-7 text-white/55">{description}</p>
-        <p className="mt-2 text-[12px] leading-6 text-white/60">
-          {t('digitalOnlyNote')}
-        </p>
+      <div className="space-y-2">
+        <StepHeader title={t('title')} description={description} />
+        <p className="text-[12px] leading-6 text-white/60">{t('digitalOnlyNote')}</p>
       </div>
 
       {/* When the layout is premium the free card is locked, so the way forward comes first. */}
@@ -263,7 +260,7 @@ export function Step3ReceiveInfo() {
       <p className="text-xl font-semibold ">{t('infoTitle')}</p>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         {([0, 1, 2] as const).map((i) => (
-          <div key={i} className="rounded-xl bg-[#142039] p-6 space-y-1.5">
+          <div key={i} className="space-y-1.5 rounded-2xl border border-white/10 bg-white/[0.03] p-6">
             <p className="text-sm font-semibold text-[#E8D9B8]">
               {t(`infoItems.${i}.title`)}
             </p>
