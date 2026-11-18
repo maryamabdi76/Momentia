@@ -39,7 +39,10 @@ function coordinate(v: unknown, limit: number): number | undefined {
  * without both coordinates loses them, and extra moments beyond the layout's room are dropped.
  * Null only when there is nothing worth keeping.
  */
-export function sanitizeMap(raw: unknown): TreasureMapData | null {
+/** A repaired map always has both switches set, unlike the loosely typed data the poster is drawn from. */
+export type SanitizedMap = TreasureMapData & { showArea: boolean; showCoords: boolean };
+
+export function sanitizeMap(raw: unknown): SanitizedMap | null {
   if (!isRecord(raw)) return null;
   const layout = pick(MAP_LAYOUTS, raw.layout, DEFAULTS.layout);
   const list = Array.isArray(raw.milestones) ? raw.milestones : [];
