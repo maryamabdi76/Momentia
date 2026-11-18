@@ -6,7 +6,7 @@ import { WALL_MOCKUP, frameBox } from '../lib/wall-mockup';
  * A real room photo with a blank frame; the poster preview is placed inside that frame.
  * The photo and the frame's position come from `wall-mockup.ts`.
  */
-export function WallScene({ children, label }: { children: ReactNode; label: string }) {
+export function WallScene({ children, label, aspect = 2 / 3 }: { children: ReactNode; label: string; /** Width ÷ height of the print; a wide one fits the frame's width instead of its height. */ aspect?: number }) {
   const box = frameBox(WALL_MOCKUP);
 
   return (
@@ -33,8 +33,8 @@ export function WallScene({ children, label }: { children: ReactNode; label: str
           height: `${box.height}%`,
         }}
       >
-        {/* the poster is 2:3; fit it to the frame's height and let the paper show at the sides */}
-        <div className="h-full" style={{ aspectRatio: '2 / 3' }}>
+        {/* a tall print fits the frame's height and the paper shows at the sides; a wide one fits its width */}
+        <div className={`${aspect >= 1 ? 'w-full self-center' : 'h-full'}`} style={{ aspectRatio: String(aspect) }}>
           {children}
         </div>
         {/* the wall's light falling on the print */}

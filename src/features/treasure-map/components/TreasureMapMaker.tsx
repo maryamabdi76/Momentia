@@ -5,12 +5,16 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
-import { toPersianDigits } from '@/features/poster/lib/digits';
 import { DEFAULT_FORMAT_ID, type ExportFormatId } from '@/features/poster/lib/export-formats';
+import { trackEvent } from '@/lib/track';
+import { shareLink, type ShareApp } from '@/features/poster/lib/share-links';
+import type { GiftStatus } from '@/features/poster/components/ShareActions';
 import { useMapExport } from '../hooks/use-map-export';
+import { useMapLabels } from '../hooks/use-map-labels';
+import { mapGiftUrl } from '../lib/gift-link';
 import { loadMapDraft, saveMapDraft } from '../lib/draft';
 import { mapProblems } from '../lib/problems';
-import { mapAspect, type TreasureMapLabels } from '../lib/map-svg';
+import { mapAspect } from '../lib/map-svg';
 import { treasureMapSchema, type TreasureMapValues } from '../lib/schemas';
 import { StepRoute } from '@/components/form/StepRoute';
 import { MapPreview } from './MapPreview';
@@ -96,17 +100,7 @@ export function TreasureMapMaker() {
     [watched],
   );
 
-  const labels = useMemo<TreasureMapLabels>(
-    () => ({
-      count: t('poster.count', { count: toPersianDigits(String(current.milestones.length)) }),
-      watermark: t('poster.watermark'),
-      credit: t('poster.credit'),
-      iran: t('poster.iran'),
-      alt: t('poster.alt'),
-      north: t('poster.north'),
-    }),
-    [t, current.milestones.length],
-  );
+  const labels = useMapLabels(current.milestones.length);
 
   const exporter = useMapExport(current, labels, current);
   const problems = mapProblems(current);
@@ -118,6 +112,24 @@ export function TreasureMapMaker() {
   useEffect(() => {
     if (ready && valid) saveMapDraft(current);
   }, [ready, valid, current]);
+
+  const [giftStatus, setGiftStatus] = useState<GiftStatus>(null);
+  const giftLink = () => mapGiftUrl(window.location.origin, current);
+
+  async function copyGiftLink() {
+    trackEvent('gift_link', { product: 'map' });
+    try {
+      await navigator.clipboard.writeText(giftLink());
+      setGiftStatus('copied');
+    } catch {
+      setGiftStatus('error');
+    }
+  }
+
+  function shareGift(app: ShareApp) {
+    trackEvent('gift_share', { product: 'map', app });
+    window.open(shareLink(app, t('step3.giftMessage'), giftLink()), '_blank', 'noopener,noreferrer');
+  }
 
   function goTo(n: number) {
     if (n > 1 && problems.length > 0) return;
@@ -164,7 +176,16 @@ export function TreasureMapMaker() {
               />
             )}
           </section>
-          <MapPreview step={activeStep} data={current} labels={labels} format={format} onBack={() => goTo(2)} />
+          <MapPreview
+            step={activeStep}
+            data={current}
+            labels={labels}
+            format={format}
+            onBack={() => goTo(2)}
+            onCopyGift={copyGiftLink}
+            giftStatus={giftStatus}
+            onShareGift={shareGift}
+          />
         </div>
       </div>
     </main>

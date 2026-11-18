@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { ArrowRight, Info, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -8,6 +9,9 @@ import { formatSpec, getExportFormat, type ExportFormatId } from '@/features/pos
 import type { MomentData } from '@/features/poster/components/CreateStepper';
 import { Dims } from '@/features/poster/components/FormatPicker';
 import { FormatPreviewFrame } from '@/features/poster/components/FormatPreviewFrame';
+import { SceneToggle, type PreviewScene } from '@/features/poster/components/SceneToggle';
+import { ShareActions, type GiftStatus } from '@/features/poster/components/ShareActions';
+import { WallScene } from '@/features/poster/components/WallScene';
 import type { PosterExport } from '@/features/poster/hooks/use-poster-export';
 import type { SkySnapshot } from '@/features/sky/lib/types';
 import { useMoonWords } from '../hooks/use-moon-words';
@@ -23,15 +27,21 @@ type Props = {
   exporter: PosterExport;
   /** The file chosen in step 3; the preview shows the poster on that file's page. */
   format: ExportFormatId;
+  /** Copies a link that shows this poster to whoever opens it (step 3). */
+  onCopyGift: () => void;
+  giftStatus: GiftStatus;
+  onShareGift: (app: 'telegram' | 'whatsapp') => void;
 };
 
 /** Cream preview card + the per-step content shown beneath it. */
-export function MoonPreview({ step, poster, sky, moment, onBack, exporter, format }: Props) {
+export function MoonPreview({ step, poster, sky, moment, onBack, exporter, format, onCopyGift, giftStatus, onShareGift }: Props) {
   const t = useTranslations('MoonPage');
   const tPreview = useTranslations('CreatePage');
   const tReceive = useTranslations('CreatePage.step3');
   const tFormats = useTranslations('CreatePage.step3.formats');
   const { facts, labels } = useMoonWords(sky);
+  // step 3 can show the poster on a wall; everywhere else it is just the poster
+  const [scene, setScene] = useState<PreviewScene>('poster');
 
   const caption = toPersianDigits(
     [
@@ -47,6 +57,23 @@ export function MoonPreview({ step, poster, sky, moment, onBack, exporter, forma
   const shown: ExportFormatId = step === 3 ? format : 'poster';
   const shownSpec = formatSpec(getExportFormat(shown));
 
+  const framed = (on: ExportFormatId) => (
+    <FormatPreviewFrame format={on} style={poster.style}>
+      {facts ? (
+        <MoonPoster
+          data={poster}
+          facts={facts}
+          labels={labels}
+          watermark
+          // the plain poster carries its own shadow; on a page it sits flat
+          className={on === 'poster' ? 'shadow-xl' : undefined}
+        />
+      ) : (
+        <div className="aspect-[2/3] w-full animate-pulse bg-[#1c2540]/10" />
+      )}
+    </FormatPreviewFrame>
+  );
+
   return (
     <aside className="flex w-full flex-col gap-5 md:sticky md:top-8">
       <div className="m-auto w-full rounded-xl bg-[#F4EFE6] p-6 text-[#1c2540]">
@@ -55,21 +82,14 @@ export function MoonPreview({ step, poster, sky, moment, onBack, exporter, forma
           <span className="text-[#1c2540]/70">{tPreview('preview.label')}</span>
         </div>
 
+        {step === 3 && <SceneToggle value={scene} onChange={setScene} />}
+
         <div className="mt-6 flex justify-center">
-          <FormatPreviewFrame format={shown} style={poster.style}>
-            {facts ? (
-              <MoonPoster
-                data={poster}
-                facts={facts}
-                labels={labels}
-                watermark
-                // the plain poster carries its own shadow; on a page it sits flat
-                className={shown === 'poster' ? 'shadow-xl' : undefined}
-              />
-            ) : (
-              <div className="aspect-[2/3] w-full animate-pulse bg-[#1c2540]/10" />
-            )}
-          </FormatPreviewFrame>
+          {step === 3 && scene === 'wall' ? (
+            <WallScene label={tPreview('preview.sceneWallAlt')}>{framed('poster')}</WallScene>
+          ) : (
+            framed(shown)
+          )}
         </div>
 
         {step === 3 && shown !== 'poster' && (
@@ -121,6 +141,7 @@ export function MoonPreview({ step, poster, sky, moment, onBack, exporter, forma
               <Share2 className="size-4" />
             </Button>
           </div>
+          <ShareActions onCopyGift={onCopyGift} giftStatus={giftStatus} onShareGift={onShareGift} />
           <p className="pb-8 text-xs leading-6 text-[#AAB6CD]">{tPreview('preview.shareNote')}</p>
         </>
       )}

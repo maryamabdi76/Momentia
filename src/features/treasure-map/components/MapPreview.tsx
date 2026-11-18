@@ -1,10 +1,14 @@
 'use client';
 
+import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dims } from '@/features/poster/components/FormatPicker';
 import { FormatPreviewFrame } from '@/features/poster/components/FormatPreviewFrame';
+import { SceneToggle, type PreviewScene } from '@/features/poster/components/SceneToggle';
+import { ShareActions, type GiftStatus } from '@/features/poster/components/ShareActions';
+import { WallScene } from '@/features/poster/components/WallScene';
 import { formatSpec, getExportFormat, type ExportFormatId } from '@/features/poster/lib/export-formats';
 import { mapAspect, mapPaperColor, type TreasureMapData, type TreasureMapLabels } from '../lib/map-svg';
 import { MapPoster } from './MapPoster';
@@ -16,15 +20,21 @@ type Props = {
   /** The file chosen in step 3; the preview shows the map on that file's page. */
   format: ExportFormatId;
   onBack: () => void;
+  /** Copies a link that shows this map to whoever opens it (step 3). */
+  onCopyGift: () => void;
+  giftStatus: GiftStatus;
+  onShareGift: (app: 'telegram' | 'whatsapp') => void;
 };
 
 /** Cream preview card, as in the moon and sky creators. */
-export function MapPreview({ step, data, labels, format, onBack }: Props) {
+export function MapPreview({ step, data, labels, format, onBack, onCopyGift, giftStatus, onShareGift }: Props) {
   const t = useTranslations('MapPage');
   const tPreview = useTranslations('CreatePage');
   const tReceive = useTranslations('CreatePage.step3');
   const tFormats = useTranslations('CreatePage.step3.formats');
 
+  // step 3 can show the map on a wall; everywhere else it is just the map
+  const [scene, setScene] = useState<PreviewScene>('poster');
   const shown: ExportFormatId = step === 3 ? format : 'poster';
   const aspect = mapAspect(data.layout);
   const spec = formatSpec(getExportFormat(shown), aspect);
@@ -37,10 +47,20 @@ export function MapPreview({ step, data, labels, format, onBack }: Props) {
           <span className="text-[#1c2540]/70">{tPreview('preview.label')}</span>
         </div>
 
+        {step === 3 && <SceneToggle value={scene} onChange={setScene} />}
+
         <div className="mt-6 flex justify-center">
-          <FormatPreviewFrame format={shown} style="gold" mat={mapPaperColor(data.theme)} aspect={aspect}>
-            <MapPoster data={data} labels={labels} className={shown === 'poster' ? 'shadow-xl' : 'shadow-none'} />
-          </FormatPreviewFrame>
+          {step === 3 && scene === 'wall' ? (
+            <WallScene label={tPreview('preview.sceneWallAlt')} aspect={aspect}>
+              <FormatPreviewFrame format="poster" style="gold" mat={mapPaperColor(data.theme)} aspect={aspect}>
+                <MapPoster data={data} labels={labels} className="shadow-none" />
+              </FormatPreviewFrame>
+            </WallScene>
+          ) : (
+            <FormatPreviewFrame format={shown} style="gold" mat={mapPaperColor(data.theme)} aspect={aspect}>
+              <MapPoster data={data} labels={labels} className={shown === 'poster' ? 'shadow-xl' : 'shadow-none'} />
+            </FormatPreviewFrame>
+          )}
         </div>
 
         {step === 3 && shown !== 'poster' && (
@@ -53,6 +73,10 @@ export function MapPreview({ step, data, labels, format, onBack }: Props) {
         <p className="mt-4 text-center text-xs text-[#1c2540]/70">{t('preview.note')}</p>
         <p className="mt-2 text-center text-[11px] text-[#1c2540]/55">{t('preview.credit')}</p>
       </div>
+
+      {step === 3 && (
+        <ShareActions onCopyGift={onCopyGift} giftStatus={giftStatus} onShareGift={onShareGift} />
+      )}
 
       {step === 3 && (
         <Button

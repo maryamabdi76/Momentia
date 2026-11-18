@@ -7,13 +7,13 @@ import { parseDraft, type PosterDraft } from './draft.ts';
  */
 const PARAM = 'g';
 
-function toBase64Url(bytes: Uint8Array): string {
+export function toBase64Url(bytes: Uint8Array): string {
   let bin = '';
   for (const b of bytes) bin += String.fromCharCode(b);
   return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 }
 
-function fromBase64Url(value: string): Uint8Array {
+export function fromBase64Url(value: string): Uint8Array {
   const b64 = value.replace(/-/g, '+').replace(/_/g, '/');
   const bin = atob(b64 + '='.repeat((4 - (b64.length % 4)) % 4));
   return Uint8Array.from(bin, (c) => c.charCodeAt(0));
@@ -152,4 +152,43 @@ export function editUrl(origin: string, draft: PosterDraft): string {
 export function readEditHash(hash: string): PosterDraft | null {
   const token = new URLSearchParams(hash.replace(/^#/, '')).get('e');
   return token ? decodeGift(token) : null;
+}
+
+// ---- the other posters --------------------------------------------------------------
+// The moon poster and the treasure map travel the same way: packed into the fragment of
+// /gift, under their own name so the gift page knows which poster to draw.
+
+export type GiftProduct = 'sky' | 'moon' | 'map';
+
+const PRODUCT_PARAM: Record<GiftProduct, string> = { sky: PARAM, moon: 'm', map: 't' };
+const PACKED = '1.';
+
+/** Any JSON-safe value, packed for a link. */
+export function packJson(value: unknown): string {
+  return PACKED + toBase64Url(new TextEncoder().encode(JSON.stringify(value)));
+}
+
+/** The value inside a token from `packJson`; null when the token is damaged. */
+export function unpackJson(token: string): unknown {
+  try {
+    if (!token.startsWith(PACKED)) return null;
+    return JSON.parse(new TextDecoder().decode(fromBase64Url(token.slice(PACKED.length))));
+  } catch {
+    return null;
+  }
+}
+
+/** A link to the gift page for a moon poster or a map. */
+export function packedGiftUrl(origin: string, product: 'moon' | 'map', value: unknown): string {
+  return `${origin}/gift#${PRODUCT_PARAM[product]}=${packJson(value)}`;
+}
+
+/** Which poster a gift link carries, and its token; null when it carries none. */
+export function readGiftToken(hash: string): { product: GiftProduct; token: string } | null {
+  const params = new URLSearchParams(hash.replace(/^#/, ''));
+  for (const product of ['sky', 'moon', 'map'] as const) {
+    const token = params.get(PRODUCT_PARAM[product]);
+    if (token) return { product, token };
+  }
+  return null;
 }
