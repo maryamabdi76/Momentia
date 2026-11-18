@@ -107,6 +107,18 @@ export function MapStep1({ form, onNext }: Props) {
                 </select>
               </label>
             )}
+            {layout === 'single' && (
+              <div className="space-y-2 sm:col-span-2">
+                <label className="flex cursor-pointer items-center gap-2.5 text-sm text-[#E8D9B8]">
+                  <input type="checkbox" {...register('showArea')} className="size-4 accent-[#CEB47B]" />
+                  {t('showAreaLabel')}
+                </label>
+                <label className="flex cursor-pointer items-center gap-2.5 text-sm text-[#E8D9B8]">
+                  <input type="checkbox" {...register('showCoords')} className="size-4 accent-[#CEB47B]" />
+                  {t('showCoordsLabel')}
+                </label>
+              </div>
+            )}
           </div>
         )}
       </div>

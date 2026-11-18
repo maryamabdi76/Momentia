@@ -49,7 +49,9 @@ test('city map: tiles, a pin and a legend row per place, credit, and the OSM bas
   assert.match(svg, /۱۴ مهر ۱۳۹۸/);
   assert.match(svg, /© OpenStreetMap/);
   assert.match(svg, /feColorMatrix/);
-  assert.match(svg, /۳۵٫۷۳°N/);
+  assert.doesNotMatch(svg, /°N/, 'coordinates are off unless asked for');
+  const withCoords = buildTreasureMapSvg({ data: { ...city, showCoords: true }, labels, watermark: true });
+  assert.match(withCoords, /۳۵٫۷۳°N/);
 });
 
 test('pins land where the places are, north up', () => {
@@ -144,6 +146,21 @@ test('the chosen frame is drawn, and none draws no border', () => {
   assert.notEqual(classic, minimal);
   assert.ok(classic.length > none.length);
   assert.ok(minimal.length > none.length);
+});
+
+test('the city name shows by default, the coordinates only when asked, and each can be hidden', () => {
+  const opts = { labels, watermark: false };
+  const base = buildTreasureMapSvg({ ...opts, data: city });
+  assert.ok(base.includes('>تهران<'));
+  assert.ok(!base.includes('°N'));
+  const both = buildTreasureMapSvg({ ...opts, data: { ...city, showCoords: true } });
+  assert.ok(both.includes('°N'));
+  const coordsOnly = buildTreasureMapSvg({ ...opts, data: { ...city, showArea: false, showCoords: true } });
+  assert.ok(!coordsOnly.includes('>تهران<'));
+  assert.ok(coordsOnly.includes('°N'));
+  const neither = buildTreasureMapSvg({ ...opts, data: { ...city, showArea: false, showCoords: false } });
+  assert.ok(!neither.includes('>تهران<'));
+  assert.ok(!neither.includes('°N'));
 });
 
 test('cards layout draws one clipped map per moment with its caption', () => {

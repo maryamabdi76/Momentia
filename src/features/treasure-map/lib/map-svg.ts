@@ -57,6 +57,10 @@ export type TreasureMapData = {
   shape: MapShape;
   /** The border around the poster. */
   frame: PosterFrame;
+  /** The name under a single map: on unless turned off. */
+  showArea?: boolean;
+  /** The latitude and longitude under it: off unless turned on. */
+  showCoords?: boolean;
   milestones: Milestone[];
 };
 export type TreasureMapLabels = {
@@ -503,8 +507,10 @@ export function buildTreasureMapSvg(opts: TreasureMapOptions): string {
   });
 
   // the place under the map, as on printed maps
-  parts.push(text(W / 2, 958, 34, 700, p.ink, isCity ? data.area : labels.iran));
-  if (coords) parts.push(text(W / 2, 988, 17, 400, p.muted, coords));
+  const showName = data.showArea !== false;
+  if (showName) parts.push(text(W / 2, 958, 34, 700, p.ink, isCity ? data.area : labels.iran));
+  // the coordinates sit under the name, or in its place when the name is hidden
+  if (coords && data.showCoords === true) parts.push(text(W / 2, showName ? 988 : 962, 17, 400, p.muted, coords));
 
   // legend: two columns, the first milestone at the right (reading order of Persian)
   const rows = Math.ceil(items.length / 2);

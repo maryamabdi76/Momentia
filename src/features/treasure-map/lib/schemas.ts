@@ -33,6 +33,8 @@ export const treasureMapSchema = z
     theme: z.enum(MAP_THEMES),
     shape: z.enum(MAP_SHAPES),
     frame: z.enum(POSTER_FRAMES),
+    showArea: z.boolean(),
+    showCoords: z.boolean(),
     milestones: z.array(milestoneSchema).min(MIN_MILESTONES).max(MAX_MILESTONES),
   })
   // small maps leave room for fewer moments

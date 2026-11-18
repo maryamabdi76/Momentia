@@ -30,6 +30,8 @@ const SAMPLE: TreasureMapValues = {
   theme: 'paper',
   shape: 'circle',
   frame: 'minimal',
+  showArea: true,
+  showCoords: false,
   milestones: [
     { title: 'اولین قرار', city: 'پل طبیعت', date: '۱۴ مهر ۱۳۹۸', art: 'cafe', lat: 35.7611, lon: 51.4143 },
     { title: 'خواستگاری', city: 'برج آزادی', date: '۲ اردیبهشت ۱۴۰۰', art: 'ring', lat: 35.6997, lon: 51.338 },
@@ -78,6 +80,8 @@ export function TreasureMapMaker() {
       theme: watched.theme ?? 'paper',
       shape: watched.shape ?? 'circle',
       frame: watched.frame ?? 'minimal',
+      showArea: watched.showArea ?? true,
+      showCoords: watched.showCoords ?? false,
       milestones: (watched.milestones ?? []).map((m) => ({
         title: (m?.title ?? '').trim(),
         city: (m?.city ?? '').trim(),

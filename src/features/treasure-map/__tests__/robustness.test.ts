@@ -104,3 +104,12 @@ test('whatever is typed, no layout and theme writes markup or empty text into th
     }
   }
 });
+
+test('older drafts without the two switches keep the name and hide the coordinates', () => {
+  const m = sanitizeMap({ milestones: [{ title: 'a', lat: 35.7, lon: 51.4 }, { title: 'b', lat: 35.6, lon: 51.3 }] });
+  assert.equal(m?.showArea, true);
+  assert.equal(m?.showCoords, false);
+  const off = sanitizeMap({ showArea: false, showCoords: true, milestones: [{ title: 'a' }, { title: 'b' }] });
+  assert.equal(off?.showArea, false);
+  assert.equal(off?.showCoords, true);
+});

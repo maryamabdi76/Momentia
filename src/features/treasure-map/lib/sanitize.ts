@@ -72,6 +72,8 @@ export function sanitizeMap(raw: unknown): TreasureMapData | null {
     theme: pick(MAP_THEMES, raw.theme, DEFAULTS.theme),
     shape: pick(MAP_SHAPES, raw.shape, DEFAULTS.shape),
     frame: pick(POSTER_FRAMES, raw.frame, DEFAULTS.frame),
+    showArea: typeof raw.showArea === 'boolean' ? raw.showArea : true,
+    showCoords: typeof raw.showCoords === 'boolean' ? raw.showCoords : false,
     milestones,
   };
 }

@@ -15,6 +15,8 @@ export async function getMapSample(theme: TreasureMapData['theme'] = 'paper') {
     theme,
     shape: 'circle',
     frame: theme === 'ink' ? 'classic' : 'minimal',
+    showArea: true,
+    showCoords: false,
     milestones: [
       { title: t('moments.0.title'), city: t('moments.0.place'), date: t('moments.0.date'), art: 'cafe' },
       { title: t('moments.1.title'), city: t('moments.1.place'), date: t('moments.1.date'), art: 'ring' },
