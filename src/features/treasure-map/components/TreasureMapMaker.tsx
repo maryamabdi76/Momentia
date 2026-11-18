@@ -5,7 +5,6 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
-import { Stepper, type StepItem, type StepStatus } from '@/components/ui/stepper';
 import { toPersianDigits } from '@/features/poster/lib/digits';
 import { DEFAULT_FORMAT_ID, type ExportFormatId } from '@/features/poster/lib/export-formats';
 import { useMapExport } from '../hooks/use-map-export';
@@ -14,6 +13,7 @@ import { mapProblems } from '../lib/problems';
 import { mapAspect, type TreasureMapLabels } from '../lib/map-svg';
 import { treasureMapSchema, type TreasureMapValues } from '../lib/schemas';
 import { MapPreview } from './MapPreview';
+import { MapRoute } from './MapRoute';
 import { MobilePreview } from './MobilePreview';
 import { MapStep1 } from './MapStep1';
 import { MapStep2 } from './MapStep2';
@@ -125,16 +125,20 @@ export function TreasureMapMaker() {
     router.push(`/map?${params.toString()}`);
   }
 
-  const stepItems: StepItem[] = [1, 2, 3].map((n) => {
-    const status: StepStatus = activeStep === n ? 'active' : activeStep > n ? 'done' : 'upcoming';
-    return { label: tSteps(String(n)), status };
-  });
+  const stepLabels = [1, 2, 3].map((n) => tSteps(String(n)));
 
   return (
-    <main className="flex-1">
-      <div className="border-b border-[#33415B]">
-        <div className="mx-auto flex items-center px-6 py-2 md:px-20">
-          <Stepper steps={stepItems} onStepClick={(i) => goTo(i + 1)} ariaLabel={t('stepsNav')} />
+    <main className="flex-1 bg-[radial-gradient(60rem_30rem_at_50%_-10%,rgba(206,180,123,0.08),transparent)]">
+      <div className="border-b border-white/10 bg-[#0c142b]/80 backdrop-blur">
+        <div className="mx-auto px-6 pb-3 pt-5 md:px-20">
+          <MapRoute
+            labels={stepLabels}
+            step={activeStep}
+            // only steps already passed can be opened by clicking, as before
+            canOpen={(n) => n < activeStep}
+            onOpen={goTo}
+            ariaLabel={t('stepsNav')}
+          />
         </div>
       </div>
 

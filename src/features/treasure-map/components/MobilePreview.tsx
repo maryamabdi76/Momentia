@@ -20,7 +20,7 @@ export function MobilePreview({ data, labels }: { data: TreasureMapData; labels:
         type="button"
         variant="outline"
         onClick={() => setOpen(true)}
-        className="h-10 w-full gap-2 border-[#33415B] bg-transparent text-sm text-[#E8D9B8] hover:bg-white/5"
+        className="h-11 w-full gap-2 rounded-xl border-white/10 bg-white/[0.03] text-sm text-[#E8D9B8] hover:bg-white/5"
       >
         <Eye className="size-4" aria-hidden />
         {t('mobilePreview')}

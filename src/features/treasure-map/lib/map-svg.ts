@@ -116,6 +116,12 @@ export function mapPaperColor(theme: MapTheme): string {
   return PALETTES[theme].bg;
 }
 
+/** The colours a theme paints with, for the small samples in the form. */
+export function mapThemeSwatch(theme: MapTheme): { bg: string; ink: string; accent: string; land: string; water: string; park: string } {
+  const { bg, ink, accent, land, water, park } = PALETTES[theme];
+  return { bg, ink, accent, land, water, park };
+}
+
 /** Border colours for a theme: the ink, and the same ink at half strength. */
 export function mapFrameColors(theme: MapTheme): { frame: string; frameSoft: string } {
   const { ink } = PALETTES[theme];

@@ -13,6 +13,7 @@ import type { MapExport } from '../hooks/use-map-export';
 import { MAX_MILESTONES, MIN_MILESTONES, maxMilestones } from '../lib/map-svg';
 import type { MapProblem } from '../lib/problems';
 import type { TreasureMapValues } from '../lib/schemas';
+import { StepHeader } from './FormShell';
 
 type Props = {
   exporter: MapExport;
@@ -36,14 +37,10 @@ export function MapStep3({ exporter, format, onFormatChange, valid, problems, da
 
   return (
     <div className="space-y-6">
-      <div className="space-y-2">
-        <p className="text-xs text-[#CEB47B]">{t('step3.stepLabel')}</p>
-        <h1 className="text-3xl font-bold text-white">{t('step3.title')}</h1>
-        <p className="text-sm leading-7 text-white/55">{t('step3.description')}</p>
-      </div>
+      <StepHeader title={t('step3.title')} description={t('step3.description')} />
 
       {/* what is about to be made, with a way back to change it */}
-      <dl className="grid grid-cols-3 gap-2 rounded-2xl border border-[#33415B] bg-[#142039] p-4 text-center">
+      <dl className="grid grid-cols-3 divide-x divide-white/10 rounded-3xl border border-white/10 bg-gradient-to-b from-[#18253f]/90 to-[#111b33]/90 p-4 text-center rtl:divide-x-reverse">
         {(
           [
             [t('summary.layout'), t(`layout.${data.layout}.label`), 1],
@@ -65,7 +62,8 @@ export function MapStep3({ exporter, format, onFormatChange, valid, problems, da
         ))}
       </dl>
 
-      <div className="space-y-4 rounded-2xl border border-[#CEB47B] bg-[#142039] p-5">
+      <div className="relative space-y-5 overflow-hidden rounded-3xl border border-[#CEB47B]/70 bg-gradient-to-b from-[#1d2c4a] to-[#111b33] p-5 shadow-[0_20px_60px_-20px_rgba(206,180,123,0.35)] md:p-6">
+        <div aria-hidden className="pointer-events-none absolute -end-16 -top-16 size-48 rounded-full bg-[#CEB47B]/15 blur-3xl" />
         <div className="flex flex-wrap items-center justify-between gap-2">
           <p className="flex items-center gap-2 text-base font-bold text-[#CEB47B]">
             <Crown aria-hidden className="size-4" />
@@ -94,7 +92,7 @@ export function MapStep3({ exporter, format, onFormatChange, valid, problems, da
             type="button"
             onClick={() => exporter.downloadPremium(format)}
             disabled={!valid || exporter.busy !== null}
-            className="h-11 w-full gap-2 bg-[#CEB47B] text-sm font-bold text-[#0c142b] hover:bg-[#e0c180]"
+            className="h-13 w-full gap-2 rounded-xl bg-[#CEB47B] text-base font-bold text-[#0c142b] shadow-lg shadow-[#CEB47B]/20 hover:bg-[#e0c180]"
           >
             {exporter.busy === 'premium' ? (
               <Loader2 className="size-4 animate-spin" />
@@ -110,7 +108,7 @@ export function MapStep3({ exporter, format, onFormatChange, valid, problems, da
             variant="outline"
             onClick={exporter.downloadSvg}
             disabled={!valid || exporter.busy !== null}
-            className="h-11 w-full gap-2 border-[#33415B] bg-transparent text-sm text-white/80 hover:bg-white/5"
+            className="h-11 w-full gap-2 rounded-xl border-white/10 bg-transparent text-sm text-white/80 hover:bg-white/5"
           >
             {exporter.busy === 'svg' ? <Loader2 className="size-4 animate-spin" /> : <Download className="size-4 opacity-70" />}
             {t('premium.downloadSvg')}

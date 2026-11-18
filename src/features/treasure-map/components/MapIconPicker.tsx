@@ -50,7 +50,7 @@ export function MapIconPicker({ value, onChange }: Props) {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="flex w-full items-center gap-3 rounded-lg border border-[#33415B] bg-[#101a38] p-2 text-start transition-colors hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#CEB47B]"
+        className="flex w-full items-center gap-3 rounded-xl border border-white/10 bg-[#0a1226]/70 p-2 text-start transition-colors hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#CEB47B]"
       >
         <span className="size-14 shrink-0 rounded-md bg-[#F6F0E4] p-1">
           <Thumb value={value} />
