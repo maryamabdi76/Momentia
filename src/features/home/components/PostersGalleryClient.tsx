@@ -20,6 +20,14 @@ import { POSTER_THEMES, paperCss } from '@/features/poster/lib/themes';
 import type { SkyLayers } from '@/features/sky/lib/layers';
 import type { SkySnapshot } from '@/features/sky/lib/types';
 import { PremiumMark } from '@/features/poster/components/PremiumMark';
+import { MapPoster } from '@/features/treasure-map/components/MapPoster';
+import {
+  MAP_THEMES,
+  mapPaperColor,
+  type MapTheme,
+  type TreasureMapData,
+  type TreasureMapLabels,
+} from '@/features/treasure-map/lib/map-svg';
 
 const GALLERY_STYLES: PosterStyle[] = [
   'gold',
@@ -35,7 +43,7 @@ const DEFAULT_STYLE: Record<'circle' | 'full' | 'moon', PosterStyle> = {
   moon: 'gold',
 };
 
-type ProductFilter = 'all' | 'sky' | 'moon';
+type ProductFilter = 'all' | 'sky' | 'moon' | 'map';
 type TemplateFilter = 'all' | 'circle' | 'full';
 
 export type PostersGalleryLabels = {
@@ -49,6 +57,7 @@ export type PostersGalleryLabels = {
     productAll: string;
     productSky: string;
     productMoon: string;
+    productMap: string;
     template: string;
     templateAll: string;
     templateCircle: string;
@@ -64,6 +73,7 @@ export type PostersGalleryLabels = {
     circle: SectionCopy;
     full: SectionCopy;
     moon: SectionCopy;
+    map: SectionCopy;
   };
 };
 
@@ -88,6 +98,9 @@ type Props = {
     'style' | 'title' | 'names' | 'quote' | 'dateLabel'
   >;
   layers: Partial<SkyLayers>;
+  mapData: TreasureMapData;
+  mapLabels: TreasureMapLabels;
+  mapThemeNames: Record<MapTheme, string>;
 };
 
 function FilterChip({
@@ -304,6 +317,112 @@ function TemplateSection({
   );
 }
 
+/** The treasure map: its own four looks instead of the five sky colours, and a way into the maker. */
+function MapSection({
+  copy,
+  theme,
+  onThemeChange,
+  data,
+  labels,
+  themeNames,
+  showcaseNote,
+  personalize,
+  premium,
+}: {
+  copy: SectionCopy;
+  theme: MapTheme;
+  onThemeChange: (theme: MapTheme) => void;
+  data: TreasureMapData;
+  labels: TreasureMapLabels;
+  themeNames: Record<MapTheme, string>;
+  showcaseNote: string;
+  personalize: string;
+  premium: { label: string; tooltip: string };
+}) {
+  const t = useTranslations('PostersPage');
+
+  return (
+    <section className="border-b border-[#dad4c7]/50 p-6 md:px-22">
+      <div className="mb-8 flex flex-col gap-1 text-[13px] md:flex-row md:items-center md:justify-between">
+        <span className="flex items-center gap-2 text-[14px] font-medium tracking-wide text-[#172338]">
+          {copy.family}
+          <PremiumMark {...premium} className="text-[#172338]" />
+        </span>
+        <span className="text-[#69717c]">{copy.collection}</span>
+      </div>
+
+      <div className="flex h-full flex-col gap-10 xl:flex-row xl:items-start xl:gap-14">
+        <div className="flex w-full shrink-0 flex-col gap-6 xl:max-w-2xl">
+          <div>
+            <h2 className="text-[30px] font-semibold leading-snug tracking-tight text-[#172338] md:text-[34px]">
+              {copy.title}
+            </h2>
+            <p className="mt-3 text-[16px] leading-[1.8] text-[#69717c]">{copy.description}</p>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            {copy.badges.map((badge) => (
+              <span key={badge} className="rounded-lg bg-[#0b1428]/90 px-3 py-1 text-[11px] text-[#f5f1e8]">
+                {badge}
+              </span>
+            ))}
+          </div>
+
+          <div className="rounded-xl bg-[#f5f1e8]/70 p-4 ring-1 ring-[#dad4c7]/60">
+            <p className="mb-4 text-[13px] font-medium text-[#172338]">
+              {t('selectedColor', { styleName: themeNames[theme] })}
+            </p>
+            <div className="flex gap-2 sm:gap-3">
+              {MAP_THEMES.map((k) => (
+                <button
+                  key={k}
+                  type="button"
+                  aria-pressed={k === theme}
+                  onClick={() => onThemeChange(k)}
+                  className="group flex min-w-0 flex-1 flex-col items-center gap-2"
+                >
+                  <span
+                    className={cn(
+                      'flex size-10 items-center justify-center rounded-full transition-all duration-200',
+                      k === theme
+                        ? 'bg-[#c9ae75]/15 ring-2 ring-[#c9ae75] ring-offset-2 ring-offset-[#f5f1e8]'
+                        : 'ring-1 ring-[#dad4c7]/80 group-hover:ring-[#c9ae75]/50',
+                    )}
+                  >
+                    <span className="size-7 rounded-full ring-1 ring-black/10" style={{ background: mapPaperColor(k) }} />
+                  </span>
+                  <span
+                    className={cn(
+                      'text-center text-[11px] leading-snug transition-colors duration-200',
+                      k === theme ? 'font-semibold text-[#172338]' : 'font-normal text-[#69717c] group-hover:text-[#172338]',
+                    )}
+                  >
+                    {themeNames[k]}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-3 pt-1">
+            <Link
+              href="/map"
+              className="inline-flex h-[50px] w-full items-center justify-center rounded-xl bg-[#c9ae75] px-6 text-[15px] font-semibold text-[#0b1428] transition-all duration-200 hover:bg-[#d5bc83] hover:shadow-md sm:w-auto sm:min-w-[220px]"
+            >
+              {personalize}
+            </Link>
+            <p className="text-[12px] leading-relaxed text-[#69717c]">{copy.footnote}</p>
+          </div>
+        </div>
+
+        <PreviewPanel note={showcaseNote}>
+          <MapPoster data={data} labels={labels} className="rounded-none shadow-[0_12px_28px_rgba(0,0,0,0.16)]" />
+        </PreviewPanel>
+      </div>
+    </section>
+  );
+}
+
 export function PostersGalleryClient({
   labels,
   posterLabels,
@@ -313,28 +432,35 @@ export function PostersGalleryClient({
   moonLabels,
   moonSample,
   layers,
+  mapData,
+  mapLabels,
+  mapThemeNames,
 }: Props) {
   const [product, setProduct] = useState<ProductFilter>('all');
   const [templateFilter, setTemplateFilter] = useState<TemplateFilter>('all');
   const [styles, setStyles] = useState(DEFAULT_STYLE);
+  const [mapTheme, setMapTheme] = useState<MapTheme>('paper');
 
   const showCircle = useMemo(() => {
-    if (product === 'moon') return false;
+    if (product === 'moon' || product === 'map') return false;
     if (templateFilter === 'full') return false;
     return true;
   }, [product, templateFilter]);
 
   const showFull = useMemo(() => {
-    if (product === 'moon') return false;
+    if (product === 'moon' || product === 'map') return false;
     if (templateFilter === 'circle') return false;
     return true;
   }, [product, templateFilter]);
 
   const showMoon = useMemo(() => {
-    if (product === 'sky') return false;
+    if (product === 'sky' || product === 'map') return false;
     if (templateFilter !== 'all') return false;
     return Boolean(moonFacts);
   }, [product, templateFilter, moonFacts]);
+
+  // the treasure map has no sky templates, so a template filter hides it
+  const showMap = (product === 'all' || product === 'map') && templateFilter === 'all';
 
   const descriptionLines = labels.description.split('\n');
 
@@ -408,6 +534,13 @@ export function PostersGalleryClient({
                 onClick={() => setProduct('moon')}
               >
                 {labels.filters.productMoon}
+              </FilterChip>
+              <FilterChip
+                dark
+                active={product === 'map'}
+                onClick={() => setProduct('map')}
+              >
+                {labels.filters.productMap}
               </FilterChip>
             </div>
             <div className="flex flex-wrap items-center gap-2">
@@ -523,6 +656,20 @@ export function PostersGalleryClient({
           showcaseNote={labels.showcaseNote}
           personalize={labels.personalize}
           moonBlock={moonPreview}
+        />
+      )}
+
+      {showMap && (
+        <MapSection
+          copy={labels.sections.map}
+          theme={mapTheme}
+          onThemeChange={setMapTheme}
+          data={{ ...mapData, theme: mapTheme, frame: mapTheme === 'ink' ? 'classic' : 'minimal' }}
+          labels={mapLabels}
+          themeNames={mapThemeNames}
+          showcaseNote={labels.showcaseNote}
+          personalize={labels.personalize}
+          premium={{ label: labels.premiumBadge, tooltip: labels.premiumBar }}
         />
       )}
     </div>
