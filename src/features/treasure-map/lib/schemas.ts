@@ -3,16 +3,17 @@ import { IRAN_CITIES } from '@/features/poster/lib/cities';
 import { POSTER_FRAMES } from '@/features/poster/lib/frames';
 import { MAP_ART } from './art';
 import { MAP_ICONS } from './illustrations';
+import { MAX_LENGTH } from './sanitize';
 import { MAP_LAYOUTS, MAP_SCOPES, MAP_SHAPES, MAP_THEMES, MAX_MILESTONES, MIN_MILESTONES, maxMilestones } from './map-svg';
 
 const CITY_NAMES = IRAN_CITIES.map((c) => c.name);
 
 export const milestoneSchema = z.object({
   /** Everything written on the map is optional. */
-  title: z.string().trim().max(24),
+  title: z.string().trim().max(MAX_LENGTH.momentTitle),
   /** The place's name, as the user wants it on the poster. */
-  city: z.string().trim().max(22),
-  date: z.string().trim().max(18),
+  city: z.string().trim().max(MAX_LENGTH.place),
+  date: z.string().trim().max(MAX_LENGTH.date),
   /** Where it happened, picked on the map (city maps). */
   lat: z.number().min(-90).max(90).optional(),
   lon: z.number().min(-180).max(180).optional(),
@@ -24,8 +25,8 @@ export const milestoneSchema = z.object({
 
 export const treasureMapSchema = z
   .object({
-    title: z.string().trim().max(40),
-    names: z.string().trim().max(40),
+    title: z.string().trim().max(MAX_LENGTH.title),
+    names: z.string().trim().max(MAX_LENGTH.names),
     layout: z.enum(MAP_LAYOUTS),
     scope: z.enum(MAP_SCOPES),
     area: z.string().refine((v) => CITY_NAMES.includes(v)),

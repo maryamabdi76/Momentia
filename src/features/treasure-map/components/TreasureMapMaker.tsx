@@ -10,9 +10,11 @@ import { toPersianDigits } from '@/features/poster/lib/digits';
 import { DEFAULT_FORMAT_ID, type ExportFormatId } from '@/features/poster/lib/export-formats';
 import { useMapExport } from '../hooks/use-map-export';
 import { loadMapDraft, saveMapDraft } from '../lib/draft';
+import { mapProblems } from '../lib/problems';
 import { mapAspect, type TreasureMapLabels } from '../lib/map-svg';
 import { treasureMapSchema, type TreasureMapValues } from '../lib/schemas';
 import { MapPreview } from './MapPreview';
+import { MobilePreview } from './MobilePreview';
 import { MapStep1 } from './MapStep1';
 import { MapStep2 } from './MapStep2';
 import { MapStep3 } from './MapStep3';
@@ -67,8 +69,9 @@ export function TreasureMapMaker() {
 
   const current = useMemo<TreasureMapValues>(
     () => ({
-      title: watched.title ?? '',
-      names: watched.names ?? '',
+      // what is drawn and exported has no stray spaces around the words
+      title: (watched.title ?? '').trim(),
+      names: (watched.names ?? '').trim(),
       layout: watched.layout ?? 'single',
       scope: watched.scope ?? 'city',
       area: watched.area ?? 'تهران',
@@ -76,9 +79,9 @@ export function TreasureMapMaker() {
       shape: watched.shape ?? 'circle',
       frame: watched.frame ?? 'minimal',
       milestones: (watched.milestones ?? []).map((m) => ({
-        title: m?.title ?? '',
-        city: m?.city ?? '',
-        date: m?.date ?? '',
+        title: (m?.title ?? '').trim(),
+        city: (m?.city ?? '').trim(),
+        date: (m?.date ?? '').trim(),
         lat: m?.lat,
         lon: m?.lon,
         icon: m?.icon,
@@ -101,7 +104,10 @@ export function TreasureMapMaker() {
   );
 
   const exporter = useMapExport(current, labels, current);
-  const valid = treasureMapSchema.safeParse(current).success;
+  const problems = mapProblems(current);
+  const valid = problems.length === 0 && treasureMapSchema.safeParse(current).success;
+  // a later step is only open once the map can be made: a link or a click cannot skip ahead
+  const activeStep = problems.length > 0 ? 1 : step;
 
   // keep what was typed, so closing the tab to pay does not lose it
   useEffect(() => {
@@ -109,13 +115,14 @@ export function TreasureMapMaker() {
   }, [ready, valid, current]);
 
   function goTo(n: number) {
+    if (n > 1 && problems.length > 0) return;
     const params = new URLSearchParams(searchParams.toString());
     params.set('step', String(n));
     router.push(`/map?${params.toString()}`);
   }
 
   const stepItems: StepItem[] = [1, 2, 3].map((n) => {
-    const status: StepStatus = step === n ? 'active' : step > n ? 'done' : 'upcoming';
+    const status: StepStatus = activeStep === n ? 'active' : activeStep > n ? 'done' : 'upcoming';
     return { label: tSteps(String(n)), status };
   });
 
@@ -130,19 +137,25 @@ export function TreasureMapMaker() {
       <div className="mx-auto px-6 py-10 md:px-20 md:py-16">
         <div className="grid gap-10 md:grid-cols-2 md:items-start md:gap-16">
           <section className="min-w-0">
-            {ready && step === 1 && <MapStep1 form={form} onNext={() => goTo(2)} />}
-            {ready && step === 2 && <MapStep2 form={form} onNext={() => goTo(3)} onBack={() => goTo(1)} />}
-            {ready && step === 3 && (
+            <div className="mb-6 md:hidden">
+              <MobilePreview data={current} labels={labels} />
+            </div>
+            {ready && activeStep === 1 && <MapStep1 form={form} onNext={() => goTo(2)} />}
+            {ready && activeStep === 2 && <MapStep2 form={form} onNext={() => goTo(3)} onBack={() => goTo(1)} />}
+            {ready && activeStep === 3 && (
               <MapStep3
                 exporter={exporter}
                 format={format}
                 onFormatChange={setFormat}
                 valid={valid}
+                problems={problems}
+                data={current}
+                onEdit={goTo}
                 aspect={mapAspect(current.layout)}
               />
             )}
           </section>
-          <MapPreview step={step} data={current} labels={labels} format={format} onBack={() => goTo(2)} />
+          <MapPreview step={activeStep} data={current} labels={labels} format={format} onBack={() => goTo(2)} />
         </div>
       </div>
     </main>

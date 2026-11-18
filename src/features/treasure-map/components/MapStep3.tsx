@@ -7,21 +7,29 @@ import { Button } from '@/components/ui/button';
 import { PaymentDialog } from '@/features/payments/components/PaymentDialog';
 import { PREMIUM_PRICE_TOMAN } from '@/features/payments/lib/client';
 import { FormatPicker } from '@/features/poster/components/FormatPicker';
-import { formatToman } from '@/features/poster/lib/digits';
+import { formatToman, toPersianDigits } from '@/features/poster/lib/digits';
 import type { ExportFormatId } from '@/features/poster/lib/export-formats';
 import type { MapExport } from '../hooks/use-map-export';
+import { MAX_MILESTONES, MIN_MILESTONES, maxMilestones } from '../lib/map-svg';
+import type { MapProblem } from '../lib/problems';
+import type { TreasureMapValues } from '../lib/schemas';
 
 type Props = {
   exporter: MapExport;
   format: ExportFormatId;
   onFormatChange: (id: ExportFormatId) => void;
   valid: boolean;
+  /** What is in the way of making the map, if anything. */
+  problems: MapProblem[];
+  data: TreasureMapValues;
+  /** Go back to a step to change something. */
+  onEdit: (step: number) => void;
   /** Width ÷ height of the poster. */
   aspect: number;
 };
 
 /** Step 3: pick the file and pay for it. The map has no free download. */
-export function MapStep3({ exporter, format, onFormatChange, valid, aspect }: Props) {
+export function MapStep3({ exporter, format, onFormatChange, valid, problems, data, onEdit, aspect }: Props) {
   const t = useTranslations('MapPage');
   const tSupport = useTranslations('Support');
   const price = exporter.premiumUnlocked ? null : PREMIUM_PRICE_TOMAN;
@@ -33,6 +41,29 @@ export function MapStep3({ exporter, format, onFormatChange, valid, aspect }: Pr
         <h1 className="text-3xl font-bold text-white">{t('step3.title')}</h1>
         <p className="text-sm leading-7 text-white/55">{t('step3.description')}</p>
       </div>
+
+      {/* what is about to be made, with a way back to change it */}
+      <dl className="grid grid-cols-3 gap-2 rounded-2xl border border-[#33415B] bg-[#142039] p-4 text-center">
+        {(
+          [
+            [t('summary.layout'), t(`layout.${data.layout}.label`), 1],
+            [t('summary.moments'), toPersianDigits(String(data.milestones.length)), 1],
+            [t('summary.look'), t(`theme.${data.theme}`), 2],
+          ] as const
+        ).map(([label, value, step]) => (
+          <div key={label} className="min-w-0 space-y-1">
+            <dt className="text-[11px] text-[#AAB6CD]">{label}</dt>
+            <dd className="truncate text-sm font-medium text-white">{value}</dd>
+            <button
+              type="button"
+              onClick={() => onEdit(step)}
+              className="text-[11px] text-[#CEB47B] underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#CEB47B]"
+            >
+              {t('summary.edit')}
+            </button>
+          </div>
+        ))}
+      </dl>
 
       <div className="space-y-4 rounded-2xl border border-[#CEB47B] bg-[#142039] p-5">
         <div className="flex flex-wrap items-center justify-between gap-2">
@@ -85,7 +116,29 @@ export function MapStep3({ exporter, format, onFormatChange, valid, aspect }: Pr
             {t('premium.downloadSvg')}
           </Button>
         </div>
-        {!valid && <p className="text-[12px] leading-6 text-[#E8D9B8]">{t('premium.incomplete')}</p>}
+        {!valid && (
+          <div role="status" className="space-y-1 text-[12px] leading-6 text-[#E8D9B8]">
+            {problems.length > 0 ? (
+              problems.map((problem) => (
+                <p key={problem}>
+                  {t(`problems.${problem}`, {
+                    min: toPersianDigits(String(MIN_MILESTONES)),
+                    max: toPersianDigits(String(maxMilestones(data.layout) || MAX_MILESTONES)),
+                  })}
+                </p>
+              ))
+            ) : (
+              <p>{t('premium.incomplete')}</p>
+            )}
+            <button
+              type="button"
+              onClick={() => onEdit(1)}
+              className="text-[#CEB47B] underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#CEB47B]"
+            >
+              {t('summary.fix')}
+            </button>
+          </div>
+        )}
         {exporter.notice && (
           <p role="alert" className="rounded-lg border border-red-300/30 px-3 py-2 text-[12px] leading-6 text-red-300">
             {exporter.notice === 'payment' ? t('premium.paymentUnavailable') : t('premium.error')}

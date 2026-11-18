@@ -1,5 +1,6 @@
 import { mulberry32 } from '../../moon/lib/random.ts';
 import { smoothOpenPath, type Point } from './map-geometry.ts';
+import { fitFont } from './fit-text.ts';
 import { artSrc, type MapArt } from './art.ts';
 import { iconMarkup, type IconPalette, type MapIcon } from './illustrations.ts';
 
@@ -229,13 +230,15 @@ export function roadSvg(stops: RoadStop[], p: RoadPalette, id: string, h: Helper
 
   stops.forEach((m, i) => {
     const s = plan.stops[i]!;
-    // the picture and its words, tilted a little together
+    // the picture and its words, tilted a little together; long words shrink to the room they have
+    const room = plan.compact ? 240 : 300;
+    const line = h.digits([m.city, m.date].filter(Boolean).join(' · '));
     const words = [
-      h.text(s.px, s.textY, plan.compact ? 22 : 24, 700, p.ink, m.title),
+      h.text(s.px, s.textY, fitFont(m.title, plan.compact ? 22 : 24, room), 700, p.ink, m.title),
       plan.compact
-        ? h.text(s.px, s.textY + 24, 15, 400, p.muted, h.digits([m.city, m.date].filter(Boolean).join(' · ')))
-        : h.text(s.px, s.textY + 26, 17, 400, p.muted, m.city),
-      !plan.compact && m.date ? h.text(s.px, s.textY + 49, 16, 400, p.accent, h.digits(m.date)) : '',
+        ? h.text(s.px, s.textY + 24, fitFont(line, 15, room), 400, p.muted, line)
+        : h.text(s.px, s.textY + 26, fitFont(m.city, 17, room), 400, p.muted, m.city),
+      !plan.compact && m.date ? h.text(s.px, s.textY + 49, fitFont(h.digits(m.date), 16, room), 400, p.accent, h.digits(m.date)) : '',
     ].join('');
     // the picture sits on the road: a clearing of paper hides the road behind it, so the road
     // runs up to the picture and out the other side

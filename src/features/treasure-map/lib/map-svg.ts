@@ -8,6 +8,7 @@ import { frameView, projectToPoster } from './mercator.ts';
 import { tilesFor, type TileSpec } from './tiles.ts';
 import type { MapIcon } from './illustrations.ts';
 import type { MapArt } from './art.ts';
+import { fitFont } from './fit-text.ts';
 import { roadSvg } from './road.ts';
 import {
   smoothClosedPath,
@@ -431,8 +432,10 @@ export function buildTreasureMapSvg(opts: TreasureMapOptions): string {
         `<circle cx="${n(c.x)}" cy="${n(py)}" r="10" fill="${p.accent}" stroke="${p.card}" stroke-width="3"/>`,
       );
       const base = c.y + c.r + 56;
-      parts.push(text(c.x, base, 28, 700, p.ink, m.title));
-      parts.push(text(c.x, base + 30, 18, 400, p.muted, m.city));
+      // long words get smaller instead of running into the next card
+      const room = c.r * 2 + 50;
+      parts.push(text(c.x, base, fitFont(m.title, 28, room), 700, p.ink, m.title));
+      parts.push(text(c.x, base + 30, fitFont(m.city, 18, room), 400, p.muted, m.city));
       if (m.date && hearted) {
         // set along the heart's right side, reading up towards the lobe, as on printed love maps
         const { side } = heartGeometry(c.x, c.y, c.r);
@@ -443,7 +446,7 @@ export function buildTreasureMapSvg(opts: TreasureMapOptions): string {
           `<text x="${n(x)}" y="${n(y)}" font-size="17" fill="${p.accent}" text-anchor="middle" dominant-baseline="middle" transform="rotate(${n(side.angle)} ${n(x)} ${n(y)})">${esc(toPersianDigits(m.date))}</text>`,
         );
       } else if (m.date) {
-        parts.push(text(c.x, base + 56, 16, 400, p.accent, toPersianDigits(m.date)));
+        parts.push(text(c.x, base + 56, fitFont(m.date, 16, room), 400, p.accent, toPersianDigits(m.date)));
       }
     });
   } else {
@@ -516,8 +519,8 @@ export function buildTreasureMapSvg(opts: TreasureMapOptions): string {
     parts.push(
       `<circle cx="${right - 14}" cy="${y + 14}" r="14" fill="${p.accent}"/>`,
       text(right - 14, y + 20, 15, 700, p.onAccent, toPersianDigits(String(i + 1))),
-      text(textCx, y + 12, 24, 700, p.ink, m.title),
-      text(textCx, y + 40, 17, 400, p.muted, toPersianDigits([m.city, m.date].filter(Boolean).join(' · '))),
+      text(textCx, y + 12, fitFont(m.title, 24, 300), 700, p.ink, m.title),
+      text(textCx, y + 40, fitFont(toPersianDigits([m.city, m.date].filter(Boolean).join(' · ')), 17, 300), 400, p.muted, toPersianDigits([m.city, m.date].filter(Boolean).join(' · '))),
     );
   });
 

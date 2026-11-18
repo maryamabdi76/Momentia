@@ -6,6 +6,8 @@ import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { FramePicker } from '@/features/poster/components/FramePicker';
+import { toPersianDigits } from '@/features/poster/lib/digits';
+import { MAX_LENGTH } from '../lib/sanitize';
 import { mapFrameColors, mapPaperColor, MAP_SHAPES, MAP_THEMES } from '../lib/map-svg';
 import type { TreasureMapValues } from '../lib/schemas';
 import { choiceClass, fieldClass } from './field-class';
@@ -23,6 +25,13 @@ export function MapStep2({ form, onNext, onBack }: Props) {
   const scope = useWatch({ control, name: 'scope' });
   const layout = useWatch({ control, name: 'layout' });
   const theme = useWatch({ control, name: 'theme' }) ?? 'paper';
+  const titleLength = [...(useWatch({ control, name: 'title' }) ?? '')].length;
+  const namesLength = [...(useWatch({ control, name: 'names' }) ?? '')].length;
+  const counter = (n: number, max: number) => (
+    <span className="text-[11px] text-[#AAB6CD]" aria-hidden>
+      {toPersianDigits(String(n))}/{toPersianDigits(String(max))}
+    </span>
+  );
 
   return (
     <div className="space-y-6">
@@ -34,12 +43,18 @@ export function MapStep2({ form, onNext, onBack }: Props) {
 
       <div className="space-y-4 rounded-2xl border border-[#33415B] bg-[#142039] p-5">
         <label className="block space-y-1.5">
-          <span className="text-[13px] font-medium text-[#E8D9B8]">{t('titleLabel')}</span>
-          <Input {...register('title')} maxLength={40} className={fieldClass} placeholder={t('titlePlaceholder')} />
+          <span className="flex items-center justify-between">
+            <span className="text-[13px] font-medium text-[#E8D9B8]">{t('titleLabel')}</span>
+            {counter(titleLength, MAX_LENGTH.title)}
+          </span>
+          <Input {...register('title')} maxLength={MAX_LENGTH.title} className={fieldClass} placeholder={t('titlePlaceholder')} />
         </label>
         <label className="block space-y-1.5">
-          <span className="text-[13px] font-medium text-[#E8D9B8]">{t('namesLabel')}</span>
-          <Input {...register('names')} maxLength={40} className={fieldClass} placeholder={t('namesPlaceholder')} />
+          <span className="flex items-center justify-between">
+            <span className="text-[13px] font-medium text-[#E8D9B8]">{t('namesLabel')}</span>
+            {counter(namesLength, MAX_LENGTH.names)}
+          </span>
+          <Input {...register('names')} maxLength={MAX_LENGTH.names} className={fieldClass} placeholder={t('namesPlaceholder')} />
         </label>
 
         <div className="space-y-2">

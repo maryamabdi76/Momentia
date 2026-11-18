@@ -9,6 +9,8 @@ import { Input } from '@/components/ui/input';
 import { IRAN_CITIES } from '@/features/poster/lib/cities';
 import { toPersianDigits } from '@/features/poster/lib/digits';
 import { MAP_LAYOUTS, MIN_MILESTONES, maxMilestones } from '../lib/map-svg';
+import { mapProblems } from '../lib/problems';
+import { MAX_LENGTH } from '../lib/sanitize';
 import type { TreasureMapValues } from '../lib/schemas';
 import { choiceClass, fieldClass } from './field-class';
 import { LayoutChoice } from './LayoutChoice';
@@ -37,10 +39,8 @@ export function MapStep1({ form, onNext }: Props) {
   const max = maxMilestones(layout);
   const milestones = useWatch({ control, name: 'milestones' }) ?? [];
 
-  const complete =
-    milestones.length >= MIN_MILESTONES &&
-    milestones.length <= max &&
-    milestones.every((m) => layout === 'road' || (m?.lat !== undefined && m?.lon !== undefined));
+  const problems = mapProblems({ layout, milestones });
+  const complete = problems.length === 0;
 
   // the words are optional; a map layout needs the place picked on the map
   const isDone = (m: (typeof milestones)[number] | undefined) => layout === 'road' || (m?.lat !== undefined && m?.lon !== undefined);
@@ -189,7 +189,7 @@ export function MapStep1({ form, onNext }: Props) {
                         <Input
                           id={`m-title-${field.id}`}
                           {...register(`milestones.${i}.title`)}
-                          maxLength={24}
+                          maxLength={MAX_LENGTH.momentTitle}
                           autoFocus={justAdded === i}
                           className={fieldClass}
                           placeholder={t('milestonePlaceholder')}
@@ -211,11 +211,11 @@ export function MapStep1({ form, onNext }: Props) {
                       </div>
                       <label className="block space-y-1.5">
                         <span className="text-[12px] text-[#AAB6CD]">{t('milestonePlace')}</span>
-                        <Input {...register(`milestones.${i}.city`)} maxLength={22} className={fieldClass} placeholder={t('placePlaceholder')} />
+                        <Input {...register(`milestones.${i}.city`)} maxLength={MAX_LENGTH.place} className={fieldClass} placeholder={t('placePlaceholder')} />
                       </label>
                       <label className="block space-y-1.5">
                         <span className="text-[12px] text-[#AAB6CD]">{t('milestoneDate')}</span>
-                        <Input {...register(`milestones.${i}.date`)} maxLength={18} className={fieldClass} placeholder={t('datePlaceholder')} />
+                        <Input {...register(`milestones.${i}.date`)} maxLength={MAX_LENGTH.date} className={fieldClass} placeholder={t('datePlaceholder')} />
                       </label>
                     </div>
                     {layout === 'road' ? (
@@ -291,10 +291,28 @@ export function MapStep1({ form, onNext }: Props) {
           {t('step1.next')}
           <ArrowLeft className="size-4" />
         </Button>
-        {milestones.length > max && (
-          <p className="text-[12px] leading-6 text-[#E8D9B8]">{t('layout.tooMany', { max: toPersianDigits(String(max)) })}</p>
+        {problems.map((problem) => (
+          <p key={problem} role="status" className="text-[12px] leading-6 text-[#E8D9B8]">
+            {t(`problems.${problem}`, {
+              min: toPersianDigits(String(MIN_MILESTONES)),
+              max: toPersianDigits(String(max)),
+            })}
+          </p>
+        ))}
+        {problems.includes('tooMany') && (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              remove(Array.from({ length: fields.length - max }, (_, k) => max + k));
+              setOpenIndex(0);
+            }}
+            className="h-8 border-[#CEB47B]/50 bg-transparent text-xs text-[#CEB47B] hover:bg-[#CEB47B]/10"
+          >
+            {t('problems.trim', { max: toPersianDigits(String(max)) })}
+          </Button>
         )}
-        {!complete && <p className="text-[12px] leading-6 text-[#E8D9B8]">{t('step1.incomplete')}</p>}
       </div>
 
       <PlacePicker
