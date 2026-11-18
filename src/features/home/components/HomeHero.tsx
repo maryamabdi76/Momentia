@@ -11,9 +11,10 @@ import { SAMPLE_NIGHT } from './sample-night';
 export async function HomeHero() {
   const t = await getTranslations('HomePage');
   const tMoon = await getTranslations('HomePage.moon');
+  const tChoose = await getTranslations('HomePage.choose');
   const { labels: moonLabels, factsFor } = await getMoonSamples();
   const moonFacts = factsFor(SAMPLE_NIGHT);
-  const { data: mapData, labels: mapLabels } = await getMapSample('paper');
+  const { data: mapData, labels: mapLabels } = await getMapSample('ink');
   const [line1, line2] = t('hero.title').split('\n');
 
   return (
@@ -45,16 +46,26 @@ export async function HomeHero() {
           {t('hero.description')}
         </p>
         <div data-animate="hero" className="mt-8">
-          <Button
-            asChild
-            size="lg"
-            className="bg-[#CEB47B] p-6! font-bold text-[#0c142b] hover:bg-[#e0c180] px-5 py-2 text-sm"
-          >
-            <a href="#choose">
-              {t('cta')}
-              <ArrowLeft data-icon="inline-end" />
-            </a>
-          </Button>
+          <div className="flex flex-wrap items-center gap-3">
+            <Button
+              asChild
+              size="lg"
+              className="bg-[#CEB47B] p-6! font-bold text-[#0c142b] hover:bg-[#e0c180] px-5 py-2 text-sm"
+            >
+              <a href="/map">
+                {tChoose('map.cta')}
+                <ArrowLeft data-icon="inline-end" />
+              </a>
+            </Button>
+            <Button
+              asChild
+              size="lg"
+              variant="outline"
+              className="border-white/15 bg-transparent p-6! text-sm text-[#E8D9B8] hover:bg-white/5 hover:text-[#E8D9B8]"
+            >
+              <a href="#choose">{t('hero.ctaAll')}</a>
+            </Button>
+          </div>
           <p className="mt-3 text-xs text-[#AAB6CD]">{t('hero.benefits')}</p>
         </div>
         <p
@@ -103,11 +114,11 @@ export async function HomeHero() {
               </svg>
             </div>
             <div className="relative aspect-4/5 w-full">
-              <div className="absolute -start-[10%] top-[20%] z-10 w-[75%] rotate-6 transform-gpu shadow-[0_30px_70px_-20px_rgba(0,0,0,0.65)]">
+              <div className="absolute -start-[14%] top-[6%] z-0 w-[56%] -rotate-6 transform-gpu shadow-[0_30px_70px_-20px_rgba(0,0,0,0.65)]">
                 <HomePosterPreview variant="gold" size="hero" />
               </div>
               {moonFacts ? (
-                <div className="absolute end-[0%] top-[2%] z-0 w-[75%] -rotate-6 transform-gpu shadow-[0_30px_70px_-20px_rgba(0,0,0,0.65)]">
+                <div className="absolute -end-[10%] top-[0%] z-0 w-[56%] rotate-6 transform-gpu shadow-[0_30px_70px_-20px_rgba(0,0,0,0.65)]">
                   <MoonPoster
                     className="[&>svg]:h-auto [&>svg]:max-w-none"
                     data={{
@@ -123,7 +134,7 @@ export async function HomeHero() {
                   />
                 </div>
               ) : null}
-              <div className="absolute -bottom-[2%] end-[-4%] z-20 w-[50%] rotate-3 transform-gpu shadow-[0_30px_70px_-20px_rgba(0,0,0,0.7)]">
+              <div className="absolute inset-x-[16%] top-[14%] z-20 transform-gpu rounded-sm shadow-[0_40px_90px_-20px_rgba(0,0,0,0.8)] ring-1 ring-[#CEB47B]/30">
                 <MapPoster data={mapData} labels={mapLabels} className="rounded-none shadow-none" />
               </div>
             </div>

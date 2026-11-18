@@ -41,13 +41,13 @@ export default function Home() {
       <HomeHeader />
       <HomeHero />
       <HomeChoosePoster />
+      <HomeMap />
       <Separator />
       <HomeStories />
       <HomeSteps />
       <HomeGifts />
       <HomeTestimonials />
       <HomeMoon />
-      <HomeMap />
       <HomeYalda />
       <HomeCreate />
       <HomeFaq />
