@@ -234,10 +234,9 @@ test('the road draws a watercolour picture for a moment that has one, linked or 
   assert.ok(linked.includes('href="/map-art/cafe.webp"') && linked.includes('href="/map-art/ring.webp"'));
   const embedded = buildTreasureMapSvg({ data, labels, watermark: false, artImages: { cafe: 'data:image/webp;base64,AAA', ring: 'data:image/webp;base64,BBB' } });
   assert.ok(embedded.includes('href="data:image/webp;base64,AAA"') && !embedded.includes('/map-art/'));
-  // a light patch only behind pictures on the dark theme
-  assert.ok(!linked.includes('#FBF8F1" fill-opacity="0.92"'));
+  // the picture is the cut-out in its own shape, never in a light square, on any theme
   const dark = buildTreasureMapSvg({ data: { ...data, theme: 'night' as const }, labels, watermark: false });
-  assert.equal(dark.match(/fill-opacity="0.92"/g)?.length, 2);
+  for (const svg of [linked, dark]) assert.ok(!svg.includes('#FBF8F1'), 'no patch behind a picture');
 });
 
 test('the ink theme draws pen versions of the pictures on a crisp road with more trees', () => {
@@ -269,24 +268,34 @@ test('a map with no title, names, place or date draws no empty text, and has no 
   }
 });
 
-test('the road winds across the sheet, in order, and its blocks stay on the page and apart', () => {
-  for (const count of [2, 3, 4, 5, 6, 7, 8]) {
+test('the road winds down the sheet, in order, with pictures on alternating sides that stay on the page and apart', () => {
+  for (const count of [1, 2, 3, 4, 5, 6, 7, 8]) {
     const { stops, road } = planRoad(count);
     assert.equal(stops.length, count);
     assert.ok(road.length > count);
-    // the first moment is at the right of the first pass
-    assert.ok(stops[0]!.x > 450);
-    for (const s of stops) {
-      assert.ok(s.px - s.r > 40 && s.px + s.r < 860, 'picture on the page');
-      assert.ok(s.py - s.r > 285 && s.bottom < 1275, 'block between the title and the foot');
-      assert.equal(s.py, s.y, 'the picture sits on the road');
-    }
-    // no two pictures overlap
+    // the first picture is at the right, then they alternate
+    assert.equal(stops[0]!.side, 1);
+    stops.forEach((s, i) => {
+      assert.equal(s.side, i % 2 === 0 ? 1 : -1);
+      assert.ok(s.px - s.boxW / 2 > 40 && s.px + s.boxW / 2 < 860, `${count}: picture on the page`);
+      assert.ok(s.py - s.boxH / 2 > 285 && s.bottom < 1275, `${count}: block between the title and the foot`);
+      assert.ok(road.some((r) => r.x === s.x && r.y === s.y), 'the pin sits on the road');
+    });
+    // no two pictures overlap, and a picture does not cover its own or another's words
     for (let i = 0; i < count; i++) {
       for (let j = i + 1; j < count; j++) {
         const a = stops[i]!;
         const b = stops[j]!;
-        assert.ok(Math.hypot(a.px - b.px, a.py - b.py) > a.r + b.r + 20, `${count}: ${i} and ${j} overlap`);
+        const apart = Math.abs(a.px - b.px) >= (a.boxW + b.boxW) / 2 || Math.abs(a.py - b.py) >= (a.boxH + b.boxH) / 2;
+        assert.ok(apart, `${count}: pictures ${i} and ${j} overlap`);
+      }
+      for (const w of stops) {
+        const a = stops[i]!;
+        const half = (count <= 4 ? 230 : 190) / 2 + 14;
+        const words = { l: w.x - half, r: w.x + half, t: w.textY - 66, b: w.bottom };
+        const pic = { l: a.px - a.boxW / 2, r: a.px + a.boxW / 2, t: a.py - a.boxH / 2, b: a.py + a.boxH / 2 };
+        const hit = pic.l < words.r && pic.r > words.l && pic.t < words.b && pic.b > words.t;
+        assert.ok(!hit, `${count}: picture ${i} covers words`);
       }
     }
   }
