@@ -62,8 +62,8 @@ export function planRoad(count: number, seed = 7): RoadPlan {
   const passes = Math.max(2, Math.ceil(count / 2));
   // few moments get big pictures; many get small ones so everything fits
   const compact = count > 6;
-  const scale = count <= 3 ? 1.4 : count <= 4 ? 1.3 : count <= 6 ? 1.1 : 0.95;
-  const textH = compact ? 62 : 96;
+  const scale = count <= 3 ? 1.5 : count <= 4 ? 1.38 : count <= 6 ? 1.1 : 0.95;
+  const textH = compact ? 84 : 122;
   // the biggest a picture can get, and the room its words need below it
   const rMax = 56 * scale * 1.12;
   const startMin = 300 + rMax + 26;
@@ -98,7 +98,7 @@ export function planRoad(count: number, seed = 7): RoadPlan {
         r: rr,
         scale: sz,
         tilt: (rnd() - 0.5) * 6,
-        textY: p.y + rr * 1.12 + 30,
+        textY: p.y + rr * 1.12 + (compact ? 50 : 62),
         bottom: p.y + rr * 1.12 + textH,
       });
     });
@@ -137,7 +137,33 @@ function sampleRoad(points: Point[], per = 10): Point[] {
   return out;
 }
 
-type Doodle = 'heart' | 'tree' | 'star' | 'sparkle' | 'cloud' | 'flower' | 'compass';
+type Doodle = 'heart' | 'tree' | 'star' | 'sparkle' | 'cloud' | 'flower' | 'compass' | 'leaf';
+
+/** A small branch with leaves, watercolour green; `tip` is where the stem starts, the leaves reach up from it. */
+function leafSprig(x: number, y: number, turn: number, size: number, dark: boolean, wrap?: (inner: string) => string): string {
+  const leaf = dark ? '#7F9C86' : '#8FA86A';
+  const edge = dark ? '#5E7A67' : '#6A8449';
+  const blade = (cx: number, cy: number, a: number, len: number) =>
+    `<path transform="translate(${cx} ${cy}) rotate(${a})" d="M0 0Q${len * 0.34} ${-len * 0.28} ${len} 0Q${len * 0.34} ${len * 0.28} 0 0Z" fill="${leaf}" fill-opacity="0.85" stroke="${edge}" stroke-opacity="0.6" stroke-width="0.8"/>`;
+  const inner =
+    `<path d="M0 0Q12-24 6-52" fill="none" stroke="${edge}" stroke-width="1.6" stroke-linecap="round"/>` +
+    blade(2, -10, -20, 20) + blade(3, -10, 190, 17) +
+    blade(7, -26, -35, 21) + blade(6, -27, 200, 18) +
+    blade(8, -40, -55, 18) + blade(7, -41, 215, 15) +
+    blade(6, -52, -80, 15);
+  if (wrap) return wrap(inner);
+  return `<g transform="translate(${x.toFixed(1)} ${y.toFixed(1)}) rotate(${turn.toFixed(1)}) scale(${size.toFixed(2)})">${inner}</g>`;
+}
+
+/** A teardrop pin with its number, tip at (x, y). */
+function pin(x: number, y: number, size: number, label: string, p: RoadPalette): string {
+  return (
+    `<g transform="translate(${x.toFixed(1)} ${y.toFixed(1)}) scale(${(size / 38).toFixed(3)})">` +
+    `<path d="M0 0C-4-9-14-15-14-25A14 14 0 1 1 14-25C14-15 4-9 0 0Z" fill="${p.accent}" stroke="${p.bg}" stroke-width="1.6"/>` +
+    `<text x="0" y="-20.5" font-size="12.5" font-weight="700" fill="${p.onAccent}" text-anchor="middle" direction="rtl">${label}</text>` +
+    `</g>`
+  );
+}
 
 function doodle(kind: Doodle, x: number, y: number, size: number, p: RoadPalette, turn: number, lineArt = false): string {
   // in line art a shape is outlined and left paper-coloured instead of washed with the accent
@@ -146,13 +172,15 @@ function doodle(kind: Doodle, x: number, y: number, size: number, p: RoadPalette
   const g = (inner: string) => `<g transform="translate(${x.toFixed(1)} ${y.toFixed(1)}) rotate(${turn.toFixed(1)}) scale(${(size / 40).toFixed(3)})">${inner}</g>`;
   switch (kind) {
     case 'heart':
-      return g(`<path d="M0 14C-18 2-16-12-6-13C-2-13.5 0-10 0-8C0-10 2-13.5 6-13C16-12 18 2 0 14Z" ${wash(0.75)} ${s}/>`);
+      return g(`<path d="M0 14C-18 2-16-12-6-13C-2-13.5 0-10 0-8C0-10 2-13.5 6-13C16-12 18 2 0 14Z" ${wash(lineArt ? 0.75 : 0.85)} ${lineArt ? s : ''}/>`);
     case 'tree':
       return g(`<path d="M0-18L-11 2H11ZM0-6L-14 12H14Z" fill="${p.park}" ${s}/><path d="M0 12V19" fill="none" ${s}/>`);
     case 'star':
       return g(`<path d="M0-15L4-4L15-3L7 5L9 16L0 10L-9 16L-7 5L-15-3L-4-4Z" ${wash(0.6)} ${s}/>`);
     case 'sparkle':
-      return g(`<path d="M0-14V14M-14 0H14M-7-7L7 7M7-7L-7 7" fill="none" stroke="${p.accent}" stroke-width="2.4" stroke-linecap="round"/>`);
+      return g(`<path d="M0-16Q1.5-1.5 16 0Q1.5 1.5 0 16Q-1.5 1.5-16 0Q-1.5-1.5 0-16Z" fill="${lineArt ? p.accent : '#C9A45C'}"/>`);
+    case 'leaf':
+      return leafSprig(0, 0, 0, 1, false, g);
     case 'cloud':
       return g(`<path d="M-16 8Q-22 8-20 0Q-18-6-11-4Q-9-14 2-12Q10-12 11-4Q20-4 18 4Q18 8 14 8Z" fill="${p.card}" ${s}/>`);
     case 'flower':
@@ -186,13 +214,13 @@ export function roadSvg(stops: RoadStop[], p: RoadPalette, id: string, h: Helper
   const look = h.lineArt
     ? { edge: p.ink, edgeOp: 1, edgeW: 31, sand: p.card, sandOp: 1, sandW: 27.8, lane: p.ink, laneOp: 0.8, laneW: 1.8, dash: '9 11' }
     : h.dark
-      ? { edge: '#E6D3A8', edgeOp: 0.85, edgeW: 32, sand: '#8A7552', sandOp: 0.55, sandW: 28.6, lane: '#F1E3BF', laneOp: 0.8, laneW: 2.2, dash: '2 10' }
-      : { edge: '#6E4E36', edgeOp: 0.9, edgeW: 32, sand: '#EBDCB8', sandOp: 1, sandW: 28.6, lane: '#8A6A4C', laneOp: 0.75, laneW: 2.4, dash: '2 10' };
+      ? { edge: '#E6D3A8', edgeOp: 0.7, edgeW: 24, sand: '#8A7552', sandOp: 0.5, sandW: 21.4, lane: '#F1E3BF', laneOp: 0.8, laneW: 1.8, dash: '7 8' }
+      : { edge: '#CDB68A', edgeOp: 0.95, edgeW: 24, sand: '#F2E5C6', sandOp: 1, sandW: 21.4, lane: '#A98E64', laneOp: 0.8, laneW: 1.7, dash: '7 8' };
   body.push(
     `<g filter="url(#${id}-paint)">` +
       `<path d="${road}" ${line} stroke="${look.edge}" stroke-opacity="${look.edgeOp}" stroke-width="${look.edgeW}"/>` +
       `<path d="${road}" ${line} stroke="${look.sand}" stroke-opacity="${look.sandOp}" stroke-width="${look.sandW}"/>` +
-      (h.lineArt ? '' : `<path d="${road}" ${line} stroke="#FFF6DC" stroke-opacity="0.35" stroke-width="12"/>`) +
+      (h.lineArt || h.dark ? '' : `<path d="${road}" ${line} stroke="#FFF9E8" stroke-opacity="0.5" stroke-width="9"/>`) +
       `<path d="${road}" ${line} stroke="${look.lane}" stroke-opacity="${look.laneOp}" stroke-width="${look.laneW}" stroke-dasharray="${look.dash}"/>` +
       `</g>`,
   );
@@ -211,7 +239,7 @@ export function roadSvg(stops: RoadStop[], p: RoadPalette, id: string, h: Helper
   // the line-art prints are full of small trees
   const kinds: Doodle[] = h.lineArt
     ? ['tree', 'tree', 'sparkle', 'tree', 'heart', 'tree', 'tree', 'flower', 'tree', 'star']
-    : ['heart', 'tree', 'star', 'sparkle', 'cloud', 'flower', 'heart', 'tree', 'sparkle'];
+    : ['heart', 'sparkle', 'leaf', 'sparkle', 'heart', 'leaf', 'sparkle'];
   const placed: string[] = [];
   const place = (kind: Doodle, size: number, tries: number) => {
     for (let i = 0; i < tries; i++) {
@@ -223,26 +251,35 @@ export function roadSvg(stops: RoadStop[], p: RoadPalette, id: string, h: Helper
       return;
     }
   };
-  place('compass', 58, 500);
-  const budget = (h.lineArt ? 30 : 12) + Math.max(0, 8 - stops.length) * 2;
+  if (h.lineArt) place('compass', 58, 500);
+  const budget = h.lineArt ? 30 + Math.max(0, 8 - stops.length) * 2 : 6 + Math.max(0, 8 - stops.length);
   for (let i = 0; i < budget; i++) place(kinds[i % kinds.length]!, 22 + rnd() * 14, 160);
   body.push(...placed);
+  // a branch in two opposite corners, over the frame's ornaments, like leaves laid on the print
+  if (!h.lineArt) {
+    body.unshift(leafSprig(78, 82, 128, 2.1, !!h.dark), leafSprig(822, 1268, -52, 2.1, !!h.dark));
+  }
 
   stops.forEach((m, i) => {
     const s = plan.stops[i]!;
     // the picture and its words, tilted a little together; long words shrink to the room they have
     const room = plan.compact ? 240 : 300;
     const line = h.digits([m.city, m.date].filter(Boolean).join(' · '));
+    const cityFont = fitFont(m.city, 17, room);
+    const cityHalf = (m.city.length * cityFont * 0.5) / 2 + 12;
+    const dash = (side: 1 | -1) =>
+      `<path d="M${n(s.px + side * cityHalf)} ${n(s.textY + 21)}h${side * 22}" stroke="${p.muted}" stroke-opacity="0.65" stroke-width="1.3" stroke-linecap="round"/>`;
     const words = [
-      h.text(s.px, s.textY, fitFont(m.title, plan.compact ? 22 : 24, room), 700, p.ink, m.title),
+      pin(s.px, s.textY - (plan.compact ? 24 : 30), plan.compact ? 30 : 38, h.digits(String(i + 1).padStart(2, '0')), p),
+      h.text(s.px, s.textY, fitFont(m.title, plan.compact ? 22 : 26, room), 700, p.ink, m.title),
       plan.compact
         ? h.text(s.px, s.textY + 24, fitFont(line, 15, room), 400, p.muted, line)
-        : h.text(s.px, s.textY + 26, fitFont(m.city, 17, room), 400, p.muted, m.city),
+        : h.text(s.px, s.textY + 26, cityFont, 400, p.muted, m.city) + (m.city.trim() ? dash(1) + dash(-1) : ''),
       !plan.compact && m.date ? h.text(s.px, s.textY + 49, fitFont(h.digits(m.date), 16, room), 400, p.accent, h.digits(m.date)) : '',
     ].join('');
     // the picture sits on the road: a clearing of paper hides the road behind it, so the road
     // runs up to the picture and out the other side
-    const clearing = `<ellipse cx="${n(s.px)}" cy="${n(s.py)}" rx="${n(s.r * 1.2)}" ry="${n(s.r * 1.12)}" fill="${p.bg}"/>`;
+    const clearing = `<ellipse cx="${n(s.px)}" cy="${n(s.py)}" rx="${n(s.r * 1.04)}" ry="${n(s.r * 0.98)}" fill="${p.bg}"/>`;
     const picture = m.art
       ? (h.dark ? `<rect x="${n(s.px - s.r)}" y="${n(s.py - s.r)}" width="${n(2 * s.r)}" height="${n(2 * s.r)}" rx="${n(s.r * 0.3)}" fill="#FBF8F1" fill-opacity="0.92"/>` : '') +
         `<image href="${h.artImages?.[m.art] ?? artSrc(m.art, h.lineArt ? 'line' : 'color')}" x="${n(s.px - s.r * 1.08)}" y="${n(s.py - s.r * 1.08)}" width="${n(s.r * 2.16)}" height="${n(s.r * 2.16)}" preserveAspectRatio="xMidYMid meet"/>`

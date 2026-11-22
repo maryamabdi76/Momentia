@@ -402,7 +402,16 @@ export function buildTreasureMapSvg(opts: TreasureMapOptions): string {
   const landscape = data.layout === 'cards';
   const [titleY, namesY] = landscape ? [150, 200] : [170, 232];
   parts.push(text(W / 2, titleY, titleFontSize(data.title), 700, p.ink, data.title));
-  if (data.names) parts.push(text(W / 2, namesY, 28, 400, p.muted, data.names));
+  if (data.names) {
+    parts.push(text(W / 2, namesY, 28, 400, p.muted, data.names));
+    if (data.layout === 'road') {
+      // a fine rule on each side of the names, like the printed love maps
+      const half = (data.names.length * 28 * 0.5) / 2 + 22;
+      const rule = (side: 1 | -1) =>
+        `<path d="M${n(W / 2 + side * half)} ${n(namesY - 9)}h${side * 150}" stroke="${p.muted}" stroke-opacity="0.55" stroke-width="1.4" stroke-linecap="round"/>`;
+      parts.push(rule(1), rule(-1));
+    }
+  }
 
   let usedTiles = false;
   let pins: Point[] = [];

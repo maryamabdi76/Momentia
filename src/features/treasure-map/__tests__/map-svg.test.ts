@@ -302,3 +302,12 @@ test('every illustration is drawn and ready to embed', () => {
     assert.ok(markup.startsWith('<') && !/undefined|NaN/.test(markup), icon);
   }
 });
+
+test('the road layout hangs a numbered pin on every moment and sets the names between two rules', () => {
+  const data = { ...city, layout: 'road' as const, milestones: places.map((m) => ({ title: m.title, city: m.city, date: m.date, icon: 'cafe' as const })) };
+  const svg = buildTreasureMapSvg({ data, labels });
+  for (const label of ['۰۱', '۰۲', '۰۳']) assert.ok(svg.includes(`>${label}</text>`), label);
+  assert.ok(!svg.includes('>۰۴</text>'));
+  // the pin sits between the picture and the words
+  assert.equal((svg.match(/stroke-opacity="0.55" stroke-width="1.4"/g) ?? []).length, 2);
+});
