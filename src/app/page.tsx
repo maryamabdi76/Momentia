@@ -5,15 +5,11 @@ import { SpaceBackdrop } from '@/features/home/components/SpaceBackdrop';
 import { HomeHeader } from '@/features/home/components/HomeHeader';
 import { HomeHero } from '@/features/home/components/HomeHero';
 import { HomeChoosePoster } from '@/features/home/components/HomeChoosePoster';
-import { HomeStories } from '@/features/home/components/HomeStories';
 import { HomeSteps } from '@/features/home/components/HomeSteps';
-import { HomeGifts } from '@/features/home/components/HomeGifts';
-import { HomeTestimonials } from '@/features/home/components/HomeTestimonials';
-import { HomeMoon } from '@/features/home/components/HomeMoon';
 import { HomeMap } from '@/features/home/components/HomeMap';
-import { HomeYalda } from '@/features/home/components/HomeYalda';
-import { HomeCreate } from '@/features/home/components/HomeCreate';
 import { HomeFaq } from '@/features/home/components/HomeFaq';
+import { HomeTrustStrip } from '@/features/home/components/HomeTrustStrip';
+import { HomeShare } from '@/features/home/components/HomeShare';
 import { HomeFinalCta } from '@/features/home/components/HomeFinalCta';
 import { HomeFooter } from '@/features/home/components/HomeFooter';
 import { Separator } from '@/components/ui/separator';
@@ -40,16 +36,12 @@ export default function Home() {
       <SpaceBackdrop />
       <HomeHeader />
       <HomeHero />
+      <HomeTrustStrip />
       <HomeChoosePoster />
       <HomeMap />
       <Separator />
-      <HomeStories />
       <HomeSteps />
-      <HomeGifts />
-      <HomeTestimonials />
-      <HomeMoon />
-      <HomeYalda />
-      <HomeCreate />
+      <HomeShare />
       <HomeFaq />
       <HomeFinalCta />
       <Separator />
