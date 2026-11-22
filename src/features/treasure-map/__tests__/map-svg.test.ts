@@ -305,7 +305,7 @@ test('every illustration is drawn and ready to embed', () => {
 
 test('the road layout hangs a numbered pin on every moment and sets the names between two rules', () => {
   const data = { ...city, layout: 'road' as const, milestones: places.map((m) => ({ title: m.title, city: m.city, date: m.date, icon: 'cafe' as const })) };
-  const svg = buildTreasureMapSvg({ data, labels });
+  const svg = buildTreasureMapSvg({ data, labels, watermark: false });
   for (const label of ['۰۱', '۰۲', '۰۳']) assert.ok(svg.includes(`>${label}</text>`), label);
   assert.ok(!svg.includes('>۰۴</text>'));
   // the pin sits between the picture and the words
