@@ -12,10 +12,11 @@ export async function HomeHero() {
   const t = await getTranslations('HomePage');
   const tMoon = await getTranslations('HomePage.moon');
   const tChoose = await getTranslations('HomePage.choose');
+  const tR = await getTranslations('HomePage.redesign.hero');
   const { labels: moonLabels, factsFor } = await getMoonSamples();
   const moonFacts = factsFor(SAMPLE_NIGHT);
   const { data: mapData, labels: mapLabels } = await getMapSample('ink');
-  const [line1, line2] = t('hero.title').split('\n');
+  const [line1, line2] = tR('title').split('\n');
 
   return (
     <section
@@ -25,14 +26,20 @@ export async function HomeHero() {
       <div className="order-2 md:order-1">
         <p
           data-animate="hero"
-          className="mb-5 flex items-center gap-2 text-xs text-[#CEB47B]"
+          className="mb-6 flex items-center gap-3 text-xs text-[#CEB47B]"
         >
-          <Sparkles className="size-4" />
-          {t('hero.eyebrow')}
+          <span className="rounded-full border border-[#CEB47B]/40 bg-[#CEB47B]/10 px-3 py-1 font-medium">
+            {tR('eyebrowTag')}
+          </span>
+          <span aria-hidden className="h-3 w-px bg-[#CEB47B]/40" />
+          <span className="flex items-center gap-1.5">
+            <Sparkles className="size-3.5" />
+            {tR('eyebrow')}
+          </span>
         </p>
         <h1
           data-animate="hero"
-          className="text-3xl font-semibold leading-[1.45] tracking-tight text-[#FFFDF8] md:text-5xl lg:text-6xl"
+          className="bg-linear-to-l from-[#FFF6DF] via-[#F3DFAE] to-[#EDB9AE] bg-clip-text text-4xl font-bold leading-[1.5] tracking-tight text-transparent md:text-5xl lg:text-6xl"
         >
           {line1}
           <br />
@@ -41,9 +48,9 @@ export async function HomeHero() {
         <div data-animate="hero" className="mt-6 h-px w-16 bg-[#CEB47B]" />
         <p
           data-animate="hero"
-          className="mt-6 text-sm leading-8 text-[#AAB6CD]"
+          className="mt-6 max-w-md text-base leading-9 text-[#B9C4DA]"
         >
-          {t('hero.description')}
+          {tR('description')}
         </p>
         <div data-animate="hero" className="mt-8">
           <div className="flex flex-wrap items-center gap-3">
@@ -137,6 +144,9 @@ export async function HomeHero() {
               <div className="absolute inset-x-[16%] top-[14%] z-20 transform-gpu rounded-sm shadow-[0_40px_90px_-20px_rgba(0,0,0,0.8)] ring-1 ring-[#CEB47B]/30">
                 <MapPoster data={mapData} labels={mapLabels} className="rounded-none shadow-none" />
               </div>
+              <p className="absolute inset-x-[22%] top-[88%] z-30 rounded-xl border border-white/10 bg-[#0e1634]/85 px-4 py-3 text-center text-xs font-medium text-[#E8D9B8] shadow-[0_18px_40px_-14px_rgba(0,0,0,0.8)] backdrop-blur-md">
+                {tR('ribbon')}
+              </p>
             </div>
           </div>
         </div>

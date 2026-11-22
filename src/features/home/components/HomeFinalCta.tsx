@@ -1,26 +1,27 @@
 import { getTranslations } from 'next-intl/server';
-import { ArrowLeft, Sparkles } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export async function HomeFinalCta() {
-  const t = await getTranslations('HomePage');
+  const t = await getTranslations('HomePage.redesign.finalCta');
+  const tChoose = await getTranslations('HomePage.choose');
 
   return (
     <section
       data-animate="reveal"
-      className="bg-[#142039] px-6 py-20 text-center"
+      className="relative overflow-hidden border-y border-[#CEB47B]/20 bg-[radial-gradient(80%_120%_at_50%_0%,rgba(104,64,190,0.35),rgba(14,22,52,0.7)_70%)] px-6 py-24 text-center"
     >
-      <Sparkles className="mx-auto block size-6 text-[#CEB47B]" />
-      <h2 className="mt-5 text-3xl font-semibold text-white">
-        {t('finalCta.title')}
+      <p className="text-xs text-[#CEB47B]">{t('eyebrow')}</p>
+      <h2 className="mt-5 text-3xl font-semibold leading-snug text-white md:text-5xl">
+        {t('title')}
       </h2>
-      <p className="mt-4 text-sm text-[#AAB6CD]">{t('finalCta.body')}</p>
+      <p className="mt-4 text-sm text-[#B9C4DA]">{t('body')}</p>
       <Button
         asChild
-        className="mt-7 p-6! bg-[#CEB47B] font-bold text-[#0c142b] hover:bg-[#e0c180]"
+        className="mt-8 bg-[#CEB47B] p-6! font-bold text-[#0c142b] hover:bg-[#e0c180]"
       >
-        <a href="/#choose">
-          {t('cta')}
+        <a href="/map">
+          {tChoose('map.cta')}
           <ArrowLeft data-icon="inline-end" />
         </a>
       </Button>

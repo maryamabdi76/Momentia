@@ -1,45 +1,44 @@
 import { getTranslations } from 'next-intl/server';
-import { Download, MoonStar, Type } from 'lucide-react';
 
-const STEP_ICONS = [MoonStar, Type, Download];
-
+/** The three steps hang on one dashed route, like the map itself. */
 export async function HomeSteps() {
-  const t = await getTranslations('HomePage.steps');
+  const t = await getTranslations('HomePage.redesign.steps');
 
   const items = [0, 1, 2].map((i) => ({
-    number: t(`items.${i}.number`),
+    number: `۰${i + 1}`,
     title: t(`items.${i}.title`),
     body: t(`items.${i}.body`),
   }));
 
   return (
-    <section id="steps" className="bg-[#142039] px-6 py-20">
+    <section id="steps" className="border-y border-white/10 bg-[#0a1230]/70 px-6 py-20 backdrop-blur-sm">
       <div className="mx-auto md:px-20">
         <h2
           data-animate="reveal"
-          className="text-center text-2xl font-semibold md:text-3xl"
+          className="text-2xl font-semibold leading-snug text-white md:text-4xl"
         >
           {t('title')}
         </h2>
-        <div
+        <ol
           data-animate="stagger"
-          className="mt-14 grid gap-12 md:grid-cols-3 md:gap-10"
+          className="relative mt-14 grid gap-12 md:grid-cols-3 md:gap-10"
         >
-          {items.map(({ number, title, body }, index) => {
-            const Icon = STEP_ICONS[index];
-            return (
-              <div key={number} data-animate-item className="group text-center">
-                <div className="mx-auto flex size-[4.5rem] items-center justify-center rounded-full border border-[#CEB47B]/25 bg-[#CEB47B]/5 ease-out transition-[translate,background-color,border-color,box-shadow] duration-300 motion-safe:group-hover:-translate-y-1.5 group-hover:border-[#CEB47B]/60 group-hover:bg-[#CEB47B]/10 group-hover:shadow-[0_0_32px_-6px_rgba(206,180,123,0.45)]">
-                  <Icon className="size-8 text-[#CEB47B]" />
-                </div>
-                <h3 className="mt-6 flex items-center justify-center gap-2 text-xl font-semibold text-[#CEB47B]">
-                  <div>{title}</div>
-                </h3>
-                <p className="mt-3 text-xs leading-7 text-[#AAB6CD]">{body}</p>
-              </div>
-            );
-          })}
-        </div>
+          <span
+            aria-hidden
+            className="absolute inset-x-[8%] top-7 hidden border-t-2 border-dashed border-[#CEB47B]/30 md:block"
+          />
+          {items.map(({ number, title, body }) => (
+            <li key={number} data-animate-item className="relative text-start">
+              <span className="relative inline-block bg-[#0a1230] pe-4 text-4xl font-bold text-[#CEB47B]">
+                {number}
+              </span>
+              <h3 className="mt-5 text-xl font-semibold text-white">{title}</h3>
+              <p className="mt-3 max-w-xs text-sm leading-8 text-[#AAB6CD]">
+                {body}
+              </p>
+            </li>
+          ))}
+        </ol>
       </div>
     </section>
   );

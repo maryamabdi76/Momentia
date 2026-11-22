@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { MAP_ART, artSrc, type MapArt } from '../lib/art';
+import { ART_GROUPS, MAP_ART, artSrc, type MapArt } from '../lib/art';
 import { iconMarkup, MAP_ICONS, type MapIcon } from '../lib/illustrations';
 
 // the drawn pictures are drawn in the paper theme's colours, on a paper-coloured tile
@@ -80,21 +80,30 @@ export function MapIconPicker({ value, onChange }: Props) {
             ))}
           </div>
           {kind === 'art' ? (
-            <div role="radiogroup" aria-label={t('pictureKind.art')} className="grid grid-cols-4 gap-2 sm:grid-cols-6">
-              {MAP_ART.map((art) => (
-                <button
-                  key={art}
-                  type="button"
-                  role="radio"
-                  aria-checked={value.art === art}
-                  aria-label={t(`art.${art}`)}
-                  title={t(`art.${art}`)}
-                  onClick={() => pick({ art })}
-                  className={tile(value.art === art)}
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element -- small decorative thumbnails of a fixed set */}
-                  <img src={artSrc(art)} alt="" loading="lazy" width={64} height={64} className="size-full object-contain" />
-                </button>
+            <div role="radiogroup" aria-label={t('pictureKind.art')} className="space-y-5">
+              {ART_GROUPS.map((group) => (
+                <section key={group.id} aria-labelledby={`art-group-${group.id}`} className="space-y-2">
+                  <h3 id={`art-group-${group.id}`} className="text-[13px] font-semibold text-[#E8D9B8]">
+                    {t(`artGroup.${group.id}`)}
+                  </h3>
+                  <div className="grid grid-cols-4 gap-2 sm:grid-cols-6">
+                    {group.arts.map((art) => (
+                      <button
+                        key={art}
+                        type="button"
+                        role="radio"
+                        aria-checked={value.art === art}
+                        aria-label={t(`art.${art}`)}
+                        title={t(`art.${art}`)}
+                        onClick={() => pick({ art })}
+                        className={tile(value.art === art)}
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element -- small decorative thumbnails of a fixed set */}
+                        <img src={artSrc(art)} alt="" loading="lazy" width={64} height={64} className="size-full object-contain" />
+                      </button>
+                    ))}
+                  </div>
+                </section>
               ))}
             </div>
           ) : (

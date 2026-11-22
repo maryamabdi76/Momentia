@@ -14,7 +14,7 @@ export async function getMapSample(theme: TreasureMapData['theme'] = 'paper') {
     area: 'تهران',
     theme,
     shape: 'circle',
-    frame: theme === 'ink' ? 'classic' : 'minimal',
+    frame: 'classic',
     showArea: true,
     showCoords: false,
     milestones: [
