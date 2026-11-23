@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ART_GROUPS, MAP_ART, artSrc, type MapArt } from '../lib/art';
-import { iconMarkup, MAP_ICONS, type MapIcon } from '../lib/illustrations';
+import { ICON_GROUPS, iconMarkup, type MapIcon } from '../lib/illustrations';
 
 // the drawn pictures are drawn in the paper theme's colours, on a paper-coloured tile
 const THUMB = { ink: '#2A2733', card: '#FBF8F1', accent: '#B4513C', land: '#EFE6D5', water: '#C9DADD', park: '#D8E1CC' };
@@ -107,24 +107,33 @@ export function MapIconPicker({ value, onChange }: Props) {
               ))}
             </div>
           ) : (
-            <div role="radiogroup" aria-label={t('pictureKind.drawn')} className="grid grid-cols-5 gap-2 sm:grid-cols-7">
-              {MAP_ICONS.map((icon) => {
-                const on = !value.art && (value.icon ?? 'star') === icon;
-                return (
-                  <button
-                    key={icon}
-                    type="button"
-                    role="radio"
-                    aria-checked={on}
-                    aria-label={t(`icons.${icon}`)}
-                    title={t(`icons.${icon}`)}
-                    onClick={() => pick({ icon })}
-                    className={tile(on)}
-                  >
-                    <svg viewBox="0 0 100 100" className="size-full" aria-hidden dangerouslySetInnerHTML={{ __html: iconMarkup(icon, THUMB) }} />
-                  </button>
-                );
-              })}
+            <div role="radiogroup" aria-label={t('pictureKind.drawn')} className="space-y-5">
+              {ICON_GROUPS.map((group) => (
+                <section key={group.id} aria-labelledby={`icon-group-${group.id}`} className="space-y-2">
+                  <h3 id={`icon-group-${group.id}`} className="text-[13px] font-semibold text-[#E8D9B8]">
+                    {t(`artGroup.${group.id}`)}
+                  </h3>
+                  <div className="grid grid-cols-4 gap-2 sm:grid-cols-6">
+                    {group.icons.map((icon) => {
+                      const on = !value.art && (value.icon ?? 'star') === icon;
+                      return (
+                        <button
+                          key={icon}
+                          type="button"
+                          role="radio"
+                          aria-checked={on}
+                          aria-label={t(`icons.${icon}`)}
+                          title={t(`icons.${icon}`)}
+                          onClick={() => pick({ icon })}
+                          className={tile(on)}
+                        >
+                          <svg viewBox="0 0 100 100" className="size-full" aria-hidden dangerouslySetInnerHTML={{ __html: iconMarkup(icon, THUMB) }} />
+                        </button>
+                      );
+                    })}
+                  </div>
+                </section>
+              ))}
             </div>
           )}
         </DialogContent>

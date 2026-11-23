@@ -12,8 +12,8 @@ export async function generateMetadata(): Promise<Metadata> {
   return shareMetadata({
     title: t('metaTitle'),
     description: t('metaDescription'),
-    image: SHARE_IMAGES.posters,
-    imageAlt: tMeta('shareImageAlt'),
+    image: SHARE_IMAGES.map,
+    imageAlt: t('shareImageAlt'),
     siteName: tMeta('title'),
     path: '/map',
   });

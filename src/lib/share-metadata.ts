@@ -9,6 +9,7 @@ export const SHARE_IMAGES = {
   create: '/og/create.jpg',
   moon: '/og/moon.jpg',
   posters: '/og/posters.jpg',
+  map: '/og/map.jpg',
 } as const;
 
 export type ShareInput = {
