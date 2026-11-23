@@ -44,7 +44,7 @@ export type MapShape = (typeof MAP_SHAPES)[number];
 export type MapTheme = (typeof MAP_THEMES)[number];
 
 /** `city` is a place name in the chosen city (city map) or an Iranian city (Iran map). */
-export type Milestone = { title: string; city: string; date: string; lat?: number; lon?: number; icon?: MapIcon; art?: MapArt };
+export type Milestone = { title: string; city: string; date: string; lat?: number; lon?: number; icon?: MapIcon; art?: MapArt; pen?: boolean };
 export type TreasureMapData = {
   title: string;
   names: string;
@@ -80,7 +80,7 @@ export type TreasureMapOptions = {
   /** Tile pictures as data: URIs, by tile URL, so an exported file stands on its own. */
   tileImages?: Record<string, string>;
   /** The watercolour pictures as data: URIs, by id, for the same reason; without them the files are linked. */
-  artImages?: Partial<Record<MapArt, string>>;
+  artImages?: Record<string, string>;
   /** The small site mark at the foot; the premium file leaves it out. */
   watermark: boolean;
   /** Zoom levels sharper than the preview; must match what `mapTiles` was asked for when the tile pictures were loaded. */

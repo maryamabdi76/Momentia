@@ -320,3 +320,15 @@ test('the road layout hangs a numbered pin on every moment and sets the names be
   // the pin sits between the picture and the words
   assert.equal((svg.match(/stroke-opacity="0.55" stroke-width="1.4"/g) ?? []).length, 2);
 });
+
+test('a moment set to the simple style draws the pen picture on any theme, linked or embedded', () => {
+  const data = {
+    ...city,
+    layout: 'road' as const,
+    milestones: places.map((m, i) => ({ title: m.title, city: m.city, date: m.date, art: (['cafe', 'ring', 'cake'] as const)[i % 3], ...(i === 0 ? { pen: true } : {}) })),
+  };
+  const linked = buildTreasureMapSvg({ data, labels, watermark: false });
+  assert.ok(linked.includes('href="/map-art/line/cafe.webp"') && linked.includes('href="/map-art/ring.webp"'));
+  const embedded = buildTreasureMapSvg({ data, labels, watermark: false, artImages: { 'cafe:line': 'data:image/webp;base64,LINE' } });
+  assert.ok(embedded.includes('href="data:image/webp;base64,LINE"'));
+});

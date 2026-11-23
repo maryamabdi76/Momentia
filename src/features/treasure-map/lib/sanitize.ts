@@ -62,6 +62,7 @@ export function sanitizeMap(raw: unknown): SanitizedMap | null {
         ...(placed ? { lat, lon } : {}),
         ...(icon ? { icon } : {}),
         ...(art ? { art } : {}),
+        ...(art && m.pen === true ? { pen: true } : {}),
       };
     });
   if (milestones.length < MIN_MILESTONES) return null;

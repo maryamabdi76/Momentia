@@ -1,5 +1,5 @@
 import { loadFonts, svgToPngBlob } from '@/features/poster/lib/export-poster';
-import { artSrc, type MapArt } from './art';
+import { artKey, artSrc, type ArtStyle } from './art';
 import {
   buildTreasureMapSvg,
   mapTiles,
@@ -56,17 +56,28 @@ export async function createMapSvg(input: {
 }): Promise<string> {
   const tiles = mapTiles(input.data, EXPORT_TILE_DETAIL);
   // the road's watercolour pictures, once each, embedded like the tiles
-  const arts = input.data.layout === 'road' ? [...new Set(input.data.milestones.flatMap((m) => (m.art ? [m.art] : [])))] : [];
+  const arts =
+    input.data.layout === 'road'
+      ? [
+          ...new Map(
+            input.data.milestones.flatMap((m) => {
+              if (!m.art) return [];
+              const style: ArtStyle = input.data.theme === 'ink' || m.pen ? 'line' : 'color';
+              return [[artKey(m.art, style), { id: m.art, style }] as const];
+            }),
+          ).entries(),
+        ]
+      : [];
   const [fonts, images, artImages] = await Promise.all([
     loadFonts(),
     Promise.all(tiles.map(async (t) => [t.url, await loadTileWithRetry(t.url)] as const)),
-    Promise.all(arts.map(async (a) => [a, await loadTileWithRetry(artSrc(a, input.data.theme === 'ink' ? 'line' : 'color'))] as const)),
+    Promise.all(arts.map(async ([key, a]) => [key, await loadTileWithRetry(artSrc(a.id, a.style))] as const)),
   ]);
   return buildTreasureMapSvg({
     ...input,
     fonts,
     tileImages: Object.fromEntries(images),
-    artImages: Object.fromEntries(artImages) as Partial<Record<MapArt, string>>,
+    artImages: Object.fromEntries(artImages),
     idPrefix: 'export',
     tileDetail: EXPORT_TILE_DETAIL,
   });

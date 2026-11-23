@@ -4,12 +4,12 @@ import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ART_GROUPS, MAP_ART, artSrc, type MapArt } from '../lib/art';
-import { iconMarkup, MAP_ICONS, type MapIcon } from '../lib/illustrations';
+import { iconMarkup, type MapIcon } from '../lib/illustrations';
 
 // the drawn pictures are drawn in the paper theme's colours, on a paper-coloured tile
 const THUMB = { ink: '#2A2733', card: '#FBF8F1', accent: '#B4513C', land: '#EFE6D5', water: '#C9DADD', park: '#D8E1CC' };
 
-export type PictureChoice = { icon?: MapIcon; art?: MapArt };
+export type PictureChoice = { icon?: MapIcon; art?: MapArt; pen?: boolean };
 
 type Props = {
   value: PictureChoice;
@@ -22,7 +22,7 @@ const tile = (on: boolean) =>
 export function Thumb({ value }: { value: PictureChoice }) {
   return value.art ? (
     // eslint-disable-next-line @next/next/no-img-element -- small decorative thumbnails of a fixed set
-    <img src={artSrc(value.art)} alt="" width={64} height={64} className="size-full object-contain" />
+    <img src={artSrc(value.art, value.pen ? 'line' : 'color')} alt="" width={64} height={64} className="size-full object-contain" />
   ) : (
     <svg viewBox="0 0 100 100" className="size-full" aria-hidden dangerouslySetInnerHTML={{ __html: iconMarkup(value.icon ?? 'star', THUMB) }} />
   );
@@ -36,7 +36,7 @@ export function MapIconPicker({ value, onChange }: Props) {
   const t = useTranslations('MapPage');
   const [open, setOpen] = useState(false);
   // an untouched moment shows the watercolour set first
-  const kind = value.art || !value.icon ? 'art' : 'drawn';
+  const kind = value.pen || (value.icon && !value.art) ? 'drawn' : 'art';
   const kinds = ['art', 'drawn'] as const;
   const name = value.art ? t(`art.${value.art}`) : t(`icons.${value.icon ?? 'star'}`);
   const pick = (choice: PictureChoice) => {
@@ -72,61 +72,42 @@ export function MapIconPicker({ value, onChange }: Props) {
                 type="button"
                 role="tab"
                 aria-selected={kind === k}
-                onClick={() => onChange(k === 'art' ? { art: value.art ?? MAP_ART[0] } : { icon: value.icon ?? 'star' })}
+                onClick={() => onChange({ art: value.art ?? MAP_ART[0], pen: k === 'drawn' })}
                 className={`rounded-full px-3 py-1.5 text-[13px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#CEB47B] ${kind === k ? 'bg-[#CEB47B] text-[#0c142b]' : 'text-[#AAB6CD] hover:bg-white/5'}`}
               >
                 {t(`pictureKind.${k}`)}
               </button>
             ))}
           </div>
-          {kind === 'art' ? (
-            <div role="radiogroup" aria-label={t('pictureKind.art')} className="space-y-5">
-              {ART_GROUPS.map((group) => (
-                <section key={group.id} aria-labelledby={`art-group-${group.id}`} className="space-y-2">
-                  <h3 id={`art-group-${group.id}`} className="text-[13px] font-semibold text-[#E8D9B8]">
-                    {t(`artGroup.${group.id}`)}
-                  </h3>
-                  <div className="grid grid-cols-4 gap-2 sm:grid-cols-6">
-                    {group.arts.map((art) => (
+          <div role="radiogroup" aria-label={t(`pictureKind.${kind}`)} className="space-y-5">
+            {ART_GROUPS.map((group) => (
+              <section key={group.id} aria-labelledby={`art-group-${group.id}`} className="space-y-2">
+                <h3 id={`art-group-${group.id}`} className="text-[13px] font-semibold text-[#E8D9B8]">
+                  {t(`artGroup.${group.id}`)}
+                </h3>
+                <div className="grid grid-cols-4 gap-2 sm:grid-cols-6">
+                  {group.arts.map((art) => {
+                    const on = value.art === art && Boolean(value.pen) === (kind === 'drawn');
+                    return (
                       <button
                         key={art}
                         type="button"
                         role="radio"
-                        aria-checked={value.art === art}
+                        aria-checked={on}
                         aria-label={t(`art.${art}`)}
                         title={t(`art.${art}`)}
-                        onClick={() => pick({ art })}
-                        className={tile(value.art === art)}
+                        onClick={() => pick(kind === 'drawn' ? { art, pen: true } : { art })}
+                        className={tile(on)}
                       >
                         {/* eslint-disable-next-line @next/next/no-img-element -- small decorative thumbnails of a fixed set */}
-                        <img src={artSrc(art)} alt="" loading="lazy" width={64} height={64} className="size-full object-contain" />
+                        <img src={artSrc(art, kind === 'drawn' ? 'line' : 'color')} alt="" loading="lazy" width={64} height={64} className="size-full object-contain" />
                       </button>
-                    ))}
-                  </div>
-                </section>
-              ))}
-            </div>
-          ) : (
-            <div role="radiogroup" aria-label={t('pictureKind.drawn')} className="grid grid-cols-5 gap-2 sm:grid-cols-7">
-              {MAP_ICONS.map((icon) => {
-                const on = !value.art && (value.icon ?? 'star') === icon;
-                return (
-                  <button
-                    key={icon}
-                    type="button"
-                    role="radio"
-                    aria-checked={on}
-                    aria-label={t(`icons.${icon}`)}
-                    title={t(`icons.${icon}`)}
-                    onClick={() => pick({ icon })}
-                    className={tile(on)}
-                  >
-                    <svg viewBox="0 0 100 100" className="size-full" aria-hidden dangerouslySetInnerHTML={{ __html: iconMarkup(icon, THUMB) }} />
-                  </button>
-                );
-              })}
-            </div>
-          )}
+                    );
+                  })}
+                </div>
+              </section>
+            ))}
+          </div>
         </DialogContent>
       </Dialog>
     </div>
