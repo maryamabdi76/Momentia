@@ -1,13 +1,13 @@
 import { mulberry32 } from '../../moon/lib/random.ts';
 import { smoothOpenPath, type Point } from './map-geometry.ts';
 import { fitFont } from './fit-text.ts';
-import { artKey, artSrc, type MapArt } from './art.ts';
+import { artSrc, type MapArt } from './art.ts';
 import { iconMarkup, type IconPalette, type MapIcon } from './illustrations.ts';
 
 /** What the road layout takes from the theme, on top of what the pictures need. */
 export type RoadPalette = IconPalette & { muted: string; onAccent: string; /** The paper, so a picture can clear the road behind it. */ bg: string };
 
-export type RoadStop = { title: string; city: string; date: string; icon?: MapIcon; art?: MapArt; pen?: boolean };
+export type RoadStop = { title: string; city: string; date: string; icon?: MapIcon; art?: MapArt };
 
 type Helpers = {
   /** Centred, right-to-left text. */
@@ -19,7 +19,7 @@ type Helpers = {
   /** The ink theme: black pen drawings, a crisp road and no colour fills. */
   lineArt?: boolean;
   /** Embedded pictures by id (an exported file); otherwise they are linked. */
-  artImages?: Record<string, string>;
+  artImages?: Partial<Record<MapArt, string>>;
 };
 
 export type RoadPlan = {
@@ -269,10 +269,9 @@ export function roadSvg(stops: RoadStop[], p: RoadPalette, id: string, h: Helper
     // the picture is the cut-out itself, in its own shape; pen drawings are transparent lines, so
     // they get a patch of paper to hide the road behind them
     const fit = Math.min(s.boxW, s.boxH);
-    const penned = h.lineArt || m.pen === true;
     const picture = m.art
-      ? (penned ? `<ellipse cx="${n(s.px)}" cy="${n(s.py)}" rx="${n(s.boxW * 0.46)}" ry="${n(s.boxH * 0.46)}" fill="${p.bg}"/>` : '') +
-        `<image href="${h.artImages?.[artKey(m.art, penned ? 'line' : 'color')] ?? artSrc(m.art, penned ? 'line' : 'color')}" x="${n(s.px - s.boxW / 2)}" y="${n(s.py - s.boxH / 2)}" width="${n(s.boxW)}" height="${n(s.boxH)}" preserveAspectRatio="xMidYMid meet"/>`
+      ? (h.lineArt ? `<ellipse cx="${n(s.px)}" cy="${n(s.py)}" rx="${n(s.boxW * 0.46)}" ry="${n(s.boxH * 0.46)}" fill="${p.bg}"/>` : '') +
+        `<image href="${h.artImages?.[m.art] ?? artSrc(m.art, h.lineArt ? 'line' : 'color')}" x="${n(s.px - s.boxW / 2)}" y="${n(s.py - s.boxH / 2)}" width="${n(s.boxW)}" height="${n(s.boxH)}" preserveAspectRatio="xMidYMid meet"/>`
       : `<circle cx="${n(s.px)}" cy="${n(s.py)}" r="${n(fit * 0.42)}" fill="${p.land}" fill-opacity="0.7"/>` +
         `<g filter="url(#${id}-wobble)" transform="translate(${n(s.px - fit * 0.4)} ${n(s.py - fit * 0.4)}) scale(${n((fit * 0.8) / 100 * 100) / 100})">${iconMarkup(m.icon ?? 'star', p)}</g>`;
     body.push(`<g transform="rotate(${n(s.tilt)} ${n(s.px)} ${n(s.py)})">${picture}</g>${words}${pinMark}`);

@@ -95,7 +95,6 @@ export function TreasureMapMaker() {
         lon: m?.lon,
         icon: m?.icon,
         art: m?.art,
-        pen: m?.pen,
       })),
     }),
     [watched],

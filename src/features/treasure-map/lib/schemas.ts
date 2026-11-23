@@ -21,8 +21,6 @@ export const milestoneSchema = z.object({
   icon: z.enum(MAP_ICONS).optional(),
   /** A ready-made watercolour picture; when set it is drawn instead of the icon. */
   art: z.enum(MAP_ART).optional(),
-  /** Draw the picture as a simple pen drawing, whatever the theme. */
-  pen: z.boolean().optional(),
 });
 
 export const treasureMapSchema = z

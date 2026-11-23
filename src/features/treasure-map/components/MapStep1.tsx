@@ -140,7 +140,7 @@ export function MapStep1({ form, onNext }: Props) {
                 <span
                   className={`absolute start-0 top-1.5 flex size-11 items-center justify-center rounded-full border-2 bg-[#F6F0E4] p-1 text-[#0c142b] transition-colors ${done ? 'border-[#CEB47B]' : 'border-white/20'}`}
                 >
-                  {layout === 'road' ? <Thumb value={{ icon: m?.icon, art: m?.art, pen: m?.pen }} /> : <MapPin className={`size-5 ${picked ? 'text-[#B4513C]' : 'opacity-40'}`} aria-hidden />}
+                  {layout === 'road' ? <Thumb value={{ icon: m?.icon, art: m?.art }} /> : <MapPin className={`size-5 ${picked ? 'text-[#B4513C]' : 'opacity-40'}`} aria-hidden />}
                 </span>
                 <div className={`rounded-2xl border transition-colors ${open ? 'border-[#CEB47B]/60 bg-[#CEB47B]/[0.06]' : 'border-white/10 bg-white/[0.03]'}`}>
                   <div className="flex items-center gap-1 p-1.5">
@@ -230,11 +230,10 @@ export function MapStep1({ form, onNext }: Props) {
                       </div>
                       {layout === 'road' ? (
                         <MapIconPicker
-                          value={{ icon: m?.icon, art: m?.art, pen: m?.pen }}
+                          value={{ icon: m?.icon, art: m?.art }}
                           onChange={(c) => {
                             setValue(`milestones.${i}.icon`, c.icon, { shouldDirty: true });
                             setValue(`milestones.${i}.art`, c.art, { shouldDirty: true });
-                            setValue(`milestones.${i}.pen`, c.pen, { shouldDirty: true });
                           }}
                         />
                       ) : (

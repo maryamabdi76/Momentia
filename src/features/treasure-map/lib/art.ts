@@ -130,8 +130,5 @@ export const ART_GROUPS: ReadonlyArray<{ id: string; arts: readonly MapArt[] }> 
 /** The same pictures also come as black pen drawings, for the ink theme. */
 export type ArtStyle = 'color' | 'line';
 
-/** The key a picture's embedded copy is stored under: pen drawings apart from the colour ones. */
-export const artKey = (id: MapArt, style: ArtStyle) => (style === 'line' ? `${id}:line` : id);
-
 /** Where a picture is served from. */
 export const artSrc = (id: MapArt, style: ArtStyle = 'color') => (style === 'line' ? `/map-art/line/${id}.webp` : `/map-art/${id}.webp`);
