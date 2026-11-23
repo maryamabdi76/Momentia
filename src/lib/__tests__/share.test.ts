@@ -88,3 +88,21 @@ test('the copy the pages ask for exists', () => {
     assert.ok(text.length <= 160, text);
   }
 });
+
+test('every public page sets its own link preview through shareMetadata', async () => {
+  const { readdirSync } = await import('node:fs');
+  const pages: string[] = [];
+  const walk = (dir: string) => {
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      const path = `${dir}/${entry.name}`;
+      if (entry.isDirectory()) walk(path);
+      else if (entry.name === 'page.tsx') pages.push(path);
+    }
+  };
+  walk(`${root}src/app`);
+  assert.ok(pages.length >= 10);
+  for (const page of pages) {
+    const source = readFileSync(page, 'utf8');
+    assert.ok(source.includes('shareMetadata('), `${page} has no share metadata`);
+  }
+});
