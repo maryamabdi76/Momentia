@@ -18,7 +18,7 @@ import { formatToman } from '../lib/digits';
 import type { ExportFormatId } from '../lib/export-formats';
 import { FormatPicker } from './FormatPicker';
 import { Button } from '@/components/ui/button';
-import { StepHeader } from '@/components/form/FormShell';
+import { StepHeader, ctaPrimary } from '@/components/form/FormShell';
 import type { PosterExport } from '../hooks/use-poster-export';
 import type { MomentData, PersonalizeData } from './CreateStepper';
 
@@ -123,7 +123,7 @@ export function Step3Receive({
           type="button"
           onClick={exporter.downloadPng}
           disabled={locked || exporter.busy !== null}
-          className="h-12 w-full gap-2 rounded-xl bg-[#CEB47B] text-base font-bold text-[#0c142b] shadow-lg shadow-[#CEB47B]/20 hover:bg-[#e0c180]"
+          className={`${ctaPrimary} w-full`}
         >
           {icon('png')}
           {t('downloadPng')}
@@ -177,7 +177,7 @@ export function Step3Receive({
         type="button"
         onClick={() => exporter.downloadPremium(format)}
         disabled={exporter.busy !== null}
-        className="h-12 w-full gap-2 rounded-xl bg-[#CEB47B] text-base font-bold text-[#0c142b] shadow-lg shadow-[#CEB47B]/20 hover:bg-[#e0c180]"
+        className={`${ctaPrimary} w-full`}
       >
         {icon('premium')}
         {!exporter.premiumUnlocked && PREMIUM_PRICE_TOMAN

@@ -11,7 +11,7 @@ import { MAX_LENGTH } from '../lib/sanitize';
 import { mapFrameColors, mapPaperColor, mapThemeSwatch, MAP_SHAPES, MAP_THEMES } from '../lib/map-svg';
 import type { TreasureMapValues } from '../lib/schemas';
 import { choiceClass, fieldClass } from './field-class';
-import { Panel, StepHeader } from '@/components/form/FormShell';
+import { ActionBar, Panel, StepHeader, ctaPrimary, ctaSecondary } from '@/components/form/FormShell';
 
 type Props = {
   form: UseFormReturn<TreasureMapValues>;
@@ -145,25 +145,18 @@ export function MapStep2({ form, onNext, onBack }: Props) {
         />
       </Panel>
 
-      <div className="grid grid-cols-[auto_1fr] gap-3">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={onBack}
-          className="h-12 gap-2 rounded-xl border-white/10 bg-transparent px-5 text-sm text-[#E8D9B8] hover:bg-white/5"
-        >
-          <ArrowRight className="size-4" />
-          {t('back')}
-        </Button>
-        <Button
-          type="button"
-          onClick={onNext}
-          className="h-12 gap-2 rounded-xl bg-[#CEB47B] text-sm font-bold text-[#0c142b] hover:bg-[#e0c180]"
-        >
-          {t('step2.next')}
-          <ArrowLeft className="size-4" />
-        </Button>
-      </div>
+      <ActionBar>
+        <div className="grid grid-cols-[auto_1fr] gap-3">
+          <Button type="button" variant="outline" onClick={onBack} className={`${ctaSecondary} px-5`}>
+            <ArrowRight className="size-4" />
+            {t('back')}
+          </Button>
+          <Button type="button" onClick={onNext} className={ctaPrimary}>
+            {t('step2.next')}
+            <ArrowLeft className="size-4" />
+          </Button>
+        </div>
+      </ActionBar>
     </div>
   );
 }

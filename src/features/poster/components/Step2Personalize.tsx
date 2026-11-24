@@ -11,7 +11,7 @@ import { useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { ArrowLeft, ArrowRight, Palette, Pencil, PenLine, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { StepHeader } from '@/components/form/FormShell';
+import { ActionBar, StepHeader, ctaPrimary, ctaSecondary } from '@/components/form/FormShell';
 import {
   personalizeSchema,
   type PersonalizeValues,
@@ -222,24 +222,18 @@ export function Step2Personalize({
       />
 
       {/* CTA buttons */}
-      <div className="flex gap-3 pt-2">
-        <Button
-          type="button"
-          variant="outline"
-          className="h-12 flex-1 gap-2 rounded-xl border-white/10 bg-transparent text-[#E8D9B8] hover:bg-white/5 hover:text-[#E8D9B8]"
-          onClick={onBack}
-        >
-          <ArrowRight className="size-4" />
-          {t('ctaBack')}
-        </Button>
-        <Button
-          type="submit"
-          className="h-12 flex-1 gap-2 rounded-xl bg-[#CEB47B] text-base font-bold text-[#0c142b] hover:bg-[#e0c180]"
-        >
-          {t('ctaNext')}
-          <ArrowLeft className="size-4" />
-        </Button>
-      </div>
+      <ActionBar>
+        <div className="flex gap-3">
+          <Button type="button" variant="outline" className={`${ctaSecondary} flex-1`} onClick={onBack}>
+            <ArrowRight className="size-4" />
+            {t('ctaBack')}
+          </Button>
+          <Button type="submit" className={`${ctaPrimary} flex-[1.4]`}>
+            {t('ctaNext')}
+            <ArrowLeft className="size-4" />
+          </Button>
+        </div>
+      </ActionBar>
 
       <p className="flex items-center justify-start gap-1.5 text-xs text-[#AAB6CD]">
         <ShieldCheck className="size-3.5" />

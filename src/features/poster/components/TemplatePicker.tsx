@@ -26,6 +26,7 @@ export function TemplatePicker({ value, onChange }: Props) {
         value={value}
         onChange={onChange}
         className="grid grid-cols-2 gap-2.5"
+        badge
         choices={POSTER_TEMPLATES.map((tpl) => ({
           value: tpl,
           content: (
