@@ -1,5 +1,7 @@
 'use client';
 
+import { Celebrate } from '@/components/form/Celebrate';
+import { StepTransition } from '@/components/form/StepTransition';
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm, useWatch } from 'react-hook-form';
@@ -169,20 +171,23 @@ export function TreasureMapMaker() {
                 <MapPoster data={current} labels={labels} />
               </PreviewPeek>
             )}
-            {ready && activeStep === 1 && <MapStep1 form={form} onNext={() => goTo(2)} />}
-            {ready && activeStep === 2 && <MapStep2 form={form} onNext={() => goTo(3)} onBack={() => goTo(1)} />}
-            {ready && activeStep === 3 && (
-              <MapStep3
-                exporter={exporter}
-                format={format}
-                onFormatChange={setFormat}
-                valid={valid}
-                problems={problems}
-                data={current}
-                onEdit={goTo}
-                aspect={mapAspect(current.layout)}
-              />
-            )}
+            <StepTransition key={activeStep}>
+              {activeStep === 3 && <Celebrate />}
+              {ready && activeStep === 1 && <MapStep1 form={form} onNext={() => goTo(2)} />}
+              {ready && activeStep === 2 && <MapStep2 form={form} onNext={() => goTo(3)} onBack={() => goTo(1)} />}
+              {ready && activeStep === 3 && (
+                <MapStep3
+                  exporter={exporter}
+                  format={format}
+                  onFormatChange={setFormat}
+                  valid={valid}
+                  problems={problems}
+                  data={current}
+                  onEdit={goTo}
+                  aspect={mapAspect(current.layout)}
+                />
+              )}
+            </StepTransition>
           </section>
           <MapPreview
             step={activeStep}

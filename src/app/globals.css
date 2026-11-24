@@ -141,3 +141,18 @@
     opacity: 0;
   }
 }
+
+/* a short burst of gold sparks, played once when a poster is ready (see Celebrate) */
+@keyframes spark-burst {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.2) rotate(0deg);
+  }
+  18% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--spark-x), var(--spark-y)) scale(1) rotate(200deg);
+  }
+}
