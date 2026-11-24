@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { PosterPreview, type PosterData } from './PosterPreview';
 import { Dims } from './FormatPicker';
 import { FormatPreviewFrame } from './FormatPreviewFrame';
+import { PreviewPeek } from '@/components/form/PreviewPeek';
 import { ShareActions } from './ShareActions';
 import { SceneToggle, type PreviewScene } from './SceneToggle';
 import { WallScene } from './WallScene';
@@ -86,7 +87,29 @@ export function CreatePreview({
   const shownFormat = getExportFormat(shown);
   const shownSpec = formatSpec(shownFormat);
 
+  const posterNode = () => (
+    <FormatPreviewFrame format="poster" style={poster.style ?? 'gold'}>
+      <PosterPreview
+        data={poster}
+        sky={sky}
+        showDisclaimer={false}
+        labels={{
+          headerLine: tPoster('headerLine'),
+          north: tPoster('north'),
+          south: tPoster('south'),
+          east: tPoster('east'),
+          west: tPoster('west'),
+          mapAlt: tPoster('mapAlt'),
+          watermark: tPoster('watermark'),
+          disclaimer: tPoster('disclaimer'),
+          timeAt: tPoster('timeAt'),
+        }}
+      />
+    </FormatPreviewFrame>
+  );
+
   return (
+    <>
     <aside className="flex w-full min-w-0 flex-col gap-5 md:sticky md:top-8">
       <div className="rounded-xl m-auto w-full bg-[#F4EFE6] p-6 text-[#1c2540]">
         <div className="flex items-center justify-between text-sm">
@@ -211,5 +234,11 @@ export function CreatePreview({
         </>
       )}
     </aside>
+    {step < 3 && (
+      <PreviewPeek label={t('preview.peek')} title={t('preview.title')} thumb={posterNode()}>
+        {posterNode()}
+      </PreviewPeek>
+    )}
+    </>
   );
 }

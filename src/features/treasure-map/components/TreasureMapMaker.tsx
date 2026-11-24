@@ -19,7 +19,8 @@ import { treasureMapSchema, type TreasureMapValues } from '../lib/schemas';
 import { StepRoute } from '@/components/form/StepRoute';
 import { MapPreview } from './MapPreview';
 
-import { MobilePreview } from './MobilePreview';
+import { PreviewPeek } from '@/components/form/PreviewPeek';
+import { MapPoster } from './MapPoster';
 import { MapStep1 } from './MapStep1';
 import { MapStep2 } from './MapStep2';
 import { MapStep3 } from './MapStep3';
@@ -158,9 +159,16 @@ export function TreasureMapMaker() {
       <div className="mx-auto px-6 py-10 md:px-20 md:py-16">
         <div className="grid gap-10 md:grid-cols-2 md:items-start md:gap-16">
           <section className="min-w-0">
-            <div className="mb-6 md:hidden">
-              <MobilePreview data={current} labels={labels} />
-            </div>
+            {activeStep < 3 && (
+              <PreviewPeek
+                label={t('mobilePreview')}
+                title={t('preview.title')}
+                note={t('preview.note')}
+                thumb={<MapPoster data={current} labels={labels} />}
+              >
+                <MapPoster data={current} labels={labels} />
+              </PreviewPeek>
+            )}
             {ready && activeStep === 1 && <MapStep1 form={form} onNext={() => goTo(2)} />}
             {ready && activeStep === 2 && <MapStep2 form={form} onNext={() => goTo(3)} onBack={() => goTo(1)} />}
             {ready && activeStep === 3 && (
