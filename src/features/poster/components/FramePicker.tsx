@@ -56,6 +56,7 @@ export function FramePicker({ value, onChange, style = 'gold', colors }: Props) 
       onChange={onChange}
       className="grid grid-cols-4 gap-2"
       choiceClassName="p-2"
+      badge
       choices={POSTER_FRAMES.map((frame) => ({
         value: frame,
         // what each one is, for a pointer that hovers

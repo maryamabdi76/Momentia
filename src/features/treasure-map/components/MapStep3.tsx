@@ -13,7 +13,7 @@ import type { MapExport } from '../hooks/use-map-export';
 import { MAX_MILESTONES, MIN_MILESTONES, maxMilestones } from '../lib/map-svg';
 import type { MapProblem } from '../lib/problems';
 import type { TreasureMapValues } from '../lib/schemas';
-import { StepHeader } from '@/components/form/FormShell';
+import { StepHeader, ctaPrimary } from '@/components/form/FormShell';
 
 type Props = {
   exporter: MapExport;
@@ -92,7 +92,7 @@ export function MapStep3({ exporter, format, onFormatChange, valid, problems, da
             type="button"
             onClick={() => exporter.downloadPremium(format)}
             disabled={!valid || exporter.busy !== null}
-            className="h-13 w-full gap-2 rounded-xl bg-[#CEB47B] text-base font-bold text-[#0c142b] shadow-lg shadow-[#CEB47B]/20 hover:bg-[#e0c180]"
+            className={`${ctaPrimary} w-full`}
           >
             {exporter.busy === 'premium' ? (
               <Loader2 className="size-4 animate-spin" />

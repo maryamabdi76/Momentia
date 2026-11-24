@@ -10,6 +10,7 @@ import type { MomentData } from '@/features/poster/components/CreateStepper';
 import { Dims } from '@/features/poster/components/FormatPicker';
 import { FormatPreviewFrame } from '@/features/poster/components/FormatPreviewFrame';
 import { SceneToggle, type PreviewScene } from '@/features/poster/components/SceneToggle';
+import { PreviewPeek } from '@/components/form/PreviewPeek';
 import { ShareActions, type GiftStatus } from '@/features/poster/components/ShareActions';
 import { WallScene } from '@/features/poster/components/WallScene';
 import type { PosterExport } from '@/features/poster/hooks/use-poster-export';
@@ -75,7 +76,8 @@ export function MoonPreview({ step, poster, sky, moment, onBack, exporter, forma
   );
 
   return (
-    <aside className="flex w-full flex-col gap-5 md:sticky md:top-8">
+    <>
+    <aside className="flex w-full min-w-0 flex-col gap-5 md:sticky md:top-8">
       <div className="m-auto w-full rounded-xl bg-[#F4EFE6] p-6 text-[#1c2540]">
         <div className="flex items-center justify-between text-sm">
           <span className="font-medium">{t('preview.title')}</span>
@@ -146,5 +148,11 @@ export function MoonPreview({ step, poster, sky, moment, onBack, exporter, forma
         </>
       )}
     </aside>
+    {step < 3 && (
+      <PreviewPeek label={tPreview('preview.peek')} title={t('preview.title')} thumb={framed('poster')}>
+        {framed('poster')}
+      </PreviewPeek>
+    )}
+    </>
   );
 }

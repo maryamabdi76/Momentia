@@ -13,7 +13,7 @@ import { mapProblems } from '../lib/problems';
 import { MAX_LENGTH } from '../lib/sanitize';
 import type { TreasureMapValues } from '../lib/schemas';
 import { fieldClass } from './field-class';
-import { Panel, StepHeader, Toggle } from '@/components/form/FormShell';
+import { ActionBar, Panel, StepHeader, Toggle, ctaPrimary } from '@/components/form/FormShell';
 import { LayoutChoice } from './LayoutChoice';
 import { MapIconPicker, Thumb } from './MapIconPicker';
 import { PlacePicker } from './PlacePicker';
@@ -296,12 +296,12 @@ export function MapStep1({ form, onNext }: Props) {
         </p>
       </Panel>
 
-      <div className="sticky bottom-3 z-10 space-y-2 rounded-2xl border border-white/10 bg-[#0c142b]/90 p-2 shadow-2xl shadow-black/40 backdrop-blur">
+      <ActionBar>
         <Button
           type="button"
           onClick={onNext}
           disabled={!complete}
-          className="h-12 w-full gap-2 rounded-xl bg-[#CEB47B] text-sm font-bold text-[#0c142b] hover:bg-[#e0c180]"
+          className={`${ctaPrimary} w-full disabled:opacity-50 disabled:shadow-none`}
         >
           {t('step1.next')}
           <ArrowLeft className="size-4" />
@@ -328,7 +328,7 @@ export function MapStep1({ form, onNext }: Props) {
             {t('problems.trim', { max: toPersianDigits(String(max)) })}
           </Button>
         )}
-      </div>
+      </ActionBar>
 
       <PlacePicker
         open={pickerFor !== null}

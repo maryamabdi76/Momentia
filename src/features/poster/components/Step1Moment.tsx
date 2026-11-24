@@ -11,7 +11,7 @@ import {
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Sparkles, ArrowLeft, Moon, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Panel, StepHeader } from '@/components/form/FormShell';
+import { ActionBar, Panel, StepHeader, ctaPrimary } from '@/components/form/FormShell';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -281,13 +281,12 @@ export function Step1Moment({ data, onChange, onNext }: Props) {
       </div>
 
       {/* CTA */}
-      <Button
-        type="submit"
-        className="h-12 w-full gap-2 rounded-xl bg-[#CEB47B] text-base font-bold text-[#0c142b] hover:bg-[#e0c180]"
-      >
-        {t('cta')}
-        <ArrowLeft className="size-4" />
-      </Button>
+      <ActionBar>
+        <Button type="submit" className={`${ctaPrimary} w-full`}>
+          {t('cta')}
+          <ArrowLeft className="size-4" />
+        </Button>
+      </ActionBar>
 
       <p className="flex gap-2 text-sm text-[#AAB6CD]">
         <ShieldCheck className="size-4" /> {t('noAccount')}
@@ -307,7 +306,7 @@ function SelectField({
 }) {
   return (
     <Select value={value} onValueChange={onChange}>
-      <SelectTrigger className="h-12 w-full rounded-xl border-white/10 bg-[#0a1226]/80 py-6! text-base">
+      <SelectTrigger className="h-12 w-full rounded-2xl border-white/10 bg-[#0a1226]/85 py-6! text-base">
         <SelectValue />
       </SelectTrigger>
       <SelectContent className="bg-[#0c1a38] border-white/15 text-white max-h-64">

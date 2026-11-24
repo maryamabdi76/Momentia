@@ -1,5 +1,7 @@
 'use client';
 
+import { Celebrate } from '@/components/form/Celebrate';
+import { StepTransition } from '@/components/form/StepTransition';
 import { Suspense, useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
@@ -158,32 +160,35 @@ function StepperInner() {
 
       <div className="mx-auto px-6 py-10 md:px-20 md:py-16">
         <div className="grid gap-10 md:grid-cols-2 md:items-start md:gap-16">
-          <section className="col-span-1">
-            {restored && step === 1 && (
-              <Step1Moment
-                data={moment}
-                onChange={setMoment}
-                onNext={() => goTo(2)}
-              />
-            )}
-            {restored && step === 2 && (
-              <MoonStep2
-                data={personal}
-                moment={moment}
-                onChange={setPersonal}
-                onNext={() => goTo(3)}
-                onBack={() => goTo(1)}
-              />
-            )}
-            {restored && step === 3 && (
-              <Step3Receive
-                personal={personal}
-                moment={moment}
-                exporter={exporter}
-                format={format}
-                onFormatChange={setFormat}
-              />
-            )}
+          <section className="col-span-1 min-w-0">
+            <StepTransition key={step}>
+              {step === 3 && <Celebrate />}
+              {restored && step === 1 && (
+                <Step1Moment
+                  data={moment}
+                  onChange={setMoment}
+                  onNext={() => goTo(2)}
+                />
+              )}
+              {restored && step === 2 && (
+                <MoonStep2
+                  data={personal}
+                  moment={moment}
+                  onChange={setPersonal}
+                  onNext={() => goTo(3)}
+                  onBack={() => goTo(1)}
+                />
+              )}
+              {restored && step === 3 && (
+                <Step3Receive
+                  personal={personal}
+                  moment={moment}
+                  exporter={exporter}
+                  format={format}
+                  onFormatChange={setFormat}
+                />
+              )}
+            </StepTransition>
           </section>
 
           <MoonPreview

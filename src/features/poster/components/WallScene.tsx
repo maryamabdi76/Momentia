@@ -1,23 +1,25 @@
 import type { ReactNode } from 'react';
 import Image from 'next/image';
-import { WALL_MOCKUP, frameBox } from '../lib/wall-mockup';
+import { frameBox, mockupFor } from '../lib/wall-mockup';
 
 /**
  * A real room photo with a blank frame; the poster preview is placed inside that frame.
  * The photo and the frame's position come from `wall-mockup.ts`.
  */
 export function WallScene({ children, label, aspect = 2 / 3 }: { children: ReactNode; label: string; /** Width ÷ height of the print; a wide one fits the frame's width instead of its height. */ aspect?: number }) {
-  const box = frameBox(WALL_MOCKUP);
+  // a wide print hangs in the room with a wide frame; a tall one in the room with a tall frame
+  const mockup = mockupFor(aspect);
+  const box = frameBox(mockup);
 
   return (
     <div
       role="img"
       aria-label={label}
       className="relative mx-auto w-full max-w-sm overflow-hidden rounded-xl"
-      style={{ aspectRatio: `${WALL_MOCKUP.width} / ${WALL_MOCKUP.height}` }}
+      style={{ aspectRatio: `${mockup.width} / ${mockup.height}` }}
     >
       <Image
-        src={WALL_MOCKUP.src}
+        src={mockup.src}
         alt=""
         fill
         sizes="(min-width: 640px) 384px, 100vw"
@@ -34,7 +36,7 @@ export function WallScene({ children, label, aspect = 2 / 3 }: { children: React
         }}
       >
         {/* a tall print fits the frame's height and the paper shows at the sides; a wide one fits its width */}
-        <div className={`${aspect >= 1 ? 'w-full self-center' : 'h-full'}`} style={{ aspectRatio: String(aspect) }}>
+        <div className={aspect >= 1 ? 'w-full self-center' : 'h-full'} style={{ aspectRatio: String(aspect) }}>
           {children}
         </div>
         {/* the wall's light falling on the print */}

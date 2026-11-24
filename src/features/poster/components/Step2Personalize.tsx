@@ -9,9 +9,10 @@ import {
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect } from 'react';
 import { useTranslations } from 'next-intl';
-import { ArrowLeft, ArrowRight, Palette, Pencil, PenLine, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Baby, Cake, Gem, Heart, Moon, Palette, Pencil, PenLine, ShieldCheck, Sparkles } from 'lucide-react';
+import { cn } from 'cn';
 import { Button } from '@/components/ui/button';
-import { StepHeader } from '@/components/form/FormShell';
+import { ActionBar, StepHeader, ctaPrimary, ctaSecondary } from '@/components/form/FormShell';
 import {
   personalizeSchema,
   type PersonalizeValues,
@@ -33,6 +34,9 @@ type Props = {
   onBack: () => void;
   onEditMoment?: () => void;
 };
+
+/** One icon for each starting idea, in the order of `ideas.items`. */
+const IDEA_ICONS = [Heart, Cake, Sparkles, Baby, Gem, Moon] as const;
 
 export function Step2Personalize({
   data,
@@ -120,20 +124,41 @@ export function Step2Personalize({
         {/* Starting ideas: an empty text box is the main place people stall */}
         <div className="space-y-2">
           <p className="text-[13px] font-medium text-[#E8D9B8]">{t('ideas.label')}</p>
-          <div className="flex flex-wrap gap-2">
-            {[0, 1, 2, 3, 4, 5].map((i) => (
-              <button
-                key={i}
-                type="button"
-                onClick={() => {
-                  setValue('title', t(`ideas.items.${i}.title`), { shouldDirty: true });
-                  setValue('quote', t(`ideas.items.${i}.quote`), { shouldDirty: true });
-                }}
-                className="cursor-pointer rounded-full border border-white/10 px-3 py-1.5 text-xs text-[#E8D9B8] transition-colors hover:border-[#CEB47B]/60 hover:bg-[#CEB47B]/10 focus-visible:ring-2 focus-visible:ring-[#CEB47B]/50 focus-visible:outline-none"
-              >
-                {t(`ideas.items.${i}.label`)}
-              </button>
-            ))}
+          {/* a row of cards that scrolls sideways, each showing the sentence it would write */}
+          <div className="-mx-5 flex snap-x snap-mandatory gap-2.5 overflow-x-auto px-5 pb-2 md:-mx-7 md:px-7 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {[0, 1, 2, 3, 4, 5].map((i) => {
+              const Icon = IDEA_ICONS[i] ?? Sparkles;
+              const on = watched.title === t(`ideas.items.${i}.title`) && watched.quote === t(`ideas.items.${i}.quote`);
+              return (
+                <button
+                  key={i}
+                  type="button"
+                  aria-pressed={on}
+                  onClick={() => {
+                    setValue('title', t(`ideas.items.${i}.title`), { shouldDirty: true });
+                    setValue('quote', t(`ideas.items.${i}.quote`), { shouldDirty: true });
+                  }}
+                  className={cn(
+                    'flex w-40 shrink-0 cursor-pointer snap-start flex-col gap-2 rounded-2xl border p-3.5 text-start outline-none transition-all focus-visible:ring-2 focus-visible:ring-[#CEB47B]/60 motion-reduce:transition-none',
+                    on
+                      ? 'border-[#CEB47B] bg-[#CEB47B]/10 shadow-[0_0_0_3px_rgba(206,180,123,0.14)]'
+                      : 'border-white/10 bg-white/[0.03] hover:border-white/25',
+                  )}
+                >
+                  <span
+                    aria-hidden
+                    className={cn(
+                      'flex size-8 items-center justify-center rounded-full',
+                      on ? 'bg-[#CEB47B] text-[#0c142b]' : 'bg-[#CEB47B]/15 text-[#CEB47B]',
+                    )}
+                  >
+                    <Icon className="size-4" />
+                  </span>
+                  <span className="text-sm font-bold text-[#F1E5C8]">{t(`ideas.items.${i}.label`)}</span>
+                  <span className="line-clamp-2 text-[11px] leading-5 text-[#AAB6CD]">{t(`ideas.items.${i}.quote`)}</span>
+                </button>
+              );
+            })}
           </div>
           <p className="text-[11px] leading-5 text-[#AAB6CD]">{t('ideas.hint')}</p>
         </div>
@@ -222,24 +247,18 @@ export function Step2Personalize({
       />
 
       {/* CTA buttons */}
-      <div className="flex gap-3 pt-2">
-        <Button
-          type="button"
-          variant="outline"
-          className="h-12 flex-1 gap-2 rounded-xl border-white/10 bg-transparent text-[#E8D9B8] hover:bg-white/5 hover:text-[#E8D9B8]"
-          onClick={onBack}
-        >
-          <ArrowRight className="size-4" />
-          {t('ctaBack')}
-        </Button>
-        <Button
-          type="submit"
-          className="h-12 flex-1 gap-2 rounded-xl bg-[#CEB47B] text-base font-bold text-[#0c142b] hover:bg-[#e0c180]"
-        >
-          {t('ctaNext')}
-          <ArrowLeft className="size-4" />
-        </Button>
-      </div>
+      <ActionBar>
+        <div className="flex gap-3">
+          <Button type="button" variant="outline" className={`${ctaSecondary} flex-1`} onClick={onBack}>
+            <ArrowRight className="size-4" />
+            {t('ctaBack')}
+          </Button>
+          <Button type="submit" className={`${ctaPrimary} flex-[1.4]`}>
+            {t('ctaNext')}
+            <ArrowLeft className="size-4" />
+          </Button>
+        </div>
+      </ActionBar>
 
       <p className="flex items-center justify-start gap-1.5 text-xs text-[#AAB6CD]">
         <ShieldCheck className="size-3.5" />
