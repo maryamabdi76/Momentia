@@ -160,7 +160,7 @@ function StepperInner() {
 
       <div className="mx-auto px-6 py-10 md:px-20 md:py-16">
         <div className="grid gap-10 md:grid-cols-2 md:items-start md:gap-16">
-          <section className="col-span-1">
+          <section className="col-span-1 min-w-0">
             <StepTransition key={step}>
               {step === 3 && <Celebrate />}
               {restored && step === 1 && (

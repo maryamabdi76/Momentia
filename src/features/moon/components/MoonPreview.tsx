@@ -77,7 +77,7 @@ export function MoonPreview({ step, poster, sky, moment, onBack, exporter, forma
 
   return (
     <>
-    <aside className="flex w-full flex-col gap-5 md:sticky md:top-8">
+    <aside className="flex w-full min-w-0 flex-col gap-5 md:sticky md:top-8">
       <div className="m-auto w-full rounded-xl bg-[#F4EFE6] p-6 text-[#1c2540]">
         <div className="flex items-center justify-between text-sm">
           <span className="font-medium">{t('preview.title')}</span>
