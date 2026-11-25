@@ -5,7 +5,7 @@
 <h1 align="center">Momentia</h1>
 
 <p align="center">
-  <strong>Turn a meaningful night into a printable star poster.</strong>
+  <strong>Turn a meaningful night — or a whole story — into a printable keepsake.</strong>
 </p>
 
 <p align="center">
@@ -13,57 +13,100 @@
 </p>
 
 <p align="center">
-  <a href="#-getting-started"><img src="https://img.shields.io/badge/Next.js-16-black?style=flat-square&logo=nextdotjs" alt="Next.js" /></a> 
-  <a href="#-getting-started"><img src="https://img.shields.io/badge/TypeScript-5-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript" /></a> 
-  <a href="#-stack"><img src="https://img.shields.io/badge/Tailwind-CSS-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white" alt="Tailwind" /></a> 
+  <a href="#-getting-started"><img src="https://img.shields.io/badge/Next.js-16-black?style=flat-square&logo=nextdotjs" alt="Next.js" /></a>
+  <a href="#-getting-started"><img src="https://img.shields.io/badge/TypeScript-5-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript" /></a>
+  <a href="#-stack"><img src="https://img.shields.io/badge/Tailwind-CSS-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white" alt="Tailwind" /></a>
   <a href="#-localization"><img src="https://img.shields.io/badge/Locale-fa%20(RTL)-0B1D36?style=flat-square" alt="Persian RTL" /></a>
 </p>
 
 ---
 
-Momentia takes a date and a place, computes the real sky of that night, and draws it as a poster you can download as PNG or SVG.
+Momentia is a Persian (RTL) keepsake shop with three products: the **real night sky** of a chosen date and place, a **Moon poster** with that night’s true phase, and a **treasure map** of life milestones. No accounts. The sky, the Moon and the map are drawn in the browser. Optional premium downloads are paid card-to-card and approved by hand on Telegram.
 
-✨ No accounts · 🖥️ The sky and the poster are computed in your browser · 💳 Optional premium download, paid card-to-card and approved by hand on Telegram
+✨ No accounts · 🖥️ Computed in your browser · 💳 Optional premium download, paid card-to-card and approved on Telegram · 🎁 Gift links for Telegram and WhatsApp
 
 ---
 
-## ✨ Features
+## ✨ Products
 
-|     | Area             | What it does                                                                                                                      |
-| --- | ---------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| 🌌  | **Sky engine**   | Stars, constellations, Sun, Moon (with phase), planets, ecliptic and equator from date + location; north up, east on the left      |
-| 🎛️  | **Sky options**  | Toggle constellation lines, Moon and planets, planet names, ecliptic, equator, and star density                                   |
-| 🖼️  | **Layouts**      | **Round chart** (free) and **Full-page sky** (premium), the whole poster is sky with the text over it                            |
-| 🎨  | **Styles**       | Five colour styles: navy & gold, black & white, black & silver, parchment, violet                                                 |
-| 📥  | **Downloads**    | Free: watermarked PNG / SVG / share (round layout only). Premium: watermark-free 3000px PNG, available for both layouts          |
-| 🌕  | **Moon poster**  | A second product at `/moon`: one big real photo of the Moon with the phase it really had that night (phase name and % lit), same 3-step flow, five styles |
-| 🚀  | **Space home**   | The landing page floats in space: a canvas starfield with depth, streaks as you scroll, shooting stars, a nebula and the real Moon receding down the page (GSAP; respects reduced motion) |
-| 🗂️  | **Gallery**      | `/posters` lists every layout in every style and opens the create flow with that look preselected                                 |
-| 🇮🇷  | **Locale**       | Persian UI (`fa`), RTL, Vazirmatn, Jalali calendar                                                                                |
+|     | Product            | Route      | What it does                                                                                                                                 |
+| --- | ------------------ | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| 🌌  | **Night sky**      | `/create`  | Stars, constellations (optional painted figures), Sun, Moon with phase, planets, ecliptic and equator from date + city; north up             |
+| 🌕  | **Moon**           | `/moon`    | One large near-side Moon photo with the real phase for that night (name + % lit); southern latitudes flip the disc as it appears there       |
+| 🗺️  | **Treasure map**   | `/map`     | A premium keepsake of 2–8 moments: city or Iran scope, Leaflet place picker, washed OSM tiles, or an illustrated winding road of pictures   |
 
-### Create flow
+### Shared across products
 
-1. **Moment**: city, Jalali date, optional time.
-2. **Personalize**: title, names, short line, layout, style, sky options.
-3. **Receive**: download. The full-page layout has no free download; the free buttons are disabled and the watermark-free premium file is offered instead.
+|     | Area              | What it does                                                                                                                          |
+| --- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| 🎨  | **Styles**        | Sky & Moon: five colour styles (navy & gold, black & white, black & silver, parchment, violet). Map: paper, blush, night, ink        |
+| 🖼️  | **Layouts**       | Sky: **round chart** (free) and **full-page sky** (premium). Map: **single**, **per-moment cards**, **illustrated road**             |
+| 🖼️  | **Frames**        | Classic, minimal, double, stars, rounded, deco, or none                                                                               |
+| 📥  | **Downloads**     | Free: watermarked PNG / SVG / share (where offered). Premium: watermark-free high-res PNG, story, wallpaper, and print PDF sizes      |
+| 🛋️  | **Wall preview**  | Toggle between the flat poster and a framed print hanging on a real living-room photo                                                 |
+| 🎁  | **Gift link**     | Share a private `/gift` URL so the recipient sees the poster; also share via Telegram and WhatsApp                                    |
+| 🗂️  | **Gallery**       | `/posters` lists every product look and opens the matching create flow with that look preselected                                     |
+| 🇮🇷  | **Locale**        | Persian UI (`fa`), RTL, Vazirmatn / IranYekan, Jalali calendar (Gregorian entry also available)                                       |
 
-`/create?style=violet&template=full` starts the flow with that style and layout.
+### Create flow (sky, moon, map)
 
-### Moon poster (`/moon`)
+1. **Moment** — city / places, Jalali (or Gregorian) date, optional time; map adds milestones and a place picker.
+2. **Personalize** — title, names, short line, layout, style, frame, and product-specific options; live preview (including a floating chip on phones).
+3. **Receive** — free or premium download, wall preview, gift link. Full-page sky and the treasure map are premium-gated.
 
-The same three steps (moment → personalize → receive) for a poster that is only the Moon. The phase is computed for the chosen date, time and city; the surface is a real photograph-style disc of the near side (`public/moon/moon-nearside.jpg`) and the unlit part is drawn over it. South of the equator the Moon is turned upside down, as it appears there. Free and premium downloads work as for the sky poster, and the buyer returns to `/moon` after paying.
+Deep links:
+
+- `/create?style=violet&template=full` — sky with that style and layout
+- `/create?moment=yalda` / `/moon?moment=yalda` — start on Yalda night
+- `/create?occasion=birthday` (also `anniversary`, `newborn`, `wedding`) — ready-made wording from `/occasions/<slug>`
+
+---
+
+## 🗺️ Treasure map (`/map`)
+
+A three-step creator for a map of life moments (premium-only download).
+
+| Choice    | Options                                                                 |
+| --------- | ----------------------------------------------------------------------- |
+| **Layout** | `single` (one map), `cards` (2–4 small maps with captions), `road` (illustrated winding path) |
+| **Scope**  | A city street map, or a light Iran silhouette                           |
+| **Shape**  | Circle, heart, arch, square (for map cuts)                              |
+| **Theme**  | Paper, blush, night, ink                                                |
+
+The **illustrated road** layout places each moment along a hand-drawn path with either a bright flat icon (~56) or a watercolour picture (~99), grouped by theme (love, travel, home, celebration, …). City maps use the same OpenStreetMap-style tiles as the Leaflet picker, washed to one soft tone; tile URLs are configurable (see env below).
+
+---
+
+## 🌕 Moon poster (`/moon`)
+
+Same three steps as the sky poster. Phase is computed for the chosen date, time and city; the surface is `public/moon/moon-nearside.jpg`. Free and premium downloads, wall preview and gift links work as for the sky poster.
+
+---
+
+## 🎄 Seasonal & occasion pages
+
+| Route                    | Purpose                                                                 |
+| ------------------------ | ----------------------------------------------------------------------- |
+| `/yalda`                 | Yalda gift landing (countdown, CTAs into sky/moon with Yalda prefilled). Campaign links hide after the night ends |
+| `/occasions/[slug]`      | Birthday, anniversary, newborn, wedding — each opens the create flow with ready-made starts |
+| `/gift`                  | Recipient view of a shared poster (not indexed)                         |
+| `/track`                 | Recover a premium order by tracking code (not indexed)                  |
+| `/contact` · `/terms` · `/privacy` | Support channels, refund rules, privacy                             |
 
 ---
 
 ## 🛠️ Stack
 
-- **Next.js** (App Router) + TypeScript + Tailwind CSS
-- **[shadcn/ui](https://ui.shadcn.com/docs/components)** (Radix, RTL)
+- **Next.js 16** (App Router) + **React 19** + TypeScript + Tailwind CSS 4
+- **[shadcn/ui](https://ui.shadcn.com/docs/components)** (Radix / Base UI, RTL)
 - **[next-intl](https://next-intl.dev)** — Persian only for now
-- **react-hook-form** + **zod** for the forms
-- Card-to-card checkout for the premium download: orders in **Upstash Redis**, approval through a **Telegram bot** (server routes under `src/app/api/payments`)
-- **Vazirmatn** via `next/font`
-- Root RTL (`dir="rtl"` + `DirectionProvider`)
+- **react-hook-form** + **zod** for forms
+- **Leaflet** for the treasure-map place picker; map tiles washed onto the poster
+- **GSAP** for the home space backdrop (respects reduced motion)
+- Card-to-card checkout: orders in **Upstash Redis**, approval through a **Telegram bot** (`src/app/api/payments`)
+- Persian fonts via `next/font` / `next-persian-fonts`
+- Root RTL (`dir="rtl"`)
+- Package manager: **pnpm**
 
 ---
 
@@ -71,42 +114,53 @@ The same three steps (moment → personalize → receive) for a poster that is o
 
 ```text
 docs/
-  logo.jpg                # Brand mark
+  logo.jpg                   # Brand mark
 messages/
-  fa.json                 # UI translations
+  fa.json                    # UI translations
+public/
+  moon/                      # Near-side Moon photo
+  constellation-art/         # Optional painted constellation figures
+  map/                       # Treasure-map illustrations & stickers
+scripts/
+  check-telegram.mjs         # One-shot Telegram / webhook health check
+  build-sky-data.mjs         # Rebuild sky catalog data
 src/
-  app/                    # Pages (/, /create, /posters) and payment API routes
-  components/ui/          # shadcn/ui primitives
+  app/                       # Routes (/, /create, /moon, /map, /posters, /yalda, …) + payment API
+  components/ui/             # shadcn/ui primitives
   features/
-    sky/                  # Sky math (projection, ephemeris) + SVG chart
-    poster/               # Poster themes, layouts, preview + PNG/SVG export
-    payments/             # Card-to-card orders, Telegram approval and premium token
-    home/                 # Landing page sections and the posters gallery
-  i18n/                   # next-intl config
-  lib/                    # Shared utilities
+    sky/                     # Sky math (projection, ephemeris) + SVG chart
+    poster/                  # Sky poster themes, layouts, frames, export, gift, wall
+    moon/                    # Moon phase, poster, export, gift
+    treasure-map/            # Map layouts, tiles, road art, form, export, gift
+    payments/                # Card-to-card orders, Telegram approval, premium token
+    home/                    # Landing, gallery, Yalda campaign helpers
+    support/                 # Contact helpers (e.g. missing-city note)
+  i18n/                      # next-intl config
+  lib/                       # Site URL, share metadata, support, utils
 ```
 
 ---
 
 ## 🚀 Getting started
 
-**Requirements:** Node.js 20+
+**Requirements:** Node.js 20+, pnpm 9+
 
 ```bash
-npm install
-npm run dev
+pnpm install
+pnpm dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) ✨
+Open [http://localhost:3000](http://localhost:3000).
 
-| Script          | Description                  |
-| --------------- | ---------------------------- |
-| `npm run dev`   | Start the development server |
-| `npm run build` | Production build             |
-| `npm run start` | Serve the production build   |
-| `npm run lint`  | Run ESLint                   |
-| `npm run typecheck` | Type-check with `tsc`    |
-| `npm test`      | Run the unit tests           |
+| Script               | Description                    |
+| -------------------- | ------------------------------ |
+| `pnpm dev`           | Start the development server   |
+| `pnpm build`         | Production build               |
+| `pnpm start`         | Serve the production build     |
+| `pnpm lint`          | Run ESLint                     |
+| `pnpm typecheck`     | Type-check with `tsc`          |
+| `pnpm test`          | Run the unit tests             |
+| `pnpm build:sky-data`| Rebuild sky catalog assets     |
 
 ### Premium payments
 
@@ -124,13 +178,14 @@ Copy `.env.example` to `.env.local` and fill it in. Without the payment settings
 | `TELEGRAM_WEBHOOK_SECRET`                        | 16+ random characters (`A-Za-z0-9_-`), given to `setWebhook` |
 | `UPSTASH_REDIS_REST_URL` / `_TOKEN`              | Upstash Redis REST credentials (`KV_REST_API_*` also work)   |
 | `PAYMENT_TOKEN_SECRET`                           | 32+ random characters, signs the premium token               |
+| `SITE_URL`                                       | Optional public origin for absolute share / canonical URLs   |
 
 **How a payment flows.**
 
 1. The buyer taps the premium button. `POST /api/payments/start` creates an order in Redis with an exact amount (the price plus 1 to 99 tomans, reserved so no two open orders share it) and sets an HttpOnly `mm_order` cookie. The window shows the amount and the card.
 2. After paying in their bank app the buyer taps "I paid" (optionally typing the last 4 digits of their card). `POST /api/payments/submit` sends you a Telegram message with the amount, the order code and ✅ / ❌ buttons.
 3. You check the deposit in your bank app and press a button. Telegram calls `POST /api/payments/telegram` (checked with the secret token, and only your account counts); the order becomes `paid` or `rejected`, and the buttons are replaced by the outcome.
-4. The page asks `POST /api/payments/claim` every few seconds while it waits. On `paid` it receives the signed premium token (2 hours) that unlocks the download. An unpaid order and its amount are held for 1 hour, a submitted one for 24 hours, so a buyer can come back the next day in the same browser.
+4. The page asks `POST /api/payments/claim` every few seconds while it waits. On `paid` it receives the signed premium token (2 hours) that unlocks the download. An unpaid order and its amount are held for 1 hour, a submitted one for 24 hours, so a buyer can come back the next day in the same browser. Lost tabs can recover via `/track` with the tracking code.
 
 **One-time Telegram setup.**
 
@@ -158,7 +213,7 @@ On Vercel, add the Upstash Redis integration from the Marketplace for the store.
 
 ### Support, contact and donations
 
-`/contact` shows the contact channels and an optional card-to-card donation box; `/terms` explains what is sold and the refund rules. Both are filled from public env variables, so nothing personal is committed to the repository. Anything left empty is hidden, and the donation link in the footer only appears once a valid card is set.
+`/contact` shows the contact channels and an optional card-to-card donation box; `/terms` explains what is sold and the refund rules; `/privacy` covers what is (and isn’t) stored. All are filled from public env variables, so nothing personal is committed to the repository. Anything left empty is hidden, and the donation link in the footer only appears once a valid card is set.
 
 | Variable                        | Purpose                                                    |
 | ------------------------------- | ---------------------------------------------------------- |
@@ -169,15 +224,25 @@ On Vercel, add the Upstash Redis integration from the Marketplace for the store.
 | `NEXT_PUBLIC_DONATION_HOLDER`   | Card holder name shown under the number                    |
 | `NEXT_PUBLIC_DONATION_BANK`     | Bank name shown under the number                           |
 
-After a premium payment the create page shows the payment's tracking code, so a buyer who loses the tab can still get help from `/contact`.
+### Treasure map tiles (optional)
 
-> The free files are generated in the browser, so the lock on the full-page layout is a product gate, not a security boundary. Only the watermark-free premium file is checked against the server-validated token.
+By default the map poster uses OpenStreetMap’s own tile server (same look as the place picker), washed to one soft tone. For heavier traffic, point at a provider you have an account with and update the credit string under `MapPage.poster` in `messages/fa.json`.
+
+| Variable                         | Purpose                                      |
+| -------------------------------- | -------------------------------------------- |
+| `NEXT_PUBLIC_MAP_TILE_LIGHT_URL` | Light theme tile template (`{z}`, `{x}`, `{y}`) |
+| `NEXT_PUBLIC_MAP_TILE_DARK_URL`  | Dark theme tile template                     |
+| `NEXT_PUBLIC_MAP_TILE_MAX_ZOOM`  | Max zoom (default 19)                        |
+
+> Free files are generated in the browser, so layout locks (full-page sky, treasure map) are a product gate, not a security boundary. Only the watermark-free premium file is checked against the server-validated token.
 
 ---
 
 ## 🌕 Moon image
 
-`public/moon/moon-nearside.jpg` is the Earth-facing side of the Moon, projected from the 4096×2048 equirectangular map `textures/moon_4k.jpg` of the [Stellarium](https://github.com/Stellarium/stellarium) repository (orthographic view, north up, contrast stretched). Check that map's licence before using the poster commercially, or replace the image with one you hold the rights to (for example NASA's CGI Moon Kit); the file name and size are all the code relies on.
+`public/moon/moon-nearside.jpg` is the Earth-facing side of the Moon, projected from the 4096×2048 equirectangular map `textures/moon_4k.jpg` of the [Stellarium](https://github.com/Stellarium/stellarium) repository (orthographic view, north up, contrast stretched). Check that map’s licence before using the poster commercially, or replace the image with one you hold the rights to (for example NASA’s CGI Moon Kit); the file name and size are all the code relies on.
+
+Painted constellation figures under `public/constellation-art/` come from Stellarium under the Free Art License — see that folder’s `LICENSES.md`.
 
 ---
 
