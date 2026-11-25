@@ -22,13 +22,13 @@ export async function HomeMap() {
 
   return (
     <section id="map" className="py-20">
-      <div className="mx-auto space-y-24 px-6 md:px-20">
+      <div className="mx-auto max-w-7xl space-y-24 px-6 md:px-16">
         <div
           data-animate="reveal"
-          className="grid items-center gap-14 md:grid-cols-[0.9fr_1.1fr]"
+          className="grid items-center gap-14 md:grid-cols-2 md:gap-20"
         >
           {/* the poster, with two of its moments pulled out of the road like notes */}
-          <div className="relative mx-auto w-full max-w-88 pb-6 md:order-2 md:mx-0 md:justify-self-start">
+          <div className="relative mx-auto w-full max-w-88 pb-6 md:order-2 md:mx-0 md:justify-self-center">
             <span
               aria-hidden
               className="pointer-events-none absolute left-1/2 top-1/2 size-[130%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(206,180,123,0.16),transparent_65%)]"
@@ -99,12 +99,12 @@ export async function HomeMap() {
               <li
                 key={theme}
                 data-animate-item
-                className="flex items-center gap-4 rounded-2xl border border-white/10 bg-[#0e1634]/60 p-4 backdrop-blur-md"
+                className="flex flex-col items-center gap-4 rounded-3xl border border-white/10 bg-[#0e1634]/60 px-4 pb-5 pt-6 text-center backdrop-blur-md"
               >
                 <MapPoster
                   data={data}
                   labels={labels}
-                  className="w-14 shrink-0 shadow-[0_12px_24px_-10px_rgba(0,0,0,0.8)] sm:w-16"
+                  className="w-24 shrink-0 shadow-[0_18px_34px_-12px_rgba(0,0,0,0.85)] sm:w-28"
                 />
                 <div className="min-w-0">
                   <p className="text-sm font-semibold text-white">
