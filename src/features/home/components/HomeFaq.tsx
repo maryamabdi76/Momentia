@@ -20,7 +20,7 @@ export async function HomeFaq() {
   return (
     <section
       id="faq"
-      className="mx-auto grid md:px-20 gap-12 px-6 pb-16 md:grid-cols-[0.75fr_1.25fr] md:gap-16"
+      className="mx-auto grid max-w-7xl gap-12 px-6 pb-16 md:px-16 md:grid-cols-[0.75fr_1.25fr] md:gap-16"
     >
       <div data-animate="reveal">
         <p className="text-xs text-[#CEB47B]">{tR('eyebrow')}</p>

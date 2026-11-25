@@ -133,7 +133,7 @@ export async function HomeChoosePoster() {
     ];
 
   return (
-    <section id="choose" className="mx-auto px-6 py-20 md:px-20">
+    <section id="choose" className="mx-auto max-w-7xl px-6 py-20 md:px-16">
       <div data-animate="reveal" className="max-w-2xl">
         <p className="text-xs text-[#CEB47B]">{tR('eyebrow')}</p>
         <h2 className="mt-3 text-balance text-3xl font-semibold leading-snug text-white md:text-4xl">

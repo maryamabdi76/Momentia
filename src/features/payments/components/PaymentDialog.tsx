@@ -54,7 +54,7 @@ export function PaymentDialog() {
   const [last4, setLast4] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<CheckoutError['reason'] | null>(null);
-  const [copied, setCopied] = useState<'amount' | 'card' | null>(null);
+  const [copied, setCopied] = useState<'amount' | 'card' | 'code' | null>(null);
   const copyTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   function apply(result: ClaimResult) {
@@ -119,7 +119,7 @@ export function PaymentDialog() {
     [],
   );
 
-  async function copy(what: 'amount' | 'card', value: string) {
+  async function copy(what: 'amount' | 'card' | 'code', value: string) {
     try {
       await navigator.clipboard.writeText(value);
       setCopied(what);
@@ -363,9 +363,22 @@ export function PaymentDialog() {
               {order?.code && (
                 <div className="space-y-1.5 rounded-lg border border-[#CEB47B]/30 bg-[#0c142b] px-3 py-2.5">
                   <p className="text-[12px] text-[#E8D9B8]">{t('waiting.codeLabel')}</p>
-                  <p dir="ltr" className="select-all break-all text-center font-mono text-sm tracking-wider text-white">
-                    {order.code}
-                  </p>
+                  <div className="flex items-center gap-2">
+                    <p dir="ltr" className="min-w-0 flex-1 select-all break-all text-center font-mono text-sm tracking-wider text-white">
+                      {order.code}
+                    </p>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon-sm"
+                      aria-label={copied === 'code' ? t('copied') : t('copy')}
+                      title={copied === 'code' ? t('copied') : t('copy')}
+                      onClick={() => void copy('code', order.code ?? '')}
+                      className="shrink-0 border-[#33415B] bg-transparent text-white/80 hover:bg-white/5"
+                    >
+                      {copied === 'code' ? <Check aria-hidden className="size-4 text-[#CEB47B]" /> : <Copy aria-hidden className="size-4" />}
+                    </Button>
+                  </div>
                   <p className="text-[11px] leading-5 text-[#AAB6CD]">
                     {t('waiting.codeHint')}{' '}
                     <Link href="/track" className="text-[#CEB47B] underline-offset-4 hover:underline">

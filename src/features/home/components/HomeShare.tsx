@@ -11,7 +11,7 @@ export async function HomeShare() {
   const [line1, line2] = t('title').split('\n');
 
   return (
-    <section id="share" className="mx-auto px-6 py-20 md:px-20">
+    <section id="share" className="mx-auto max-w-7xl px-6 py-20 md:px-16">
       <div className="grid items-center gap-14 md:grid-cols-2">
         <div data-animate="reveal" className="relative mx-auto w-full max-w-sm">
           <WallScene label={t('wallAlt')}>

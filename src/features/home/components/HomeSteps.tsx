@@ -12,7 +12,7 @@ export async function HomeSteps() {
 
   return (
     <section id="steps" className="border-y border-white/10 bg-[#0a1230]/70 px-6 py-20 backdrop-blur-sm">
-      <div className="mx-auto md:px-20">
+      <div className="mx-auto max-w-7xl md:px-10">
         <h2
           data-animate="reveal"
           className="text-2xl font-semibold leading-snug text-white md:text-4xl"

@@ -1,4 +1,5 @@
 import { Suspense } from 'react';
+import Link from 'next/link';
 import type { Metadata } from 'next';
 import { CityTopicNote } from '@/features/support/components/CityTopicNote';
 import { getTranslations } from 'next-intl/server';
@@ -56,7 +57,16 @@ export default async function ContactPage() {
                 {t(`sections.${i}.title`)}
               </h2>
               <p className="text-sm leading-8 text-[#AAB6CD]">
-                {t(`sections.${i}.body`)}
+                {t.rich(`sections.${i}.body`, {
+                  track: (chunks) => (
+                    <Link
+                      href="/track"
+                      className="text-[#CEB47B] underline underline-offset-4 hover:text-[#e0c180]"
+                    >
+                      {chunks}
+                    </Link>
+                  ),
+                })}
               </p>
             </section>
           ))}
