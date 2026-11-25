@@ -63,24 +63,35 @@ export function planRoad(count: number, seed = 7): RoadPlan {
   const gap = count > 1 ? Math.min(330, (lastY - FIRST_Y) / (count - 1)) : 0;
   const y0 = count > 1 ? FIRST_Y + (lastY - FIRST_Y - gap * (count - 1)) / 2 : 640;
   // a picture may be taller than its row: the next one on its side is two rows away
-  const boxH = count > 1 ? Math.min(300, 2 * gap - 34) : 300;
+  const boxH = count > 1 ? Math.min(310, 2 * gap - 34) : 310;
   // with few moments a picture may be big; with more, narrower and further out so it clears the words of the rows beside it
-  const boxW = count <= 4 ? 280 : compact ? 240 : 250;
-  const offset = 255;
+  const boxW = count <= 4 ? 290 : compact ? 250 : 270;
+  const offset = count <= 4 ? 262 : compact ? 255 : 258;
+  // how far the road swings to each side: wide, gentle bends rather than hairpins
+  const swing = 112;
+  const drop = count > 1 ? gap : 300;
 
   const road: Point[] = [];
   const stops: RoadPlan['stops'] = [];
+  // between two pins the road is half a sine wave: it leaves the pin, swings out under the picture
+  // (u = 0.5), and comes back to the next pin on the other side of the middle
+  const along = (y: number, side: 1 | -1, u: number): Point => ({
+    x: MID_X + side * (swing * Math.sin(Math.PI * u) + 14 * (2 * u - 1)),
+    y: y + drop * u,
+  });
   for (let i = 0; i < count; i++) {
     const side: 1 | -1 = i % 2 === 0 ? 1 : -1;
     const y = y0 + i * gap;
     const x = MID_X - side * 14;
-    if (i === 0) road.push({ x: 880, y: y - 24 });
+    if (i === 0) {
+      // the road comes in from the side away from the first picture
+      const away: 1 | -1 = side === 1 ? -1 : 1;
+      const apex = along(y - drop, away, 0.5);
+      road.push({ x: MID_X - side * 330, y: Math.max(300, apex.y - 60) }, { x: apex.x, y: Math.max(300, apex.y) });
+      for (const u of [0.7, 0.85]) road.push(along(y - drop, away, u));
+    }
     road.push({ x, y });
-    // round the words on the side away from the picture, then out under the picture
-    road.push({ x: MID_X - side * 150, y: y + (compact ? 40 : 54) });
-    road.push({ x: MID_X + side * 250, y: y + Math.max(blockH + 28, gap * 0.6) });
-    // and round the outer turn, back in towards the next pin
-    if (i < count - 1) road.push({ x: MID_X + side * 150, y: y + gap * 0.86 });
+    if (i < count - 1) for (const u of [0.15, 0.3, 0.5, 0.7, 0.85]) road.push(along(y, side, u));
     stops.push({
       x,
       y,
@@ -95,7 +106,11 @@ export function planRoad(count: number, seed = 7): RoadPlan {
     });
   }
   const last = stops[count - 1]!;
-  road.push({ x: MID_X + last.side * 330, y: Math.min(last.y + gap * 0.9 + 40, 1262) });
+  for (const u of [0.15, 0.3, 0.5]) {
+    const pt = along(last.y, last.side, u);
+    road.push({ x: pt.x, y: Math.min(pt.y, 1225) });
+  }
+  road.push({ x: MID_X + last.side * 330, y: Math.min(last.y + drop * 0.8, 1256) });
   return { compact, road, stops };
 }
 
@@ -200,12 +215,14 @@ export function roadSvg(stops: RoadStop[], p: RoadPalette, id: string, h: Helper
     ? { edge: p.ink, edgeOp: 1, edgeW: 31, sand: p.card, sandOp: 1, sandW: 27.8, lane: p.ink, laneOp: 0.8, laneW: 1.8, dash: '9 11' }
     : h.dark
       ? { edge: '#E6D3A8', edgeOp: 0.7, edgeW: 24, sand: '#8A7552', sandOp: 0.5, sandW: 21.4, lane: '#F1E3BF', laneOp: 0.8, laneW: 1.8, dash: '7 8' }
-      : { edge: '#CDB68A', edgeOp: 0.95, edgeW: 24, sand: '#F2E5C6', sandOp: 1, sandW: 21.4, lane: '#A98E64', laneOp: 0.8, laneW: 1.7, dash: '7 8' };
+      : { edge: '#B79A6C', edgeOp: 0.9, edgeW: 40, sand: '#F5E9CE', sandOp: 1, sandW: 36, lane: '#C2A678', laneOp: 0.6, laneW: 1.5, dash: '6 9' };
+  const painted = !h.lineArt && !h.dark;
+  // a painted road rests on the paper: a soft shadow under it, a dashed edge, a pale fill
+  if (painted) body.push(`<path d="${road}" ${line} stroke="#7A5A34" stroke-opacity="0.2" stroke-width="46" transform="translate(0 5)" filter="url(#${id}-soft)"/>`);
   body.push(
     `<g filter="url(#${id}-paint)">` +
-      `<path d="${road}" ${line} stroke="${look.edge}" stroke-opacity="${look.edgeOp}" stroke-width="${look.edgeW}"/>` +
+      `<path d="${road}" ${line} stroke="${look.edge}" stroke-opacity="${look.edgeOp}" stroke-width="${look.edgeW}"${painted ? ' stroke-dasharray="11 8"' : ''}/>` +
       `<path d="${road}" ${line} stroke="${look.sand}" stroke-opacity="${look.sandOp}" stroke-width="${look.sandW}"/>` +
-      (h.lineArt || h.dark ? '' : `<path d="${road}" ${line} stroke="#FFF9E8" stroke-opacity="0.5" stroke-width="9"/>`) +
       `<path d="${road}" ${line} stroke="${look.lane}" stroke-opacity="${look.laneOp}" stroke-width="${look.laneW}" stroke-dasharray="${look.dash}"/>` +
       `</g>`,
   );
@@ -265,7 +282,7 @@ export function roadSvg(stops: RoadStop[], p: RoadPalette, id: string, h: Helper
         !plan.compact && m.date ? h.text(s.x, s.textY + 49, fitFont(h.digits(m.date), 16, room), 400, p.accent, h.digits(m.date)) : '',
       ].join('') +
       `</g>`;
-    const pinMark = pin(s.x, s.textY - (plan.compact ? 22 : 28), plan.compact ? 30 : 38, h.digits(String(i + 1).padStart(2, '0')), p);
+    const pinMark = pin(s.x, s.textY - (plan.compact ? 22 : 28), plan.compact ? 34 : 44, h.digits(String(i + 1).padStart(2, '0')), p);
     // the picture is the cut-out itself, in its own shape; pen drawings are transparent lines, so
     // they get a patch of paper to hide the road behind them
     const fit = Math.min(s.boxW, s.boxH);
@@ -284,6 +301,7 @@ export function roadSvg(stops: RoadStop[], p: RoadPalette, id: string, h: Helper
       `<feColorMatrix in="g" type="matrix" values="0 0 0 0 0.43  0 0 0 0 0.31  0 0 0 0 0.2  0 0 0 0.9 -0.34" result="speck"/>` +
       `<feComposite in="speck" in2="d" operator="in" result="sp"/><feMerge><feMergeNode in="d"/><feMergeNode in="sp"/></feMerge>`;
   const defs =
+    `<filter id="${id}-soft" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="4"/></filter>` +
     `<filter id="${id}-wobble" x="-5%" y="-5%" width="110%" height="110%">` +
     `<feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="2" seed="3" result="noise"/>` +
     `<feDisplacementMap in="SourceGraphic" in2="noise" scale="3"/></filter>` +
