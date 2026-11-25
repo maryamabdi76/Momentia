@@ -30,17 +30,27 @@ export function YaldaCountdown() {
   const days = Math.floor(left / (24 * HOUR));
   const hours = Math.floor((left % (24 * HOUR)) / HOUR);
 
+  const units = [
+    { value: days, label: t('days') },
+    { value: hours, label: t('hours') },
+  ];
+
   return (
-    <div className="inline-flex items-baseline gap-3 rounded-2xl border border-[#CEB47B]/40 bg-[#CEB47B]/5 px-5 py-3 text-[#E8D9B8]">
-      <span className="text-xs text-[#CEB47B]">{t('countdownLabel')}</span>
-      <span className="text-2xl font-bold text-white">
-        {toPersianDigits(String(days))}
-        <span className="ms-1 text-xs font-normal text-[#AAB6CD]">{t('days')}</span>
-      </span>
-      <span className="text-2xl font-bold text-white">
-        {toPersianDigits(String(hours))}
-        <span className="ms-1 text-xs font-normal text-[#AAB6CD]">{t('hours')}</span>
-      </span>
+    <div role="timer" className="inline-flex items-center gap-4 text-[#E8D9B8]">
+      <span className="text-sm text-[#CEB47B]">{t('countdownLabel')}</span>
+      <div className="flex gap-2">
+        {units.map(({ value, label }) => (
+          <span
+            key={label}
+            className="flex min-w-18 flex-col items-center rounded-2xl border border-[#CEB47B]/35 bg-[#CEB47B]/[0.08] px-4 py-2"
+          >
+            <span className="text-3xl font-black leading-tight text-white">
+              {toPersianDigits(String(value))}
+            </span>
+            <span className="text-[11px] text-[#CEB47B]">{label}</span>
+          </span>
+        ))}
+      </div>
     </div>
   );
 }

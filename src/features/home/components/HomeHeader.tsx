@@ -18,16 +18,18 @@ type HomeHeaderProps = {
    * `create`  – the sky poster maker: Moon maker one tap away, action returns home.
    * `moon`    – the Moon poster maker: sky maker one tap away, action returns home.
    * `posters` – the gallery.
+   * `yalda`   – the Yalda gift page; buttons as on a maker page.
    */
-  variant?: 'home' | 'create' | 'moon' | 'posters';
+  variant?: 'home' | 'create' | 'moon' | 'posters' | 'yalda';
 };
 
 export async function HomeHeader({ variant = 'home' }: HomeHeaderProps) {
   const t = await getTranslations('HomePage');
   const tCreate = await getTranslations('CreatePage');
-  const isCreate = variant === 'create' || variant === 'moon';
+  const isCreate = variant === 'create' || variant === 'moon' || variant === 'yalda';
   const isMoon = variant === 'moon';
   const isPosters = variant === 'posters';
+  const isYalda = variant === 'yalda';
 
   const isHome = variant === 'home';
   const navLinks: Array<{ href: string; label: string; active?: boolean }> = [
@@ -40,6 +42,7 @@ export async function HomeHeader({ variant = 'home' }: HomeHeaderProps) {
         ]
       : []),
     { href: '/map', label: t('nav.map') },
+    { href: '/yalda', label: t('nav.yalda'), active: isYalda },
   ];
 
   // The two makers are the two things to do here, so both are buttons: one

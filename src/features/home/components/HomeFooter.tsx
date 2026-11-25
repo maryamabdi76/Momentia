@@ -41,6 +41,7 @@ export async function HomeFooter({ variant = 'home' }: HomeFooterProps) {
 
   const footerLinks: Array<readonly [string, string]> = [
     ['/', t('footer.links.home')],
+    ['/yalda', t('footer.links.yalda')],
     ['/privacy', t('footer.links.privacy')],
     ['/terms', t('footer.links.terms')],
     ['/contact', t('footer.links.contact')],
