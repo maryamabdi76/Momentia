@@ -57,7 +57,7 @@ export async function HomeHeader({ variant = 'home' }: HomeHeaderProps) {
       data-animate={variant === 'home' ? 'header' : undefined}
       className="border-b border-[#33415B]"
     >
-      <div className="mx-auto flex items-center justify-between px-4 text-sm text-white sm:px-6 md:px-20 h-16">
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 text-sm text-white sm:px-6 md:px-16">
         <div className="flex items-center gap-8 lg:gap-12">
           <Link
             className="flex items-center gap-3 text-xl font-bold whitespace-nowrap text-white md:gap-4 md:text-2xl"

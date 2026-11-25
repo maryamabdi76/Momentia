@@ -26,7 +26,7 @@ export async function HomeFooter({ variant = 'home' }: HomeFooterProps) {
 
     return (
       <footer className="border-t border-[#33415B] px-6 py-10">
-        <div className="mx-auto flex flex-col gap-4 md:flex-row md:items-center md:justify-between md:px-20">
+        <div className="mx-auto flex max-w-7xl flex-col gap-4 md:flex-row md:items-center md:justify-between md:px-16">
           <Link
             href="/"
             className="inline-flex items-center gap-4 text-2xl font-bold text-white"
@@ -55,7 +55,7 @@ export async function HomeFooter({ variant = 'home' }: HomeFooterProps) {
 
   return (
     <footer className="px-6 py-10">
-      <div className="mx-auto flex flex-col gap-8 md:flex-row md:justify-between md:px-20">
+      <div className="mx-auto flex max-w-7xl flex-col gap-8 md:flex-row md:justify-between md:px-16">
         <div className="max-w-md">
           <a
             href="#top"
