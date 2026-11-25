@@ -21,7 +21,7 @@ export async function HomeHero() {
   return (
     <section
       id="top"
-      className="mx-auto grid items-center gap-12 px-6 pt-28 md:grid-cols-2 md:gap-16 md:px-20 pb-40"
+      className="mx-auto grid max-w-7xl items-center gap-12 px-6 pb-24 pt-28 md:grid-cols-2 md:gap-12 md:px-16 md:pb-32"
     >
       <div className="order-2 md:order-1">
         <p
@@ -83,8 +83,8 @@ export async function HomeHero() {
           {t('hero.disclaimer')}
         </p>
       </div>
-      <div className="order-1 flex w-full justify-center overflow-visible md:order-2 md:justify-end">
-        <div className="relative w-full max-w-115 overflow-visible pb-10 pt-4">
+      <div className="order-1 flex w-full justify-center overflow-visible md:order-2 md:justify-center">
+        <div className="relative w-full max-w-xl overflow-visible pb-10 pt-4 md:px-8">
           <div
             data-animate="hero-poster"
             className="relative mx-auto w-full max-w-md sm:max-w-lg"
