@@ -18,8 +18,8 @@ export async function generateMetadata(): Promise<Metadata> {
   return shareMetadata({
     title: t('metaTitle'),
     description: t('metaDescription'),
-    image: SHARE_IMAGES.home,
-    imageAlt: tMeta('shareImageAlt'),
+    image: SHARE_IMAGES.yalda,
+    imageAlt: t('shareImageAlt'),
     siteName: tMeta('title'),
     path: '/yalda',
   });

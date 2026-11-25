@@ -3,9 +3,8 @@
 import { useSyncExternalStore } from 'react';
 import { useTranslations } from 'next-intl';
 import { toPersianDigits } from '@/features/poster/lib/digits';
+import { YALDA_AT } from '../lib/yalda-date';
 
-/** 30 Azar 1405, 21:00 in Tehran (UTC+3:30, no daylight saving) = 17:30 UTC on 21 Dec 2026. */
-const YALDA_AT = Date.UTC(2026, 11, 21, 17, 30);
 const MINUTE = 60_000;
 const HOUR = 60 * MINUTE;
 

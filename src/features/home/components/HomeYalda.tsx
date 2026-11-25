@@ -3,12 +3,14 @@ import { ArrowLeft, Moon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { HomePosterPreview } from './HomePosterPreview';
 import { YaldaCountdown } from './YaldaCountdown';
+import { YaldaOnly } from './YaldaOnly';
 
 /** A nudge toward the Yalda gift page, the biggest gifting night of the year. */
 export async function HomeYalda() {
   const t = await getTranslations('HomePage.yalda');
 
   return (
+    <YaldaOnly>
     <section id="yalda" className="py-8">
       <div className="mx-auto max-w-7xl px-6 md:px-16">
         <div
@@ -58,5 +60,6 @@ export async function HomeYalda() {
         </div>
       </div>
     </section>
+    </YaldaOnly>
   );
 }

@@ -8,6 +8,7 @@ import {
   NavigationMenuList,
 } from '@/components/ui/navigation-menu';
 import { readSupportConfig } from '@/lib/support';
+import { YaldaOnly } from './YaldaOnly';
 
 type HomeFooterProps = {
   /**
@@ -41,7 +42,6 @@ export async function HomeFooter({ variant = 'home' }: HomeFooterProps) {
 
   const footerLinks: Array<readonly [string, string]> = [
     ['/', t('footer.links.home')],
-    ['/yalda', t('footer.links.yalda')],
     ['/privacy', t('footer.links.privacy')],
     ['/terms', t('footer.links.terms')],
     ['/contact', t('footer.links.contact')],
@@ -83,6 +83,16 @@ export async function HomeFooter({ variant = 'home' }: HomeFooterProps) {
                 </NavigationMenuLink>
               </NavigationMenuItem>
             ))}
+            <YaldaOnly>
+              <NavigationMenuItem>
+                <NavigationMenuLink
+                  href="/yalda"
+                  className="h-auto bg-transparent p-0 text-xs text-[#AAB6CD] hover:bg-transparent hover:text-white focus:bg-transparent"
+                >
+                  {t('footer.links.yalda')}
+                </NavigationMenuLink>
+              </NavigationMenuItem>
+            </YaldaOnly>
           </NavigationMenuList>
         </NavigationMenu>
       </div>

@@ -8,6 +8,7 @@ import {
   NavigationMenuLink,
   NavigationMenuList,
 } from '@/components/ui/navigation-menu';
+import { YaldaOnly } from './YaldaOnly';
 
 const navLinkClass =
   'bg-transparent text-white hover:bg-white/10 hover:text-[#CEB47B] focus:bg-white/10 focus:text-[#CEB47B]';
@@ -42,7 +43,6 @@ export async function HomeHeader({ variant = 'home' }: HomeHeaderProps) {
         ]
       : []),
     { href: '/map', label: t('nav.map') },
-    { href: '/yalda', label: t('nav.yalda'), active: isYalda },
   ];
 
   // The two makers are the two things to do here, so both are buttons: one
@@ -82,6 +82,17 @@ export async function HomeHeader({ variant = 'home' }: HomeHeaderProps) {
                   </NavigationMenuLink>
                 </NavigationMenuItem>
               ))}
+              {/* the Yalda page stays reachable all year, but is only advertised around the night */}
+              <YaldaOnly>
+                <NavigationMenuItem className={isYalda ? 'bg-white/10 rounded-lg' : ''}>
+                  <NavigationMenuLink
+                    href="/yalda"
+                    className={isYalda ? 'text-[#CEB47B]' : navLinkClass}
+                  >
+                    {t('nav.yalda')}
+                  </NavigationMenuLink>
+                </NavigationMenuItem>
+              </YaldaOnly>
             </NavigationMenuList>
           </NavigationMenu>
         </div>
