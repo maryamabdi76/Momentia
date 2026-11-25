@@ -124,8 +124,8 @@ export function Step2Personalize({
         {/* Starting ideas: an empty text box is the main place people stall */}
         <div className="space-y-2">
           <p className="text-[13px] font-medium text-[#E8D9B8]">{t('ideas.label')}</p>
-          {/* a row of cards that scrolls sideways, each showing the sentence it would write */}
-          <div className="-mx-5 flex snap-x snap-mandatory gap-2.5 overflow-x-auto px-5 pb-2 md:-mx-7 md:px-7 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {/* on a phone a row that swipes sideways; with a mouse every card is in view as a grid */}
+          <div className="-mx-5 flex snap-x snap-mandatory gap-2.5 overflow-x-auto px-5 pb-2 [scrollbar-width:none] md:mx-0 md:grid md:snap-none md:grid-cols-2 md:overflow-visible md:px-0 md:pb-0 xl:grid-cols-3 [&::-webkit-scrollbar]:hidden">
             {[0, 1, 2, 3, 4, 5].map((i) => {
               const Icon = IDEA_ICONS[i] ?? Sparkles;
               const on = watched.title === t(`ideas.items.${i}.title`) && watched.quote === t(`ideas.items.${i}.quote`);
@@ -139,7 +139,7 @@ export function Step2Personalize({
                     setValue('quote', t(`ideas.items.${i}.quote`), { shouldDirty: true });
                   }}
                   className={cn(
-                    'flex w-40 shrink-0 cursor-pointer snap-start flex-col gap-2 rounded-2xl border p-3.5 text-start outline-none transition-all focus-visible:ring-2 focus-visible:ring-[#CEB47B]/60 motion-reduce:transition-none',
+                    'flex w-40 shrink-0 cursor-pointer snap-start flex-col md:w-auto md:shrink gap-2 rounded-2xl border p-3.5 text-start outline-none transition-all focus-visible:ring-2 focus-visible:ring-[#CEB47B]/60 motion-reduce:transition-none',
                     on
                       ? 'border-[#CEB47B] bg-[#CEB47B]/10 shadow-[0_0_0_3px_rgba(206,180,123,0.14)]'
                       : 'border-white/10 bg-white/[0.03] hover:border-white/25',
