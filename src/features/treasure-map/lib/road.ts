@@ -85,9 +85,10 @@ export function planRoad(count: number, seed = 7): RoadPlan {
     const x = MID_X - side * 14;
     if (i === 0) {
       // the road comes in from the side away from the first picture
-      const apex = along(y - drop, -side, 0.5);
+      const away: 1 | -1 = side === 1 ? -1 : 1;
+      const apex = along(y - drop, away, 0.5);
       road.push({ x: MID_X - side * 330, y: Math.max(300, apex.y - 60) }, { x: apex.x, y: Math.max(300, apex.y) });
-      for (const u of [0.7, 0.85]) road.push(along(y - drop, -side, u));
+      for (const u of [0.7, 0.85]) road.push(along(y - drop, away, u));
     }
     road.push({ x, y });
     if (i < count - 1) for (const u of [0.15, 0.3, 0.5, 0.7, 0.85]) road.push(along(y, side, u));
