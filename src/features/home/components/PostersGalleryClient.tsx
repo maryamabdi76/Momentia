@@ -419,15 +419,15 @@ function HeroFan({
 }) {
   const shadow = 'shadow-[0_30px_60px_-18px_rgba(0,0,0,0.95)]';
   return (
-    <div aria-hidden className="pointer-events-none relative mx-auto h-[19rem] w-full max-w-sm shrink-0 md:h-[23rem] md:max-w-md">
+    <div aria-hidden className="pointer-events-none relative mx-auto h-[21rem] w-full max-w-sm shrink-0 md:h-[29rem] md:max-w-xl xl:mx-0 xl:w-[34rem]">
       <span className="absolute inset-x-6 top-1/2 h-48 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(206,180,123,0.25),transparent_70%)] blur-2xl" />
       {moon && (
-        <div className="absolute start-0 top-10 w-36 -rotate-[9deg] md:w-44">{moon}</div>
+        <div className="absolute left-[4%] top-12 w-36 -rotate-[9deg] md:w-48">{moon}</div>
       )}
-      <div className="absolute end-0 top-10 w-36 rotate-[9deg] md:w-44">
+      <div className="absolute right-[4%] top-12 w-36 rotate-[9deg] md:w-48">
         <MapPoster data={{ ...mapData, theme: 'paper', frame: 'minimal' }} labels={mapLabels} className={cn('rounded-none', shadow)} />
       </div>
-      <div className="absolute start-1/2 top-0 z-10 w-40 -translate-x-1/2 md:w-52">
+      <div className="absolute left-1/2 top-0 z-10 w-40 -translate-x-1/2 md:w-60">
         <PosterPreview
           className={cn('max-w-none rounded-none', shadow)}
           size="default"
