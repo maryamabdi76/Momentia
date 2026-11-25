@@ -40,7 +40,7 @@ export function MapStep3({ exporter, format, onFormatChange, valid, problems, da
       <StepHeader title={t('step3.title')} description={t('step3.description')} />
 
       {/* what is about to be made, with a way back to change it */}
-      <dl className="grid grid-cols-3 divide-x divide-white/10 rounded-3xl border border-white/10 bg-gradient-to-b from-[#18253f]/90 to-[#111b33]/90 p-4 text-center rtl:divide-x-reverse">
+      <dl className="grid grid-cols-3 divide-x divide-white/10 rounded-3xl border border-white/10 bg-gradient-to-b from-[#18253f]/90 to-[#111b33]/90 p-4 text-center">
         {(
           [
             [t('summary.layout'), t(`layout.${data.layout}.label`), 1],
