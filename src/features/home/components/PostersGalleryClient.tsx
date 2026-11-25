@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { ArrowLeft } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { cn } from 'cn';
@@ -103,14 +104,15 @@ type Props = {
   mapThemeNames: Record<MapTheme, string>;
 };
 
+const GOLD_BUTTON =
+  'inline-flex h-13 w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-b from-[#E6CF92] to-[#CEB47B] px-7 text-base font-bold text-[#0c142b] shadow-[0_12px_32px_-12px_rgba(206,180,123,0.75)] transition-all hover:from-[#EBD69E] hover:to-[#D6BC82] active:scale-[0.985] sm:w-auto sm:min-w-56 motion-reduce:transition-none';
+
 function FilterChip({
   active,
-  dark,
   children,
   onClick,
 }: {
   active: boolean;
-  dark?: boolean;
   children: React.ReactNode;
   onClick: () => void;
 }) {
@@ -120,14 +122,10 @@ function FilterChip({
       aria-pressed={active}
       onClick={onClick}
       className={cn(
-        'rounded-xl px-4 py-1.5 text-[13px] whitespace-nowrap transition-all duration-200',
-        dark
-          ? active
-            ? 'bg-[#f5f1e8] font-medium text-[#0b1428] shadow-sm'
-            : 'bg-white/5 font-normal text-[#b7c0ce] hover:bg-white/10 hover:text-[#f5f1e8]'
-          : active
-            ? 'bg-[#0b1428] font-medium text-[#f5f1e8] shadow-sm'
-            : 'bg-[#0b1428]/5 font-normal text-[#69717c] hover:bg-[#0b1428]/10 hover:text-[#172338]',
+        'shrink-0 whitespace-nowrap rounded-full px-4 py-2 text-[13px] transition-all duration-200 motion-reduce:transition-none',
+        active
+          ? 'bg-[#CEB47B] font-bold text-[#0c142b] shadow-[0_6px_18px_-8px_rgba(206,180,123,0.8)]'
+          : 'text-[#B9C4DA] hover:bg-white/8 hover:text-white',
       )}
     >
       {children}
@@ -135,47 +133,45 @@ function FilterChip({
   );
 }
 
-function StyleSwatch({
-  style,
+/** A round colour sample: the paper of one look, ringed in gold when chosen. */
+function Swatch({
+  background,
   label,
   selected,
   onSelect,
 }: {
-  style: PosterStyle;
+  background: string;
   label: string;
   selected: boolean;
   onSelect: () => void;
 }) {
-  const theme = POSTER_THEMES[style];
   return (
     <button
       type="button"
       aria-pressed={selected}
       onClick={onSelect}
-      className="group flex min-w-0 flex-1 flex-col items-center gap-2"
+      className="group flex min-w-0 flex-1 flex-col items-center gap-2 outline-none"
     >
       <span
         className={cn(
-          'flex size-10 items-center justify-center rounded-full transition-all duration-200',
+          'flex size-11 items-center justify-center rounded-full transition-all duration-200 group-focus-visible:ring-2 group-focus-visible:ring-[#CEB47B] motion-reduce:transition-none',
           selected
-            ? 'bg-[#c9ae75]/15 ring-2 ring-[#c9ae75] ring-offset-2 ring-offset-[#f5f1e8]'
-            : 'ring-1 ring-[#dad4c7]/80 group-hover:ring-[#c9ae75]/50',
+            ? 'bg-[#CEB47B]/20 ring-2 ring-[#CEB47B] ring-offset-2 ring-offset-[#121c37]'
+            : 'ring-1 ring-white/15 group-hover:ring-[#CEB47B]/60',
         )}
       >
         <span
           className={cn(
-            'size-7 rounded-full transition-transform duration-200',
+            'size-8 rounded-full ring-1 ring-black/20 transition-transform duration-200 motion-reduce:transition-none',
             selected ? 'scale-105' : 'group-hover:scale-105',
           )}
-          style={{ background: paperCss(theme) }}
+          style={{ background }}
         />
       </span>
       <span
         className={cn(
-          'text-center text-[11px] leading-snug transition-colors duration-200',
-          selected
-            ? 'font-semibold text-[#172338]'
-            : 'font-normal text-[#69717c] group-hover:text-[#172338]',
+          'text-center text-[11px] leading-snug transition-colors',
+          selected ? 'font-semibold text-white' : 'text-[#8F9BB5] group-hover:text-white',
         )}
       >
         {label}
@@ -184,26 +180,110 @@ function StyleSwatch({
   );
 }
 
-function PreviewPanel({
+/** One product: its story and colours on one side, the poster on a lit stage on the other. */
+function ProductCard({
+  index,
+  copy,
+  premium,
+  swatchTitle,
+  swatches,
+  href,
+  personalize,
   note,
   children,
 }: {
+  index: number;
+  copy: SectionCopy;
+  premium?: React.ReactNode;
+  swatchTitle: string;
+  swatches: React.ReactNode;
+  href: string;
+  personalize: string;
   note: string;
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-w-0 flex-1">
-      <div className="flex min-h-90 items-center justify-center rounded-xl bg-gradient-to-b from-[#ebe6dc] to-[#e0dbd0] px-6 py-10 md:min-h-[440px] md:px-12">
-        <div className="w-full max-w-70 transition-transform duration-300 hover:scale-[1.02]">
-          {children}
+    <section className="px-6 py-5 md:px-22 md:py-7">
+      <div
+        className={cn(
+          'relative overflow-hidden rounded-[32px] border border-white/10 bg-gradient-to-b from-[#131f3d]/95 to-[#0c1530]/95 p-5 shadow-[0_30px_80px_-40px_rgba(0,0,0,0.9)] md:p-10',
+          'before:pointer-events-none before:absolute before:inset-x-12 before:top-0 before:h-px before:bg-gradient-to-r before:from-transparent before:via-[#CEB47B]/70 before:to-transparent',
+        )}
+      >
+        <div className="mb-8 flex items-center justify-between gap-4">
+          <span className="flex items-center gap-2.5 text-[14px] font-semibold text-[#E8D9B8]">
+            <span aria-hidden className="h-5 w-1 rounded-full bg-[#CEB47B]" />
+            {copy.family}
+            {premium}
+          </span>
+          <span className="flex items-baseline gap-3 text-[12px] text-[#8F9BB5]">
+            {copy.collection}
+            <span aria-hidden className="text-3xl font-black leading-none text-white/10">
+              {`۰${index + 1}`}
+            </span>
+          </span>
+        </div>
+
+        <div
+          className={cn(
+            'flex min-w-0 flex-col gap-10 xl:items-center xl:gap-16',
+            index % 2 === 1 ? 'xl:flex-row-reverse' : 'xl:flex-row',
+          )}
+        >
+          {/* on a phone the poster comes first: see it, then read about it */}
+          <div className="order-first min-w-0 xl:order-none xl:flex-1">
+            <div className="relative flex min-h-96 items-center justify-center overflow-hidden rounded-3xl bg-[radial-gradient(ellipse_at_50%_32%,rgba(206,180,123,0.22),transparent_62%),linear-gradient(to_bottom,#101b38,#09112a)] px-6 py-10 ring-1 ring-white/10 md:min-h-[30rem]">
+              <span
+                aria-hidden
+                className="absolute inset-x-[22%] bottom-6 h-6 rounded-[50%] bg-black/60 blur-xl"
+              />
+              <div className="relative w-full max-w-72 transition-transform duration-500 hover:-translate-y-1.5 hover:scale-[1.02] motion-reduce:transition-none">
+                {children}
+              </div>
+            </div>
+            <p className="mt-3 text-[11px] leading-relaxed text-[#8F9BB5]">{note}</p>
+          </div>
+
+          <div className="flex min-w-0 flex-col gap-6 xl:max-w-xl xl:flex-1">
+            <div>
+              <h2 className="text-[30px] font-bold leading-[1.5] text-white md:text-[36px]">
+                {copy.title}
+              </h2>
+              <p className="mt-3 text-[15px] leading-8 text-[#B9C4DA]">{copy.description}</p>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              {copy.badges.map((badge) => (
+                <span
+                  key={badge}
+                  className="rounded-full border border-[#CEB47B]/30 bg-[#CEB47B]/10 px-3 py-1 text-[11px] text-[#E8D9B8]"
+                >
+                  {badge}
+                </span>
+              ))}
+            </div>
+
+            <div className="rounded-2xl bg-white/[0.04] p-4 ring-1 ring-white/10">
+              <p className="mb-4 text-[13px] font-semibold text-[#E8D9B8]">{swatchTitle}</p>
+              <div className="flex gap-2 sm:gap-3">{swatches}</div>
+            </div>
+
+            <div className="flex flex-col gap-3">
+              <Link href={href} className={GOLD_BUTTON}>
+                {personalize}
+                <ArrowLeft className="size-4" />
+              </Link>
+              <p className="text-[12px] leading-relaxed text-[#8F9BB5]">{copy.footnote}</p>
+            </div>
+          </div>
         </div>
       </div>
-      <p className="mt-4 text-[11px] leading-relaxed text-[#69717c]">{note}</p>
-    </div>
+    </section>
   );
 }
 
 function TemplateSection({
+  index,
   copy,
   template,
   kind,
@@ -219,6 +299,7 @@ function TemplateSection({
   personalize,
   moonBlock,
 }: {
+  index: number;
   copy: SectionCopy;
   template: PosterTemplate;
   kind: 'circle' | 'full' | 'moon';
@@ -235,90 +316,44 @@ function TemplateSection({
   moonBlock?: React.ReactNode;
 }) {
   const t = useTranslations('PostersPage');
-  const selectedName = styleNames[selectedStyle];
 
   return (
-    <section className="border-b border-[#dad4c7]/50 p-6 md:px-22">
-      <div className="mb-8 flex flex-col gap-1 text-[13px] md:flex-row md:items-center md:justify-between">
-        <span className="text-[14px] font-medium tracking-wide text-[#172338]">
-          {copy.family}
-        </span>
-        <span className="text-[#69717c]">{copy.collection}</span>
-      </div>
-
-      <div className="flex flex-col gap-10 xl:flex-row xl:items-start xl:gap-14 h-full">
-        <div className="flex w-full shrink-0 flex-col gap-6 xl:max-w-2xl">
-          <div>
-            <h2 className="text-[30px] font-semibold leading-snug tracking-tight text-[#172338] md:text-[34px]">
-              {copy.title}
-            </h2>
-            <p className="mt-3 text-[16px] leading-[1.8] text-[#69717c]">
-              {copy.description}
-            </p>
-          </div>
-
-          <div className="flex flex-wrap gap-2">
-            {copy.badges.map((badge) => (
-              <span
-                key={badge}
-                className="rounded-lg bg-[#0b1428]/90 px-3 py-1 text-[11px] text-[#f5f1e8]"
-              >
-                {badge}
-              </span>
-            ))}
-          </div>
-
-          <div className="rounded-xl bg-[#f5f1e8]/70 p-4 ring-1 ring-[#dad4c7]/60">
-            <p className="mb-4 text-[13px] font-medium text-[#172338]">
-              {t('selectedColor', { styleName: selectedName })}
-            </p>
-            <div className="flex gap-2 sm:gap-3">
-              {GALLERY_STYLES.map((s) => (
-                <StyleSwatch
-                  key={s}
-                  style={s}
-                  label={styleNames[s]}
-                  selected={s === selectedStyle}
-                  onSelect={() => onStyleChange(s)}
-                />
-              ))}
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-3 pt-1">
-            <Link
-              href={href}
-              className="inline-flex h-[50px] w-full items-center justify-center rounded-xl bg-[#c9ae75] px-6 text-[15px] font-semibold text-[#0b1428] transition-all duration-200 hover:bg-[#d5bc83] hover:shadow-md sm:w-auto sm:min-w-[220px]"
-            >
-              {personalize}
-            </Link>
-            <p className="text-[12px] leading-relaxed text-[#69717c]">
-              {copy.footnote}
-            </p>
-          </div>
-        </div>
-
-        <PreviewPanel note={showcaseNote}>
-          {kind === 'moon' ? (
-            moonBlock
-          ) : (
-            <PosterPreview
-              className="max-w-none rounded-none shadow-[0_12px_28px_rgba(0,0,0,0.16)]"
-              size="default"
-              showDisclaimer={false}
-              sky={template === 'full' ? fullSky : sky}
-              labels={posterLabels}
-              data={{ style: selectedStyle, template, layers }}
-            />
-          )}
-        </PreviewPanel>
-      </div>
-    </section>
+    <ProductCard
+      index={index}
+      copy={copy}
+      swatchTitle={t('selectedColor', { styleName: styleNames[selectedStyle] })}
+      swatches={GALLERY_STYLES.map((s) => (
+        <Swatch
+          key={s}
+          background={paperCss(POSTER_THEMES[s])}
+          label={styleNames[s]}
+          selected={s === selectedStyle}
+          onSelect={() => onStyleChange(s)}
+        />
+      ))}
+      href={href}
+      personalize={personalize}
+      note={showcaseNote}
+    >
+      {kind === 'moon' ? (
+        moonBlock
+      ) : (
+        <PosterPreview
+          className="max-w-none rounded-none shadow-[0_40px_80px_-20px_rgba(0,0,0,0.9)]"
+          size="default"
+          showDisclaimer={false}
+          sky={template === 'full' ? fullSky : sky}
+          labels={posterLabels}
+          data={{ style: selectedStyle, template, layers }}
+        />
+      )}
+    </ProductCard>
   );
 }
 
 /** The treasure map: its own four looks instead of the five sky colours, and a way into the maker. */
 function MapSection({
+  index,
   copy,
   theme,
   onThemeChange,
@@ -329,6 +364,7 @@ function MapSection({
   personalize,
   premium,
 }: {
+  index: number;
   copy: SectionCopy;
   theme: MapTheme;
   onThemeChange: (theme: MapTheme) => void;
@@ -342,84 +378,66 @@ function MapSection({
   const t = useTranslations('PostersPage');
 
   return (
-    <section className="border-b border-[#dad4c7]/50 p-6 md:px-22">
-      <div className="mb-8 flex flex-col gap-1 text-[13px] md:flex-row md:items-center md:justify-between">
-        <span className="flex items-center gap-2 text-[14px] font-medium tracking-wide text-[#172338]">
-          {copy.family}
-          <PremiumMark {...premium} className="text-[#172338]" />
-        </span>
-        <span className="text-[#69717c]">{copy.collection}</span>
+    <ProductCard
+      index={index}
+      copy={copy}
+      premium={<PremiumMark {...premium} className="text-[#CEB47B]" />}
+      swatchTitle={t('selectedColor', { styleName: themeNames[theme] })}
+      swatches={MAP_THEMES.map((k) => (
+        <Swatch
+          key={k}
+          background={mapPaperColor(k)}
+          label={themeNames[k]}
+          selected={k === theme}
+          onSelect={() => onThemeChange(k)}
+        />
+      ))}
+      href="/map"
+      personalize={personalize}
+      note={showcaseNote}
+    >
+      <MapPoster data={data} labels={labels} className="rounded-none shadow-[0_40px_80px_-20px_rgba(0,0,0,0.9)]" />
+    </ProductCard>
+  );
+}
+
+/** Three posters fanned out like cards in a hand: the whole shop at a glance. */
+function HeroFan({
+  sky,
+  posterLabels,
+  layers,
+  moon,
+  mapData,
+  mapLabels,
+}: {
+  sky: SkySnapshot | null;
+  posterLabels: PosterLabels;
+  layers: Partial<SkyLayers>;
+  moon: React.ReactNode;
+  mapData: TreasureMapData;
+  mapLabels: TreasureMapLabels;
+}) {
+  const shadow = 'shadow-[0_30px_60px_-18px_rgba(0,0,0,0.95)]';
+  return (
+    <div aria-hidden className="pointer-events-none relative mx-auto h-[19rem] w-full max-w-sm shrink-0 md:h-[23rem] md:max-w-md">
+      <span className="absolute inset-x-6 top-1/2 h-48 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(206,180,123,0.25),transparent_70%)] blur-2xl" />
+      {moon && (
+        <div className="absolute start-0 top-10 w-36 -rotate-[9deg] md:w-44">{moon}</div>
+      )}
+      <div className="absolute end-0 top-10 w-36 rotate-[9deg] md:w-44">
+        <MapPoster data={{ ...mapData, theme: 'paper', frame: 'minimal' }} labels={mapLabels} className={cn('rounded-none', shadow)} />
       </div>
-
-      <div className="flex h-full flex-col gap-10 xl:flex-row xl:items-start xl:gap-14">
-        <div className="flex w-full shrink-0 flex-col gap-6 xl:max-w-2xl">
-          <div>
-            <h2 className="text-[30px] font-semibold leading-snug tracking-tight text-[#172338] md:text-[34px]">
-              {copy.title}
-            </h2>
-            <p className="mt-3 text-[16px] leading-[1.8] text-[#69717c]">{copy.description}</p>
-          </div>
-
-          <div className="flex flex-wrap gap-2">
-            {copy.badges.map((badge) => (
-              <span key={badge} className="rounded-lg bg-[#0b1428]/90 px-3 py-1 text-[11px] text-[#f5f1e8]">
-                {badge}
-              </span>
-            ))}
-          </div>
-
-          <div className="rounded-xl bg-[#f5f1e8]/70 p-4 ring-1 ring-[#dad4c7]/60">
-            <p className="mb-4 text-[13px] font-medium text-[#172338]">
-              {t('selectedColor', { styleName: themeNames[theme] })}
-            </p>
-            <div className="flex gap-2 sm:gap-3">
-              {MAP_THEMES.map((k) => (
-                <button
-                  key={k}
-                  type="button"
-                  aria-pressed={k === theme}
-                  onClick={() => onThemeChange(k)}
-                  className="group flex min-w-0 flex-1 flex-col items-center gap-2"
-                >
-                  <span
-                    className={cn(
-                      'flex size-10 items-center justify-center rounded-full transition-all duration-200',
-                      k === theme
-                        ? 'bg-[#c9ae75]/15 ring-2 ring-[#c9ae75] ring-offset-2 ring-offset-[#f5f1e8]'
-                        : 'ring-1 ring-[#dad4c7]/80 group-hover:ring-[#c9ae75]/50',
-                    )}
-                  >
-                    <span className="size-7 rounded-full ring-1 ring-black/10" style={{ background: mapPaperColor(k) }} />
-                  </span>
-                  <span
-                    className={cn(
-                      'text-center text-[11px] leading-snug transition-colors duration-200',
-                      k === theme ? 'font-semibold text-[#172338]' : 'font-normal text-[#69717c] group-hover:text-[#172338]',
-                    )}
-                  >
-                    {themeNames[k]}
-                  </span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-3 pt-1">
-            <Link
-              href="/map"
-              className="inline-flex h-[50px] w-full items-center justify-center rounded-xl bg-[#c9ae75] px-6 text-[15px] font-semibold text-[#0b1428] transition-all duration-200 hover:bg-[#d5bc83] hover:shadow-md sm:w-auto sm:min-w-[220px]"
-            >
-              {personalize}
-            </Link>
-            <p className="text-[12px] leading-relaxed text-[#69717c]">{copy.footnote}</p>
-          </div>
-        </div>
-
-        <PreviewPanel note={showcaseNote}>
-          <MapPoster data={data} labels={labels} className="rounded-none shadow-[0_12px_28px_rgba(0,0,0,0.16)]" />
-        </PreviewPanel>
+      <div className="absolute start-1/2 top-0 z-10 w-40 -translate-x-1/2 md:w-52">
+        <PosterPreview
+          className={cn('max-w-none rounded-none', shadow)}
+          size="default"
+          showDisclaimer={false}
+          sky={sky}
+          labels={posterLabels}
+          data={{ style: 'gold', template: 'circle', layers }}
+        />
       </div>
-    </section>
+    </div>
   );
 }
 
@@ -466,7 +484,7 @@ export function PostersGalleryClient({
 
   const moonPreview = moonFacts ? (
     <MoonPoster
-      className="w-full shadow-[0_12px_28px_rgba(0,0,0,0.16)]"
+      className="w-full shadow-[0_40px_80px_-20px_rgba(0,0,0,0.9)]"
       data={{
         ...moonSample,
         style: styles.moon,
@@ -480,132 +498,110 @@ export function PostersGalleryClient({
     />
   ) : null;
 
+  const fanMoon = moonFacts ? (
+    <MoonPoster
+      className="w-full shadow-[0_30px_60px_-18px_rgba(0,0,0,0.95)]"
+      data={{
+        ...moonSample,
+        style: 'gold',
+        title: 'بلندترین شب، کنار تو',
+        names: 'شیرین و فرهاد',
+        quote: '',
+        dateLabel: '۳۰ آذر ۱۴۰۵',
+      }}
+      facts={moonFacts}
+      labels={moonLabels}
+    />
+  ) : null;
+
+  // the cards are numbered in the order they are shown
+  let shown = 0;
+  const next = () => shown++;
+
   return (
     <div dir="rtl" className="text-start">
-      <div className="bg-[#0b1428] px-6 pb-16 pt-8 md:px-[88px] md:pb-20">
-        <p className="text-[12px] leading-relaxed text-[#b7c0ce]">
-          {labels.breadcrumb}
-        </p>
-        <div className="mt-3.5 flex flex-col gap-8 xl:flex-row xl:items-end xl:justify-between">
-          <div className="flex-1">
-            <h1 className="text-[32px] font-medium leading-snug text-[#f5f1e8] md:text-[46px]">
+      <div className="relative overflow-hidden px-6 pb-20 pt-8 md:px-[88px] md:pb-24">
+        <span
+          aria-hidden
+          className="pointer-events-none absolute -top-40 start-1/2 size-[44rem] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,rgba(206,180,123,0.10),transparent_65%)]"
+        />
+        <p className="relative text-[12px] leading-relaxed text-[#8F9BB5]">{labels.breadcrumb}</p>
+        <div className="relative mt-5 flex flex-col gap-12 xl:flex-row xl:items-center xl:justify-between">
+          <div className="min-w-0 flex-1">
+            <h1 className="bg-gradient-to-b from-white to-[#E8D9B8] bg-clip-text text-[36px] font-black leading-[1.5] text-transparent md:text-[54px]">
               {labels.title}
             </h1>
-            <div className="mt-2.5 space-y-0 text-[16px] leading-relaxed text-[#b7c0ce] md:text-[18px]">
+            <span aria-hidden className="mt-3 block h-1 w-16 rounded-full bg-gradient-to-l from-[#CEB47B] to-[#CEB47B]/0" />
+            <div className="mt-5 max-w-xl text-[16px] leading-9 text-[#B9C4DA] md:text-[18px]">
               {descriptionLines.map((line) => (
                 <p key={line}>{line}</p>
               ))}
             </div>
-          </div>
-          <div className="xl:w-[370px] xl:text-end">
-            <p className="text-[15px] text-[#c9ae75]">{labels.statsLine}</p>
-            <p className="mt-1 text-[13px] leading-relaxed text-[#b7c0ce]">
-              {labels.statsNote}
+            <p className="mt-6 inline-flex rounded-full border border-[#CEB47B]/35 bg-[#CEB47B]/10 px-4 py-1.5 text-[13px] text-[#E8D9B8]">
+              {labels.statsLine}
             </p>
+            <p className="mt-2 max-w-md text-[12px] leading-6 text-[#8F9BB5]">{labels.statsNote}</p>
           </div>
+          <HeroFan
+            sky={sky}
+            posterLabels={posterLabels}
+            layers={layers}
+            moon={fanMoon}
+            mapData={mapData}
+            mapLabels={mapLabels}
+          />
         </div>
       </div>
 
-      <div className="relative z-10 -mt-8 px-6 md:-mt-10 md:px-[88px]">
-        <div className="rounded-xl bg-[#0b1428] px-5 py-5 shadow-[0_20px_50px_rgba(0,0,0,0.18)] ring-1 ring-white/10 md:px-8 md:py-6">
-          <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
-            <div className="flex flex-wrap items-center gap-2">
-              {' '}
-              <span className="me-1 text-[12px] text-[#c9ae75]">
-                {labels.filters.product}
-              </span>
-              <FilterChip
-                dark
-                active={product === 'all'}
-                onClick={() => setProduct('all')}
-              >
-                {labels.filters.productAll}
-              </FilterChip>
-              <FilterChip
-                dark
-                active={product === 'sky'}
-                onClick={() => setProduct('sky')}
-              >
-                {labels.filters.productSky}
-              </FilterChip>
-              <FilterChip
-                dark
-                active={product === 'moon'}
-                onClick={() => setProduct('moon')}
-              >
-                {labels.filters.productMoon}
-              </FilterChip>
-              <FilterChip
-                dark
-                active={product === 'map'}
-                onClick={() => setProduct('map')}
-              >
-                {labels.filters.productMap}
-              </FilterChip>
+      <div className="relative z-10 -mt-8 px-6 md:px-[88px]">
+        <div className="min-w-0 rounded-3xl border border-white/10 bg-[#0e1731]/90 p-4 shadow-[0_24px_60px_-24px_rgba(0,0,0,0.9)] backdrop-blur-xl md:p-5">
+          <div className="flex min-w-0 flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+            <div className="flex min-w-0 items-center gap-3">
+              <span className="shrink-0 text-[12px] text-[#CEB47B]">{labels.filters.product}</span>
+              <div className="flex min-w-0 gap-1 overflow-x-auto rounded-full bg-white/5 p-1 ring-1 ring-white/10 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                <FilterChip active={product === 'all'} onClick={() => setProduct('all')}>
+                  {labels.filters.productAll}
+                </FilterChip>
+                <FilterChip active={product === 'sky'} onClick={() => setProduct('sky')}>
+                  {labels.filters.productSky}
+                </FilterChip>
+                <FilterChip active={product === 'moon'} onClick={() => setProduct('moon')}>
+                  {labels.filters.productMoon}
+                </FilterChip>
+                <FilterChip active={product === 'map'} onClick={() => setProduct('map')}>
+                  {labels.filters.productMap}
+                </FilterChip>
+              </div>
             </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="me-1 text-[12px] text-[#c9ae75]">
-                {labels.filters.template}
-              </span>
-              <FilterChip
-                dark
-                active={templateFilter === 'all'}
-                onClick={() => setTemplateFilter('all')}
-              >
-                {labels.filters.templateAll}
-              </FilterChip>
-              <FilterChip
-                dark
-                active={templateFilter === 'circle'}
-                onClick={() => setTemplateFilter('circle')}
-              >
-                {labels.filters.templateCircle}
-              </FilterChip>
-              <FilterChip
-                dark
-                active={templateFilter === 'full'}
-                onClick={() => setTemplateFilter('full')}
-              >
-                {labels.filters.templateFull}
-              </FilterChip>
+            <div className="flex min-w-0 items-center gap-3">
+              <span className="shrink-0 text-[12px] text-[#CEB47B]">{labels.filters.template}</span>
+              <div className="flex min-w-0 gap-1 overflow-x-auto rounded-full bg-white/5 p-1 ring-1 ring-white/10 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                <FilterChip active={templateFilter === 'all'} onClick={() => setTemplateFilter('all')}>
+                  {labels.filters.templateAll}
+                </FilterChip>
+                <FilterChip active={templateFilter === 'circle'} onClick={() => setTemplateFilter('circle')}>
+                  {labels.filters.templateCircle}
+                </FilterChip>
+                <FilterChip active={templateFilter === 'full'} onClick={() => setTemplateFilter('full')}>
+                  {labels.filters.templateFull}
+                </FilterChip>
+              </div>
             </div>
           </div>
-
-          <div className="mt-5 flex flex-col gap-3 border-t border-white/10 pt-5 xl:flex-row xl:items-center xl:justify-between">
-            <p className="text-[12px] text-[#b7c0ce] xl:max-w-xs">
-              {labels.filters.paletteHint}
-            </p>
-            <div className="flex flex-wrap gap-x-4 gap-y-2">
-              {GALLERY_STYLES.map((s) => (
-                <span
-                  key={s}
-                  className="flex items-center gap-1.5 text-[11px] text-[#e8e3d9]/90"
-                >
-                  {labels.styleNames[s]}
-                  <span
-                    className="size-[17px] rounded-full ring-1 ring-white/15"
-                    style={{ background: POSTER_THEMES[s].paperStops[0]![1] }}
-                  />
-                </span>
-              ))}
-            </div>
-          </div>
+          <p className="mt-3 text-[12px] text-[#8F9BB5]">{labels.filters.paletteHint}</p>
         </div>
       </div>
 
-      <div className="mt-6 flex items-center gap-4 bg-[#ede5d4]/80 px-6 py-[18px] md:mt-8 md:px-[88px]">
-        <PremiumMark
-          label={labels.premiumBadge}
-          tooltip={labels.premiumBar}
-          className="text-[#172338]"
-        />
-        <p className="flex-1 text-[13px] leading-relaxed text-[#172338]">
-          {labels.premiumBar}
-        </p>
+      <div className="mt-6 px-6 md:mt-8 md:px-[88px]">
+        <div className="flex items-center gap-4 rounded-2xl border border-[#CEB47B]/25 bg-[#CEB47B]/[0.07] px-5 py-4">
+          <PremiumMark label={labels.premiumBadge} tooltip={labels.premiumBar} className="text-[#CEB47B]" />
+          <p className="flex-1 text-[13px] leading-7 text-[#E8D9B8]">{labels.premiumBar}</p>
+        </div>
       </div>
 
       {showCircle && (
         <TemplateSection
+          index={next()}
           copy={labels.sections.circle}
           template="circle"
           kind="circle"
@@ -624,6 +620,7 @@ export function PostersGalleryClient({
 
       {showFull && (
         <TemplateSection
+          index={next()}
           copy={labels.sections.full}
           template="full"
           kind="full"
@@ -642,6 +639,7 @@ export function PostersGalleryClient({
 
       {showMoon && moonPreview && (
         <TemplateSection
+          index={next()}
           copy={labels.sections.moon}
           template="circle"
           kind="moon"
@@ -661,6 +659,7 @@ export function PostersGalleryClient({
 
       {showMap && (
         <MapSection
+          index={next()}
           copy={labels.sections.map}
           theme={mapTheme}
           onThemeChange={setMapTheme}

@@ -23,7 +23,7 @@ export default function PostersPage() {
   return (
     <div className="flex min-h-screen flex-col bg-[#0b1428]" dir="rtl">
       <HomeHeader variant="posters" />
-      <main className="flex-1 bg-[#f4f0e7] text-[#172338]">
+      <main className="flex-1 bg-[#0b1428] text-white">
         <PostersGallery />
       </main>
       <HomeFooter variant="posters" />
