@@ -91,7 +91,7 @@ export type TreasureMapOptions = {
 
 const PALETTES = {
   // warm paper, charcoal ink and one clay-rose accent: the look of printed love-story maps
-  paper: { bg: '#F6F0E4', card: '#FBF8F1', ink: '#2A2733', accent: '#B4513C', muted: '#7A7684', land: '#EFE6D5', water: '#C9DADD', park: '#D8E1CC', onAccent: '#FFFFFF' },
+  paper: { bg: '#F7EDD9', card: '#FBF6EA', ink: '#46291D', accent: '#B94A38', muted: '#8A6A56', land: '#EFE6D5', water: '#C9DADD', park: '#D8E1CC', onAccent: '#FFFFFF' },
   blush: { bg: '#F7E9E5', card: '#FCF4F1', ink: '#3A2A2E', accent: '#A8324A', muted: '#8A7479', land: '#F0DAD5', water: '#E0CFD2', park: '#E6D9CF', onAccent: '#FFFFFF' },
   // black pen on cream, nothing else: the look of the printed line-drawn love maps
   ink: { bg: '#FBF6E9', card: '#FFFDF6', ink: '#26232B', accent: '#26232B', muted: '#5E5A64', land: '#F4EEDD', water: '#FFFDF6', park: '#FFFDF6', onAccent: '#FFFDF6' },
@@ -110,6 +110,33 @@ export function titleFontSize(text: string): number {
 const hash = (s: string) => [...s].reduce((h, ch) => (Math.imul(h, 31) + ch.charCodeAt(0)) >>> 0, 7);
 
 type Pal = (typeof PALETTES)[MapTheme];
+
+const WARM = (theme: MapTheme) => theme === 'paper' || theme === 'blush';
+
+/** Watercolour paper: soft mottling and a darker edge, so the sheet looks painted on rather than flat. */
+function paperDefs(id: string, theme: MapTheme, W: number, H: number): string {
+  if (!WARM(theme)) return '';
+  const tone = theme === 'blush' ? '0.66 0.42 0.4' : '0.62 0.47 0.28';
+  const [r, g, b] = tone.split(' ');
+  return (
+    `<filter id="${id}-blot" filterUnits="userSpaceOnUse" x="0" y="0" width="${W}" height="${H}">` +
+    `<feTurbulence type="fractalNoise" baseFrequency="0.009 0.012" numOctaves="3" seed="11"/>` +
+    `<feColorMatrix type="matrix" values="0 0 0 0 ${r}  0 0 0 0 ${g}  0 0 0 0 ${b}  0 0 0 0.9 -0.32"/></filter>` +
+    `<filter id="${id}-fibre" filterUnits="userSpaceOnUse" x="0" y="0" width="${W}" height="${H}">` +
+    `<feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" seed="4"/>` +
+    `<feColorMatrix type="matrix" values="0 0 0 0 ${r}  0 0 0 0 ${g}  0 0 0 0 ${b}  0 0 0 0.5 -0.14"/></filter>` +
+    `<radialGradient id="${id}-vig" cx="50%" cy="46%" r="78%"><stop offset="0.5" stop-color="${r > '0.64' ? '#9C5A58' : '#9C7A4A'}" stop-opacity="0"/><stop offset="1" stop-color="${r > '0.64' ? '#9C5A58' : '#9C7A4A'}" stop-opacity="0.3"/></radialGradient>`
+  );
+}
+
+function paperTexture(id: string, theme: MapTheme, W: number, H: number): string {
+  if (!WARM(theme)) return '';
+  return (
+    `<rect width="${W}" height="${H}" filter="url(#${id}-blot)" opacity="0.5"/>` +
+    `<rect width="${W}" height="${H}" filter="url(#${id}-fibre)" opacity="0.55"/>` +
+    `<rect width="${W}" height="${H}" fill="url(#${id}-vig)"/>`
+  );
+}
 
 /** The map's paper colour, for the page behind the poster in story/wallpaper/print files. */
 export function mapPaperColor(theme: MapTheme): string {
@@ -558,8 +585,9 @@ export function buildTreasureMapSvg(opts: TreasureMapOptions): string {
 
   return (
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="${esc(labels.alt)}">` +
-    `<defs><style>${fontCss}text{font-family:'Vazirmatn',Tahoma,sans-serif}</style>${tintFilter(id, data.theme)}${extraDefs}</defs>` +
+    `<defs><style>${fontCss}text{font-family:'Vazirmatn',Tahoma,sans-serif}</style>${tintFilter(id, data.theme)}${paperDefs(id, data.theme, W, H)}${extraDefs}</defs>` +
     `<rect width="${W}" height="${H}" fill="${p.bg}"/>` +
+    paperTexture(id, data.theme, W, H) +
     parts.join('') +
     `</svg>`
   );
