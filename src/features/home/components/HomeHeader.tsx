@@ -8,6 +8,7 @@ import {
   NavigationMenuLink,
   NavigationMenuList,
 } from '@/components/ui/navigation-menu';
+import { YaldaOnly } from './YaldaOnly';
 
 const navLinkClass =
   'bg-transparent text-white hover:bg-white/10 hover:text-[#CEB47B] focus:bg-white/10 focus:text-[#CEB47B]';
@@ -18,16 +19,18 @@ type HomeHeaderProps = {
    * `create`  – the sky poster maker: Moon maker one tap away, action returns home.
    * `moon`    – the Moon poster maker: sky maker one tap away, action returns home.
    * `posters` – the gallery.
+   * `yalda`   – the Yalda gift page; buttons as on a maker page.
    */
-  variant?: 'home' | 'create' | 'moon' | 'posters';
+  variant?: 'home' | 'create' | 'moon' | 'posters' | 'yalda';
 };
 
 export async function HomeHeader({ variant = 'home' }: HomeHeaderProps) {
   const t = await getTranslations('HomePage');
   const tCreate = await getTranslations('CreatePage');
-  const isCreate = variant === 'create' || variant === 'moon';
+  const isCreate = variant === 'create' || variant === 'moon' || variant === 'yalda';
   const isMoon = variant === 'moon';
   const isPosters = variant === 'posters';
+  const isYalda = variant === 'yalda';
 
   const isHome = variant === 'home';
   const navLinks: Array<{ href: string; label: string; active?: boolean }> = [
@@ -79,6 +82,17 @@ export async function HomeHeader({ variant = 'home' }: HomeHeaderProps) {
                   </NavigationMenuLink>
                 </NavigationMenuItem>
               ))}
+              {/* the Yalda page stays reachable all year, but is only advertised around the night */}
+              <YaldaOnly>
+                <NavigationMenuItem className={isYalda ? 'bg-white/10 rounded-lg' : ''}>
+                  <NavigationMenuLink
+                    href="/yalda"
+                    className={isYalda ? 'text-[#CEB47B]' : navLinkClass}
+                  >
+                    {t('nav.yalda')}
+                  </NavigationMenuLink>
+                </NavigationMenuItem>
+              </YaldaOnly>
             </NavigationMenuList>
           </NavigationMenu>
         </div>

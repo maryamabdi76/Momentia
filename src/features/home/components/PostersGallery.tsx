@@ -132,21 +132,21 @@ export async function PostersGallery() {
         layers={CARD_LAYERS}
       />
 
-      <section className="px-6 md:px-22 md:py-14" dir="rtl">
+      <section className="px-6 py-10 md:px-22 md:py-16" dir="rtl">
         <div className="flex flex-col gap-12 xl:flex-row xl:gap-18">
           <div className="flex w-full shrink-0 flex-col gap-2 xl:max-w-2xl">
-            <h2 className="whitespace-pre-line text-start text-[29px] font-medium leading-snug text-[#172338]">
+            <h2 className="whitespace-pre-line text-start text-[29px] font-bold leading-snug text-white">
               {t('compare.title')}
             </h2>
-            <p className="mt-3 text-start text-[15px] leading-relaxed text-[#69717c]">
+            <p className="mt-3 text-start text-[15px] leading-relaxed text-[#B9C4DA]">
               {t('compare.body')}
             </p>
-            <p className="mt-3 text-start text-[12px] leading-relaxed text-[#69717c]">
+            <p className="mt-3 text-start text-[12px] leading-relaxed text-[#8F9BB5]">
               {t('compare.disclaimer')}
             </p>
           </div>
-          <div className="overflow-hidden rounded-md border border-[#dad4c7] min-w-0 flex-1 max-w-none ">
-            <div className="grid grid-cols-[minmax(4.5rem,1fr)_repeat(4,minmax(0,1fr))] gap-2 bg-[#e8e3d9] px-3 py-3.5 text-[13px] font-semibold text-[#172338] md:gap-5 md:text-[15px]">
+          <div className="min-w-0 flex-1 overflow-hidden rounded-3xl border border-white/10 bg-[#0e1731]/80">
+            <div className="grid grid-cols-[minmax(4.5rem,1fr)_repeat(4,minmax(0,1fr))] gap-2 bg-white/[0.06] px-3 py-3.5 text-[13px] font-semibold text-[#E8D9B8] md:gap-5 md:text-[15px]">
               <p className="text-start" />
               <p className="text-center">{t('compare.columns.circle')}</p>
               <p className="text-center">{t('compare.columns.full')}</p>
@@ -156,9 +156,9 @@ export async function PostersGallery() {
             {compareRows.map((row) => (
               <div
                 key={row.label}
-                className="grid grid-cols-[minmax(4.5rem,1fr)_repeat(4,minmax(0,1fr))] gap-2 border-t border-[#dad4c7] px-3 py-3.5 text-[12px] text-[#69717c] md:gap-5 md:text-[13px]"
+                className="grid grid-cols-[minmax(4.5rem,1fr)_repeat(4,minmax(0,1fr))] gap-2 border-t border-white/10 px-3 py-3.5 text-[12px] text-[#B9C4DA] md:gap-5 md:text-[13px]"
               >
-                <p className="text-start font-medium text-[#172338]">
+                <p className="text-start font-medium text-white">
                   {row.label}
                 </p>
                 <p className="text-center">{row.cells.circle}</p>

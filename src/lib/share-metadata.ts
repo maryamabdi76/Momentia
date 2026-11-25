@@ -10,6 +10,7 @@ export const SHARE_IMAGES = {
   moon: '/og/moon.jpg',
   posters: '/og/posters.jpg',
   map: '/og/map.jpg',
+  yalda: '/og/yalda.jpg',
 } as const;
 
 export type ShareInput = {
