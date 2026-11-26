@@ -22,6 +22,20 @@ export function readPremiumToken(product: Product): string | null {
 }
 
 export function storePremiumToken(product: Product, token: string) {
+  // A smaller payment (an older order, a tracking code typed in later) must never replace a
+  // live token that already covers more: that would make the buyer pay the difference again.
+  const current = tokenPayload(readPremiumToken(product));
+  const incoming = tokenPayload(token);
+  if (
+    current &&
+    incoming &&
+    current.p === product &&
+    typeof current.e === 'number' &&
+    current.e > Date.now() &&
+    covers(normalizeFeatures(product, current.f), normalizeFeatures(product, incoming.f))
+  ) {
+    return;
+  }
   try {
     sessionStorage.setItem(tokenKey(product), token);
   } catch {
@@ -43,7 +57,7 @@ export function subscribePremiumToken(onChange: () => void) {
   return () => window.removeEventListener(CHANGE_EVENT, onChange);
 }
 
-function tokenPayload(token: string | null): { a?: unknown; p?: unknown; f?: unknown } | null {
+function tokenPayload(token: string | null): { a?: unknown; e?: unknown; p?: unknown; f?: unknown } | null {
   if (!token) return null;
   try {
     const payload = token.split('.')[0];
@@ -51,7 +65,7 @@ function tokenPayload(token: string | null): { a?: unknown; p?: unknown; f?: unk
     const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
     const padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4);
     const bytes = Uint8Array.from(atob(padded), (c) => c.charCodeAt(0));
-    return JSON.parse(new TextDecoder().decode(bytes)) as { a?: unknown; p?: unknown; f?: unknown };
+    return JSON.parse(new TextDecoder().decode(bytes)) as { a?: unknown; e?: unknown; p?: unknown; f?: unknown };
   } catch {
     return null;
   }

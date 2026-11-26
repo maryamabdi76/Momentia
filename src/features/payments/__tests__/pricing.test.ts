@@ -106,3 +106,30 @@ function require_crypto() {
   // node:crypto without a top-level import keeps the test list above readable
   return process.getBuiltinModule('node:crypto');
 }
+
+test('a smaller payment never replaces a bigger one already in the browser', async () => {
+  const memory = new Map<string, string>();
+  const g = globalThis as unknown as Record<string, unknown>;
+  g.sessionStorage = {
+    getItem: (k: string) => memory.get(k) ?? null,
+    setItem: (k: string, v: string) => void memory.set(k, v),
+    removeItem: (k: string) => void memory.delete(k),
+  };
+  g.window = { dispatchEvent: () => true, addEventListener() {}, removeEventListener() {} };
+  const { storePremiumToken } = await import('../lib/client.ts');
+  const both = signPremiumToken(ID, SECRET, {
+    product: 'sky',
+    features: ['fullTemplate', 'paintedConstellations'],
+  });
+  const none = signPremiumToken(ID, SECRET, { product: 'sky', features: [] });
+  storePremiumToken('sky', both);
+  storePremiumToken('sky', none); // e.g. an old order typed into /track
+  assert.deepEqual(paidFeatures('sky'), ['fullTemplate', 'paintedConstellations']);
+  // a bigger one does replace a smaller one
+  memory.clear();
+  storePremiumToken('sky', none);
+  storePremiumToken('sky', both);
+  assert.deepEqual(paidFeatures('sky'), ['fullTemplate', 'paintedConstellations']);
+  // and tokens of other products are kept apart
+  assert.equal(paidFeatures('moon'), null);
+});
