@@ -67,47 +67,65 @@ export function planRoad(count: number, seed = 7): RoadPlan {
   // with few moments a picture may be big; with more, narrower and further out so it clears the words of the rows beside it
   const boxW = count <= 4 ? 290 : compact ? 250 : 270;
   const offset = count <= 4 ? 262 : compact ? 255 : 258;
-  // how far the road swings to each side: wide, gentle bends rather than hairpins
-  const swing = 112;
+  // a person drew this road, not a ruler: every bend, pin and picture is a little off its mark.
+  // Room for a picture to move up or down without touching the next one on its side.
+  const slack = count > 1 ? 2 * gap - 34 - boxH : 120;
+  // ...and must still clear the next pin's words on the other side
+  const clearBelow = count > 1 ? gap + (compact ? 26 : 34) - 66 - (60 + boxH / 2) - 2 : 40;
+  const sway = Math.max(0, Math.min(26, slack / 2, clearBelow));
   const drop = count > 1 ? gap : 300;
+
+  const sides: Array<1 | -1> = Array.from({ length: count }, (_, i) => (i % 2 === 0 ? 1 : -1));
+  // the words keep to a column (a picture on either side leaves no room to move them); the bends differ in depth
+  const pinX = sides.map((side) => MID_X - side * 14);
+  const depth = sides.map(() => 80 + rnd() * 95);
+  // where in its stretch the road is at its widest: early or late
+  const lean = sides.map(() => (rnd() - 0.5) * 0.22);
+  const jit = (v: number) => (rnd() - 0.5) * v;
 
   const road: Point[] = [];
   const stops: RoadPlan['stops'] = [];
-  // between two pins the road is half a sine wave: it leaves the pin, swings out under the picture
-  // (u = 0.5), and comes back to the next pin on the other side of the middle
-  const along = (y: number, side: 1 | -1, u: number): Point => ({
-    x: MID_X + side * (swing * Math.sin(Math.PI * u) + 14 * (2 * u - 1)),
-    y: y + drop * u,
-  });
+  // between two pins the road leaves one, swings out under the picture and comes back to the next,
+  // as a bend that is deeper or shallower, earlier or later, and never quite smooth
+  const along = (y: number, side: 1 | -1, u: number, x0: number, x1: number, d: number, k: number): Point => {
+    const w = Math.sin(Math.PI * Math.pow(u, 1 - k));
+    return { x: x0 + (x1 - x0) * u + side * d * w + jit(9), y: y + drop * u + jit(6) };
+  };
   for (let i = 0; i < count; i++) {
-    const side: 1 | -1 = i % 2 === 0 ? 1 : -1;
+    const side = sides[i]!;
     const y = y0 + i * gap;
-    const x = MID_X - side * 14;
+    const x = pinX[i]!;
     if (i === 0) {
       // the road comes in from the side away from the first picture
       const away: 1 | -1 = side === 1 ? -1 : 1;
-      const apex = along(y - drop, away, 0.5);
-      road.push({ x: MID_X - side * 330, y: Math.max(300, apex.y - 60) }, { x: apex.x, y: Math.max(300, apex.y) });
-      for (const u of [0.7, 0.85]) road.push(along(y - drop, away, u));
+      const inX = MID_X + away * 150;
+      road.push({ x: MID_X + away * 330, y: Math.max(300, y - drop * 0.62 - 40) });
+      for (const u of [0.5, 0.7, 0.86]) {
+        const pt = along(y - drop, away, u, inX - away * 20, x, 150, 0);
+        road.push({ x: pt.x, y: Math.max(300, pt.y) });
+      }
     }
     road.push({ x, y });
-    if (i < count - 1) for (const u of [0.15, 0.3, 0.5, 0.7, 0.85]) road.push(along(y, side, u));
+    if (i < count - 1) {
+      const next = pinX[i + 1]!;
+      for (const u of [0.14, 0.3, 0.5, 0.7, 0.86]) road.push(along(y, side, u, x, next, depth[i]!, lean[i]!));
+    }
     stops.push({
       x,
       y,
       px: MID_X + side * offset,
-      py: y + 60 + (rnd() - 0.5) * 8,
+      py: y + 60 + (rnd() - 0.5) * 2 * sway,
       boxW,
       boxH,
       side,
-      tilt: (rnd() - 0.5) * 5,
+      tilt: (rnd() - 0.5) * 10,
       textY: y + (compact ? 26 : 34),
       bottom: y + blockH,
     });
   }
   const last = stops[count - 1]!;
-  for (const u of [0.15, 0.3, 0.5]) {
-    const pt = along(last.y, last.side, u);
+  for (const u of [0.14, 0.3, 0.5]) {
+    const pt = along(last.y, last.side, u, last.x, MID_X + last.side * 20, depth[count - 1]!, 0);
     road.push({ x: pt.x, y: Math.min(pt.y, 1225) });
   }
   road.push({ x: MID_X + last.side * 330, y: Math.min(last.y + drop * 0.8, 1256) });
@@ -306,8 +324,8 @@ export function roadSvg(stops: RoadStop[], p: RoadPalette, id: string, h: Helper
     `<feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="2" seed="3" result="noise"/>` +
     `<feDisplacementMap in="SourceGraphic" in2="noise" scale="3"/></filter>` +
     `<filter id="${id}-paint" filterUnits="userSpaceOnUse" x="0" y="0" width="900" height="1350">` +
-    `<feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="3" seed="5" result="n"/>` +
-    `<feDisplacementMap in="SourceGraphic" in2="n" scale="3.5" result="d"/>` +
+    `<feTurbulence type="fractalNoise" baseFrequency="${h.lineArt ? 0.035 : 0.02}" numOctaves="3" seed="5" result="n"/>` +
+    `<feDisplacementMap in="SourceGraphic" in2="n" scale="${h.lineArt ? 3.5 : 8}" result="d"/>` +
     (grain || `<feMerge><feMergeNode in="d"/></feMerge>`) +
     `</filter>`;
   return { defs, body: body.join('') };
