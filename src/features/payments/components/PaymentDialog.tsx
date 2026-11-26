@@ -22,6 +22,7 @@ import {
   type PaymentRequest,
   claimPremiumToken,
   onOpenPaymentDialog,
+  readPremiumToken,
   startOrder,
   storePremiumToken,
   submitOrder,
@@ -62,8 +63,10 @@ export function PaymentDialog({ product }: { product: Product }) {
 
   function apply(result: ClaimResult) {
     if (result.status === 'paid') {
-      storePremiumToken(result.product ?? product, result.token);
-      trackEvent('payment_approved', { method: 'card' });
+      const paidProduct = result.product ?? product;
+      const fresh = readPremiumToken(paidProduct) !== result.token;
+      storePremiumToken(paidProduct, result.token);
+      if (fresh) trackEvent('payment_approved', { method: 'card' });
       setView('paid');
     } else if (result.status === 'submitted') {
       setView((v) => (v === 'paid' ? v : 'waiting'));
@@ -101,16 +104,30 @@ export function PaymentDialog({ product }: { product: Product }) {
     [product],
   );
 
-  // Coming back to the page: pick up an order that was approved (or is still waiting).
+  // Coming back to the page: pick up an order that was approved (or is still waiting). A phone
+  // freezes the page while the buyer is in the bank or Telegram app, so ask again the moment
+  // the page is shown or focused instead of waiting for the next poll.
   useEffect(() => {
     let cancelled = false;
-    void claimPremiumToken(product).then((result) => {
-      if (!cancelled) apply(result);
-    });
+    const refresh = () => {
+      void claimPremiumToken(product).then((result) => {
+        if (!cancelled) apply(result);
+      });
+    };
+    const onShow = () => {
+      if (document.visibilityState === 'visible') refresh();
+    };
+    refresh();
+    document.addEventListener('visibilitychange', onShow);
+    window.addEventListener('focus', onShow);
+    window.addEventListener('pageshow', onShow);
     return () => {
       cancelled = true;
+      document.removeEventListener('visibilitychange', onShow);
+      window.removeEventListener('focus', onShow);
+      window.removeEventListener('pageshow', onShow);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- run once on load
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `apply` only sets state
   }, [product]);
 
   // The owner approves by hand, so keep asking while the order waits.
