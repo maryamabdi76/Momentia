@@ -1,4 +1,5 @@
 import { timingSafeEqual } from 'node:crypto';
+import type { Feature, Product } from './pricing.ts';
 
 /**
  * The owner approves card-to-card payments from Telegram. When a buyer says "I paid", the
@@ -89,13 +90,29 @@ export function formatAmount(amountToman: number): string {
 }
 
 /** The text the owner sees. No personal data: just the amount, the order and what the buyer typed. */
-export function approvalText(input: {
+const PRODUCT_NAMES: Record<Product, string> = {
+  sky: 'پوستر آسمان',
+  moon: 'پوستر ماه',
+  map: 'نقشهٔ گنج',
+};
+const FEATURE_NAMES: Record<Feature, string> = {
+  fullTemplate: 'قالب تمام‌صفحه',
+  paintedConstellations: 'صورت‌فلکی نقاشی‌شده',
+};
+
+type ApprovalInput = {
   orderId: string;
   amountToman: number;
   payerLast4: string | null;
-}): string {
+  product: Product;
+  features: readonly Feature[];
+};
+
+export function approvalText(input: ApprovalInput): string {
+  const what = [PRODUCT_NAMES[input.product], ...input.features.map((f) => FEATURE_NAMES[f])];
   return [
     '🧾 پرداخت جدید کارت‌به‌کارت',
+    `محصول: ${what.join(' + ')}`,
     `مبلغ دقیق: ${formatAmount(input.amountToman)} تومان`,
     `۴ رقم آخر کارت پرداخت‌کننده: ${input.payerLast4 ? faDigits(input.payerLast4) : 'وارد نشده'}`,
     `کد سفارش: ${input.orderId}`,
@@ -113,7 +130,7 @@ const isTransient = (err: unknown) =>
 
 export async function sendApprovalRequest(
   config: TelegramConfig,
-  input: { orderId: string; amountToman: number; payerLast4: string | null },
+  input: ApprovalInput,
   fetchImpl: Fetch = fetch,
   retryDelayMs = 600,
 ): Promise<void> {
@@ -128,7 +145,7 @@ export async function sendApprovalRequest(
 
 async function sendOnce(
   config: TelegramConfig,
-  input: { orderId: string; amountToman: number; payerLast4: string | null },
+  input: ApprovalInput,
   fetchImpl: Fetch,
 ): Promise<void> {
   await call(

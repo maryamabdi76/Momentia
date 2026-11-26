@@ -19,12 +19,14 @@ import {
   CheckoutError,
   type ClaimResult,
   type OrderInfo,
+  type PaymentRequest,
   claimPremiumToken,
   onOpenPaymentDialog,
   startOrder,
   storePremiumToken,
   submitOrder,
 } from '@/features/payments/lib/client';
+import type { Product } from '@/features/payments/lib/pricing';
 import { formatToman, toPersianDigits } from '@/features/poster/lib/digits';
 import { cn } from 'cn';
 import { formatCard } from '@/lib/support';
@@ -46,11 +48,12 @@ const POLL_MS = 10_000;
  * It also shows where the order stands inline, so a buyer who closes the window (or the tab)
  * still sees it. It is opened by `ensurePremiumAccess` through `openPaymentDialog`.
  */
-export function PaymentDialog() {
+export function PaymentDialog({ product }: { product: Product }) {
   const t = useTranslations('Payment');
   const [open, setOpen] = useState(false);
   const [view, setView] = useState<View>('idle');
   const [order, setOrder] = useState<OrderInfo | null>(null);
+  const [request, setRequest] = useState<PaymentRequest | null>(null);
   const [last4, setLast4] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<CheckoutError['reason'] | null>(null);
@@ -59,7 +62,7 @@ export function PaymentDialog() {
 
   function apply(result: ClaimResult) {
     if (result.status === 'paid') {
-      storePremiumToken(result.token);
+      storePremiumToken(result.product ?? product, result.token);
       trackEvent('payment_approved', { method: 'card' });
       setView('paid');
     } else if (result.status === 'submitted') {
@@ -69,12 +72,13 @@ export function PaymentDialog() {
     }
   }
 
-  async function begin() {
+  async function begin(request: PaymentRequest = { product, features: [] }) {
     setOpen(true);
+    setRequest(request);
     setError(null);
     setView('loading');
     try {
-      const info = await startOrder();
+      const info = await startOrder(request);
       setOrder(info);
       setView(info.status === 'submitted' ? 'waiting' : 'pay');
     } catch (err) {
@@ -88,29 +92,36 @@ export function PaymentDialog() {
   useEffect(() => {
     beginRef.current = begin;
   });
-  useEffect(() => onOpenPaymentDialog(() => void beginRef.current()), []);
+  useEffect(
+    () =>
+      onOpenPaymentDialog((request) => {
+        // each page has one payment window, for its own product only
+        if (request.product === product) void beginRef.current(request);
+      }),
+    [product],
+  );
 
   // Coming back to the page: pick up an order that was approved (or is still waiting).
   useEffect(() => {
     let cancelled = false;
-    void claimPremiumToken().then((result) => {
+    void claimPremiumToken(product).then((result) => {
       if (!cancelled) apply(result);
     });
     return () => {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- run once on load
-  }, []);
+  }, [product]);
 
   // The owner approves by hand, so keep asking while the order waits.
   useEffect(() => {
     if (view !== 'waiting') return;
     const timer = setInterval(() => {
-      void claimPremiumToken().then(apply);
+      void claimPremiumToken(product).then(apply);
     }, POLL_MS);
     return () => clearInterval(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- `apply` only sets state
-  }, [view]);
+  }, [view, product]);
 
   useEffect(
     () => () => {
@@ -135,7 +146,7 @@ export function PaymentDialog() {
     setBusy(true);
     setError(null);
     try {
-      await submitOrder(last4.trim());
+      await submitOrder(product, last4.trim());
       trackEvent('payment_submitted', { method: 'card' });
       setView('waiting');
     } catch (err) {
@@ -155,7 +166,9 @@ export function PaymentDialog() {
               ? 'errors.notifyFailed'
               : error === 'invalid_last4'
                 ? 'errors.invalidLast4'
-                : 'errors.unavailable',
+                : error === 'already_covered'
+                  ? 'errors.alreadyCovered'
+                  : 'errors.unavailable',
       )
     : null;
 
@@ -202,7 +215,7 @@ export function PaymentDialog() {
         >
           {t('paid')}
         </p>
-        <PaymentReceipt />
+        <PaymentReceipt product={product} />
       </div>
     ) : view === 'rejected' ? (
       <p
@@ -256,7 +269,7 @@ export function PaymentDialog() {
               <DialogFooter className="mx-0 mb-0 border-0 bg-transparent p-0">
                 <Button
                   type="button"
-                  onClick={() => void begin()}
+                  onClick={() => void begin(request ?? undefined)}
                   className="h-11 w-full bg-[#CEB47B] text-sm font-bold text-[#0c142b] hover:bg-[#e0c180]"
                 >
                   {t('retry')}
@@ -416,7 +429,7 @@ export function PaymentDialog() {
             <DialogFooter className="mx-0 mb-0 flex-row gap-2 border-0 bg-transparent p-0">
               <Button
                 type="button"
-                onClick={() => void begin()}
+                onClick={() => void begin(request ?? undefined)}
                 className="h-11 flex-1 bg-[#CEB47B] text-sm font-bold text-[#0c142b] hover:bg-[#e0c180]"
               >
                 {t('retry')}

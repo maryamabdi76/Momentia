@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState, useSyncExternalStore } from 'react';
+import { useCallback, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import type { SkySnapshot } from '@/features/sky/lib/types';
 import {
@@ -10,10 +10,7 @@ import {
 } from '@/features/poster/lib/export-poster';
 import { PremiumAccessError, ensurePremiumAccess } from '@/features/poster/lib/premium-access';
 import type { PosterExport } from '@/features/poster/hooks/use-poster-export';
-import {
-  readPremiumToken,
-  subscribePremiumToken,
-} from '@/features/payments/lib/client';
+import { usePremiumStatus } from '@/features/payments/hooks/use-premium-status';
 import { getExportFormat } from '@/features/poster/lib/export-formats';
 import { formatColors } from '@/features/poster/lib/format-colors';
 import { renderFormat } from '@/features/poster/lib/render-format';
@@ -34,11 +31,7 @@ export function useMoonExport(
   const { facts, labels } = useMoonWords(sky);
   const [busy, setBusy] = useState<PosterExport['busy']>(null);
   const [notice, setNotice] = useState<PosterExport['notice']>(null);
-  const premiumUnlocked = useSyncExternalStore(
-    subscribePremiumToken,
-    () => readPremiumToken() !== null,
-    () => false,
-  );
+  const { unlocked: premiumUnlocked, amountToman: premiumPrice } = usePremiumStatus('moon', []);
 
   const run = useCallback(
     (action: NonNullable<PosterExport['busy']>, job: () => Promise<void>) => {
@@ -66,7 +59,9 @@ export function useMoonExport(
   return {
     busy,
     notice,
+    product: 'moon',
     premiumUnlocked,
+    premiumPrice,
     freeLocked: false,
     downloadPng: () =>
       run('png', async () => {
@@ -80,7 +75,7 @@ export function useMoonExport(
       run('premium', async () => {
         const ok = await ensurePremiumAccess(
           null,
-          { product: 'moon', save: () => saveMoonDraft(draft) },
+          { product: 'moon', features: [], save: () => saveMoonDraft(draft) },
         );
         if (!ok) return;
         if (format === 'poster') {

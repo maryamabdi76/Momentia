@@ -7,7 +7,7 @@ import { cn } from 'cn';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { PREMIUM_PRICE_TOMAN } from '@/features/payments/lib/client';
+import { PREMIUM_PRICE_UNIT_TOMAN } from '@/features/payments/lib/client';
 import { MAGNITUDE_PRESETS } from '@/features/sky/lib/layers';
 import { formatToman } from '../lib/digits';
 import type { PersonalizeValues } from '../lib/schemas';
@@ -120,9 +120,9 @@ export function SkyDetails({ control, layers, startOpen }: Props) {
                 <Crown aria-hidden className="mt-0.5 size-3.5 shrink-0 text-[#CEB47B]" />
                 <span>
                   {t('sky.constellationArt.premiumNote')}
-                  {PREMIUM_PRICE_TOMAN ? (
+                  {PREMIUM_PRICE_UNIT_TOMAN ? (
                     <span className="mt-1 block font-semibold">
-                      {t('premium.priceHint', { price: formatToman(PREMIUM_PRICE_TOMAN) })}
+                      {t('premium.priceHint', { price: formatToman(PREMIUM_PRICE_UNIT_TOMAN) })}
                     </span>
                   ) : null}
                 </span>

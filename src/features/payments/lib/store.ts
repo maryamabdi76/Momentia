@@ -1,4 +1,5 @@
 import { randomBytes, randomInt } from 'node:crypto';
+import { isProduct, normalizeFeatures, type Feature, type Product } from './pricing.ts';
 
 /**
  * Orders for the manual card-to-card checkout, kept in Upstash Redis over its REST
@@ -35,6 +36,9 @@ export type Order = {
   status: OrderStatus;
   /** What the buyer must transfer, in tomans: the price plus a few tomans that make it unique. */
   amountToman: number;
+  /** What the payment buys: one product, and the premium options (sky poster) it covers. */
+  product: Product;
+  features: Feature[];
 };
 
 /** An unpaid order (and the amount it reserves) lives one hour. */
@@ -139,9 +143,10 @@ export const MAX_AMOUNT_OFFSET = 99;
  */
 export async function createOrder(
   config: StoreConfig,
-  priceToman: number,
+  purchase: { product: Product; features: Feature[]; priceToman: number },
   fetchImpl: Fetch = fetch,
 ): Promise<{ id: string; amountToman: number } | null> {
+  const { product, features, priceToman } = purchase;
   const id = randomBytes(12).toString('base64url');
   for (let attempt = 0; attempt < 12; attempt++) {
     const amountToman = priceToman + randomInt(1, MAX_AMOUNT_OFFSET + 1);
@@ -151,7 +156,7 @@ export async function createOrder(
       fetchImpl,
     );
     if (reserved !== 'OK') continue;
-    const order: Order = { status: 'pending', amountToman };
+    const order: Order = { status: 'pending', amountToman, product, features };
     await command(
       config,
       ['SET', orderKey(id), JSON.stringify(order), 'EX', PENDING_TTL_SECONDS],
@@ -175,7 +180,14 @@ export async function readOrder(
     if (!statuses.includes(o.status as OrderStatus) || typeof o.amountToman !== 'number') {
       return null;
     }
-    return { status: o.status as OrderStatus, amountToman: o.amountToman };
+    // an order made before payments were per product bought the sky poster
+    const product: Product = isProduct(o.product) ? o.product : 'sky';
+    return {
+      status: o.status as OrderStatus,
+      amountToman: o.amountToman,
+      product,
+      features: normalizeFeatures(product, o.features),
+    };
   } catch {
     return null;
   }
@@ -238,4 +250,18 @@ export async function decideOrder(
     await command(config, ['DEL', amountKey(order.amountToman)], fetchImpl);
   }
   return decision;
+}
+
+/**
+ * Throws away an order that was never submitted (the buyer changed what they are buying),
+ * and frees the amount it reserved.
+ */
+export async function discardPending(
+  config: StoreConfig,
+  id: string,
+  fetchImpl: Fetch = fetch,
+): Promise<void> {
+  const order = await readOrder(config, id, fetchImpl);
+  if (!order || order.status !== 'pending') return;
+  await command(config, ['DEL', amountKey(order.amountToman), orderKey(id)], fetchImpl);
 }

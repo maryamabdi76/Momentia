@@ -8,6 +8,7 @@ import {
   readPremiumToken,
   subscribePremiumToken,
 } from '@/features/payments/lib/client';
+import type { Product } from '@/features/payments/lib/pricing';
 import { Button } from '@/components/ui/button';
 
 /**
@@ -15,9 +16,13 @@ import { Button } from '@/components/ui/button';
  * payment only lives in this tab for a short while, so the buyer keeps this code
  * to get help from /contact if the file never arrives. Nothing is shown without a token.
  */
-export function PaymentReceipt() {
+export function PaymentReceipt({ product }: { product: Product }) {
   const t = useTranslations('Support.receipt');
-  const token = useSyncExternalStore(subscribePremiumToken, readPremiumToken, () => null);
+  const token = useSyncExternalStore(
+    subscribePremiumToken,
+    () => readPremiumToken(product),
+    () => null,
+  );
   const code = paymentCodeFromToken(token);
   const [copied, setCopied] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);

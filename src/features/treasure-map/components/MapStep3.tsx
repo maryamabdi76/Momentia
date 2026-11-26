@@ -5,7 +5,6 @@ import { useTranslations } from 'next-intl';
 import { Check, Crown, Download, Loader2, Lock, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { PaymentDialog } from '@/features/payments/components/PaymentDialog';
-import { PREMIUM_PRICE_TOMAN } from '@/features/payments/lib/client';
 import { FormatPicker } from '@/features/poster/components/FormatPicker';
 import { formatToman, toPersianDigits } from '@/features/poster/lib/digits';
 import type { ExportFormatId } from '@/features/poster/lib/export-formats';
@@ -33,7 +32,7 @@ type Props = {
 export function MapStep3({ exporter, format, onFormatChange, valid, problems, data, onEdit, aspect }: Props) {
   const t = useTranslations('MapPage');
   const tSupport = useTranslations('Support');
-  const price = exporter.premiumUnlocked ? null : PREMIUM_PRICE_TOMAN;
+  const price = exporter.premiumUnlocked ? null : exporter.premiumPrice;
 
   return (
     <div className="space-y-6">
@@ -74,7 +73,7 @@ export function MapStep3({ exporter, format, onFormatChange, valid, problems, da
           </span>
         </div>
         {/* where the card-to-card payment stands, and the window to pay in */}
-        <PaymentDialog />
+        <PaymentDialog product={exporter.product} />
         <p className="text-[12px] leading-6 text-[#AAB6CD]">{t('premium.desc')}</p>
         <ul className="space-y-1.5">
           {([0, 1, 2] as const).map((i) => (

@@ -11,7 +11,7 @@ const clientIp = (request: Request) =>
  * "I lost the tab": the buyer types the tracking code. If it belongs to an open order, this
  * browser gets that order's cookie again and, when it was approved, the signed token.
  *
- *   { status: 'paid', token } | { status: 'submitted' | 'pending' | 'rejected' } | { status: 'none' }
+ *   { status: 'paid', token, product } | { status: 'submitted' | 'pending' | 'rejected' } | { status: 'none' }
  */
 export async function POST(request: Request) {
   const config = readPaymentConfig();
@@ -27,14 +27,21 @@ export async function POST(request: Request) {
     if (!found) return Response.json({ status: 'none' });
 
     const secure = new URL(request.url).protocol === 'https:';
-    const headers = { 'Set-Cookie': orderCookie(found.orderId, secure) };
+    const headers = { 'Set-Cookie': orderCookie(found.product, found.orderId, secure) };
     if (found.status === 'paid') {
       return Response.json(
-        { status: 'paid', token: signPremiumToken(found.orderId, config.secret) },
+        {
+          status: 'paid',
+          product: found.product,
+          token: signPremiumToken(found.orderId, config.secret, {
+            product: found.product,
+            features: found.features,
+          }),
+        },
         { headers },
       );
     }
-    return Response.json({ status: found.status }, { headers });
+    return Response.json({ status: found.status, product: found.product }, { headers });
   } catch (err) {
     console.error('payment recover failed', err);
     return Response.json({ status: 'unavailable' }, { status: 502 });

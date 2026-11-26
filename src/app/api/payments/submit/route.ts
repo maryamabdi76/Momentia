@@ -1,5 +1,6 @@
 import { readPaymentConfig } from '@/features/payments/lib/config';
 import { readOrderCookie } from '@/features/payments/lib/cookie';
+import { isProduct } from '@/features/payments/lib/pricing';
 import {
   ORDER_ID_PATTERN,
   acquireLock,
@@ -21,12 +22,17 @@ export async function POST(request: Request) {
     return Response.json({ error: 'not_configured' }, { status: 503 });
   }
 
-  const orderId = readOrderCookie(request.headers.get('cookie'));
+  const body = (await request.json().catch(() => null)) as {
+    product?: unknown;
+    last4?: unknown;
+  } | null;
+  const product = body?.product;
+  if (!isProduct(product)) return Response.json({ error: 'no_order' }, { status: 404 });
+  const orderId = readOrderCookie(request.headers.get('cookie'), product);
   if (!orderId || !ORDER_ID_PATTERN.test(orderId)) {
     return Response.json({ error: 'no_order' }, { status: 404 });
   }
 
-  const body = (await request.json().catch(() => null)) as { last4?: unknown } | null;
   const last4 = typeof body?.last4 === 'string' ? body.last4.trim() : '';
   if (last4 && !/^\d{4}$/.test(last4)) {
     return Response.json({ error: 'invalid_last4' }, { status: 400 });
@@ -34,7 +40,9 @@ export async function POST(request: Request) {
 
   try {
     const order = await readOrder(config.store, orderId);
-    if (!order) return Response.json({ error: 'no_order' }, { status: 404 });
+    if (!order || order.product !== product) {
+      return Response.json({ error: 'no_order' }, { status: 404 });
+    }
     // Already told the owner (or already decided): just report where it stands.
     if (order.status !== 'pending') return Response.json({ status: order.status });
 
@@ -56,6 +64,8 @@ export async function POST(request: Request) {
         orderId,
         amountToman: order.amountToman,
         payerLast4: last4 || null,
+        product: order.product,
+        features: order.features,
       });
     } catch (err) {
       // Without this the lock would stay for 30 seconds and a retry would be turned away.

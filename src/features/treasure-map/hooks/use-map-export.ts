@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState, useSyncExternalStore } from 'react';
+import { useCallback, useState } from 'react';
 import { getExportFormat, type ExportFormatId } from '@/features/poster/lib/export-formats';
 import { renderFormat } from '@/features/poster/lib/render-format';
 import {
@@ -8,7 +8,7 @@ import {
   downloadBlob,
 } from '@/features/poster/lib/export-poster';
 import { PremiumAccessError, ensurePremiumAccess } from '@/features/poster/lib/premium-access';
-import { readPremiumToken, subscribePremiumToken } from '@/features/payments/lib/client';
+import { usePremiumStatus } from '@/features/payments/hooks/use-premium-status';
 import { createMapSvg, svgToPngBlob } from '../lib/export-map';
 import { saveMapDraft } from '../lib/draft';
 import { mapAspect, mapPaperColor, type TreasureMapLabels, type TreasureMapData } from '../lib/map-svg';
@@ -19,7 +19,10 @@ const BASENAME = 'momentia-treasure-map';
 export type MapExport = {
   busy: 'premium' | 'svg' | null;
   notice: 'error' | 'payment' | null;
+  product: 'map';
   premiumUnlocked: boolean;
+  /** Tomans still to pay; `null` once paid or when no price is set. */
+  premiumPrice: number | null;
   /** Every file is premium: without a payment this opens the payment window instead. */
   downloadPremium: (format: ExportFormatId) => void;
   downloadSvg: () => void;
@@ -33,11 +36,7 @@ export function useMapExport(
 ): MapExport {
   const [busy, setBusy] = useState<MapExport['busy']>(null);
   const [notice, setNotice] = useState<MapExport['notice']>(null);
-  const premiumUnlocked = useSyncExternalStore(
-    subscribePremiumToken,
-    () => readPremiumToken() !== null,
-    () => false,
-  );
+  const { unlocked: premiumUnlocked, amountToman: premiumPrice } = usePremiumStatus('map', []);
 
   const run = useCallback(
     (action: NonNullable<MapExport['busy']>, job: () => Promise<void>) => {
@@ -55,13 +54,15 @@ export function useMapExport(
   );
 
   const paid = () =>
-    ensurePremiumAccess(null, { product: 'map', save: () => saveMapDraft(draft) });
+    ensurePremiumAccess(null, { product: 'map', features: [], save: () => saveMapDraft(draft) });
   const svg = () => createMapSvg({ data, labels, watermark: false });
 
   return {
     busy,
     notice,
+    product: 'map',
     premiumUnlocked,
+    premiumPrice,
     downloadPremium: (format) =>
       run('premium', async () => {
         if (!(await paid())) return;

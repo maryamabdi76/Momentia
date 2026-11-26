@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState, useSyncExternalStore } from 'react';
+import { useCallback, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import type { SkySnapshot } from '@/features/sky/lib/types';
 import type { PosterData, PosterLabels } from '../components/PosterPreview';
@@ -11,12 +11,10 @@ import {
   downloadBlob,
   svgToPngBlob,
 } from '../lib/export-poster';
-import {
-  readPremiumToken,
-  subscribePremiumToken,
-} from '@/features/payments/lib/client';
+import type { Product } from '@/features/payments/lib/pricing';
+import { usePremiumStatus } from '@/features/payments/hooks/use-premium-status';
 import type { PosterDraft } from '../lib/draft';
-import { usesPremiumFeatures } from '../lib/premium-features';
+import { premiumFeaturesOf, usesPremiumFeatures } from '../lib/premium-features';
 import { PremiumAccessError, ensurePremiumAccess } from '../lib/premium-access';
 import { trackEvent } from '@/lib/track';
 import { getExportFormat, type ExportFormatId } from '../lib/export-formats';
@@ -32,7 +30,11 @@ export type PosterExport = {
   /** The poster uses a premium option, so it has no free download (PNG, SVG and share are locked). */
   freeLocked: boolean;
   /** A payment has been verified in this browser session. */
+  /** Which product this exporter sells (a payment only opens that product). */
+  product: Product;
   premiumUnlocked: boolean;
+  /** Tomans still to pay for the file as it is now (only the difference after an earlier payment); `null` when paid or unpriced. */
+  premiumPrice: number | null;
   downloadPng: () => void;
   downloadSvg: () => void;
   /** The paid, watermark-free file in one of the export formats (the poster PNG by default). */
@@ -51,10 +53,10 @@ export function usePosterExport(
   const tShare = useTranslations('CreatePage.step3');
   const [busy, setBusy] = useState<ExportAction | null>(null);
   const [notice, setNotice] = useState<PosterExport['notice']>(null);
-  const premiumUnlocked = useSyncExternalStore(
-    subscribePremiumToken,
-    () => readPremiumToken() !== null,
-    () => false,
+  const premiumFeatures = premiumFeaturesOf(draft.personal);
+  const { unlocked: premiumUnlocked, amountToman: premiumPrice } = usePremiumStatus(
+    'sky',
+    premiumFeatures,
   );
 
   const labels: PosterLabels = {
@@ -96,7 +98,9 @@ export function usePosterExport(
   return {
     busy,
     notice,
+    product: 'sky',
     premiumUnlocked,
+    premiumPrice,
     freeLocked,
     downloadPng: () =>
       run('png', async () => {
@@ -111,7 +115,7 @@ export function usePosterExport(
       }),
     downloadPremium: (format = 'poster') =>
       run('premium', async () => {
-        if (!(await ensurePremiumAccess(draft))) return;
+        if (!(await ensurePremiumAccess(draft, { product: 'sky', features: premiumFeatures }))) return;
         if (format === 'poster') {
           downloadBlob(await png(false, PREMIUM_PNG_WIDTH), `${BASENAME}-premium.png`);
           return;

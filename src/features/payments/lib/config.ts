@@ -12,7 +12,8 @@ import { readTelegramConfig, type TelegramConfig } from './telegram.ts';
  *   UPSTASH_REDIS_REST_URL/_TOKEN   where orders are kept; the Vercel KV_REST_API_URL/_TOKEN
  *                                   names work too
  *   PAYMENT_TOKEN_SECRET            ≥ 32 random characters, signs the download token
- *   NEXT_PUBLIC_PREMIUM_PRICE_IRT   price in tomans (shown in the UI; a few tomans are added per order)
+ *   NEXT_PUBLIC_PREMIUM_PRICE_IRT   the price unit in tomans (15000): every price is a multiple of it, see pricing.ts
+ *                                   (a few tomans are added per order to tell deposits apart)
  */
 export type PaymentCard = { number: string; holder: string | null; bank: string | null };
 

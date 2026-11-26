@@ -1,10 +1,16 @@
+import type { Feature, Product } from './pricing.ts';
 import { ORDER_ID_PATTERN, readOrder, type StoreConfig } from './store.ts';
 
 type Fetch = typeof fetch;
 
 /** Why a tracking code gave nothing. Both look the same to the caller of the API. */
 export type RecoverResult =
-  | { orderId: string; status: 'pending' | 'submitted' | 'paid' | 'rejected' }
+  | {
+      orderId: string;
+      status: 'pending' | 'submitted' | 'paid' | 'rejected';
+      product: Product;
+      features: Feature[];
+    }
   | null;
 
 /**
@@ -23,5 +29,5 @@ export async function recoverOrder(
   if (!ORDER_ID_PATTERN.test(code)) return null;
   const order = await readOrder(store, code, fetchImpl);
   if (!order) return null;
-  return { orderId: code, status: order.status };
+  return { orderId: code, status: order.status, product: order.product, features: order.features };
 }

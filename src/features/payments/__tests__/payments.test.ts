@@ -2,13 +2,14 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { normalizeCardNumber, readPaymentConfig } from '../lib/config.ts';
 import { signPremiumToken, verifyPremiumToken } from '../lib/token.ts';
-import { ORDER_COOKIE, orderCookie, readOrderCookie } from '../lib/cookie.ts';
+import { orderCookie, orderCookieName, readOrderCookie } from '../lib/cookie.ts';
 import {
   MAX_AMOUNT_OFFSET,
   ORDER_ID_PATTERN,
   acquireLock,
   allow,
   createOrder,
+  discardPending,
   decideOrder,
   markSubmitted,
   readOrder,
@@ -30,6 +31,8 @@ import {
 import { recoverOrder } from '../lib/recover.ts';
 import { formatToman } from '../../poster/lib/digits.ts';
 
+const SKY = { product: 'sky' as const, features: [], priceToman: 49000 };
+const BUY = { product: 'sky' as const, features: [] };
 const SECRET = 'x'.repeat(40);
 const OWNER = '123456789';
 const ID = 'aB3xY9Qw2Zk7Lm4P';
@@ -60,7 +63,7 @@ function fakeRedis() {
         return json({ result: 'OK' });
       }
       case 'DEL':
-        return json({ result: data.delete(key) ? 1 : 0 });
+        return json({ result: [key, ...rest].filter((k) => data.delete(String(k))).length });
       case 'INCR': {
         const n = Number(data.get(key) ?? 0) + 1;
         data.set(key, String(n));
@@ -131,30 +134,36 @@ test('store config accepts the Upstash and Vercel KV variable names, https only'
 });
 
 test('premium token round-trips and rejects tampering and expiry', () => {
-  const token = signPremiumToken(ID, SECRET, 1_000, 5_000);
-  assert.deepEqual(verifyPremiumToken(token, SECRET, 2_000), { reference: ID });
+  const token = signPremiumToken(ID, SECRET, { product: 'moon', features: [] }, 1_000, 5_000);
+  assert.deepEqual(verifyPremiumToken(token, SECRET, 2_000), {
+    reference: ID,
+    product: 'moon',
+    features: [],
+  });
   assert.equal(verifyPremiumToken(token, SECRET, 7_000), null);
   assert.equal(verifyPremiumToken(token, 'y'.repeat(40), 2_000), null);
   assert.equal(verifyPremiumToken(`${token}x`, SECRET, 2_000), null);
 });
 
-test('order cookie is HttpOnly, scoped to the payments API and read back by name', () => {
-  const cookie = orderCookie(ID, true);
-  assert.match(cookie, new RegExp(`^${ORDER_COOKIE}=${ID};`));
+test('order cookie is HttpOnly, scoped to the payments API and read back by product', () => {
+  const cookie = orderCookie('moon', ID, true);
+  assert.match(cookie, new RegExp(`^${orderCookieName('moon')}=${ID};`));
   assert.match(cookie, /HttpOnly/);
   assert.match(cookie, /Path=\/api\/payments/);
   assert.match(cookie, /Secure/);
-  assert.doesNotMatch(orderCookie(ID, false), /Secure/);
-  assert.equal(readOrderCookie(`a=1; ${ORDER_COOKIE}=${ID}; b=2`), ID);
-  assert.equal(readOrderCookie('a=1'), null);
-  assert.equal(readOrderCookie(null), null);
+  assert.doesNotMatch(orderCookie('moon', ID, false), /Secure/);
+  assert.equal(readOrderCookie(`a=1; ${orderCookieName('moon')}=${ID}; b=2`, 'moon'), ID);
+  // the moon order is not the map's order
+  assert.equal(readOrderCookie(`${orderCookieName('moon')}=${ID}`, 'map'), null);
+  assert.equal(readOrderCookie('a=1', 'moon'), null);
+  assert.equal(readOrderCookie(null, 'moon'), null);
 });
 
 test('an order reserves a unique amount just above the price', async () => {
   const redis = fakeRedis();
   const seen = new Set<number>();
   for (let i = 0; i < 20; i++) {
-    const order = await createOrder(store, 49000, redis.fetchImpl);
+    const order = await createOrder(store, SKY, redis.fetchImpl);
     assert.ok(order);
     assert.match(order.id, ORDER_ID_PATTERN);
     assert.ok(order.amountToman > 49000 && order.amountToman <= 49000 + MAX_AMOUNT_OFFSET);
@@ -162,6 +171,8 @@ test('an order reserves a unique amount just above the price', async () => {
     seen.add(order.amountToman);
     assert.deepEqual(await readOrder(store, order.id, redis.fetchImpl), {
       status: 'pending',
+      product: 'sky',
+      features: [],
       amountToman: order.amountToman,
     });
   }
@@ -174,12 +185,12 @@ test('createOrder gives up (instead of sharing an amount) when every amount is t
   for (let offset = 1; offset <= MAX_AMOUNT_OFFSET; offset++) {
     redis.data.set(`momentia:amount:${49000 + offset}`, 'someone');
   }
-  assert.equal(await createOrder(store, 49000, redis.fetchImpl), null);
+  assert.equal(await createOrder(store, SKY, redis.fetchImpl), null);
 });
 
 test('submitting an order is allowed once and keeps the amount reserved for a day', async () => {
   const redis = fakeRedis();
-  const order = (await createOrder(store, 49000, redis.fetchImpl))!;
+  const order = (await createOrder(store, SKY, redis.fetchImpl))!;
   assert.equal(await markSubmitted(store, order.id, redis.fetchImpl), 'submitted');
   assert.equal((await readOrder(store, order.id, redis.fetchImpl))?.status, 'submitted');
   assert.equal(redis.ttl.get(`momentia:amount:${order.amountToman}`), 24 * 60 * 60);
@@ -189,7 +200,7 @@ test('submitting an order is allowed once and keeps the amount reserved for a da
 
 test('only a submitted order can be decided, and a decision is final', async () => {
   const redis = fakeRedis();
-  const order = (await createOrder(store, 49000, redis.fetchImpl))!;
+  const order = (await createOrder(store, SKY, redis.fetchImpl))!;
   assert.equal(await decideOrder(store, order.id, 'paid', redis.fetchImpl), 'not_submitted');
   await markSubmitted(store, order.id, redis.fetchImpl);
   assert.equal(await decideOrder(store, order.id, 'paid', redis.fetchImpl), 'paid');
@@ -202,7 +213,7 @@ test('only a submitted order can be decided, and a decision is final', async () 
 
 test('rejecting an order frees its amount for someone else', async () => {
   const redis = fakeRedis();
-  const order = (await createOrder(store, 49000, redis.fetchImpl))!;
+  const order = (await createOrder(store, SKY, redis.fetchImpl))!;
   await markSubmitted(store, order.id, redis.fetchImpl);
   assert.equal(await decideOrder(store, order.id, 'rejected', redis.fetchImpl), 'rejected');
   assert.equal(redis.data.has(`momentia:amount:${order.amountToman}`), false);
@@ -210,7 +221,7 @@ test('rejecting an order frees its amount for someone else', async () => {
 
 test('a decision never resurrects an expired order', async () => {
   const redis = fakeRedis();
-  const order = (await createOrder(store, 49000, redis.fetchImpl))!;
+  const order = (await createOrder(store, SKY, redis.fetchImpl))!;
   await markSubmitted(store, order.id, redis.fetchImpl);
   redis.data.delete(`momentia:order:${order.id}`);
   assert.equal(await decideOrder(store, order.id, 'paid', redis.fetchImpl), 'unknown');
@@ -237,7 +248,7 @@ test('the owner is sent the amount, the order and the buyer\'s last digits with 
     sent.push({ url, body: JSON.parse(init.body as string) });
     return json({ ok: true, result: {} });
   }) as unknown as typeof fetch;
-  await sendApprovalRequest(telegram, { orderId: ID, amountToman: 49023, payerLast4: '1234' }, fetchImpl);
+  await sendApprovalRequest(telegram, { ...BUY, orderId: ID, amountToman: 49023, payerLast4: '1234' }, fetchImpl);
   assert.equal(sent[0].url, 'https://api.telegram.org/bot1:abc/sendMessage');
   assert.equal(sent[0].body.chat_id, OWNER);
   const text = sent[0].body.text as string;
@@ -247,14 +258,14 @@ test('the owner is sent the amount, the order and the buyer\'s last digits with 
     .inline_keyboard[0];
   assert.deepEqual(buttons.map((b) => b.callback_data), [`ok:${ID}`, `no:${ID}`]);
   assert.ok(buttons.every((b) => Buffer.byteLength(b.callback_data) <= 64));
-  assert.match(approvalText({ orderId: ID, amountToman: 1, payerLast4: null }), /وارد نشده/);
+  assert.match(approvalText({ ...BUY, orderId: ID, amountToman: 1, payerLast4: null }), /وارد نشده/);
 });
 
 test('a failed Telegram call is reported as an error', async () => {
   const fetchImpl = (async () =>
     json({ ok: false, description: 'Forbidden: bot was blocked' }, 403)) as unknown as typeof fetch;
   await assert.rejects(
-    sendApprovalRequest(telegram, { orderId: ID, amountToman: 1, payerLast4: null }, fetchImpl),
+    sendApprovalRequest(telegram, { ...BUY, orderId: ID, amountToman: 1, payerLast4: null }, fetchImpl),
     /blocked/,
   );
 });
@@ -322,7 +333,7 @@ test('a lock that is released can be taken again at once (a failed send must not
 });
 
 test('a network failure or a 5xx is retried once; a wrong chat id is not', async () => {
-  const input = { orderId: ID, amountToman: 1, payerLast4: null };
+  const input = { ...BUY, orderId: ID, amountToman: 1, payerLast4: null };
   let calls = 0;
   const flaky = (async () => {
     calls++;
@@ -346,7 +357,7 @@ test('a network error never carries the bot token', async () => {
     throw new TypeError(`fetch failed https://api.telegram.org/bot${telegram.botToken}/sendMessage`);
   }) as unknown as typeof fetch;
   await assert.rejects(
-    sendApprovalRequest(telegram, { orderId: ID, amountToman: 1, payerLast4: null }, down, 0),
+    sendApprovalRequest(telegram, { ...BUY, orderId: ID, amountToman: 1, payerLast4: null }, down, 0),
     (err: Error) => err instanceof TelegramError && !err.message.includes(telegram.botToken),
   );
 });
@@ -361,15 +372,19 @@ test('failures are explained for the server log', () => {
 
 test('a tracking code finds its order, with or without stray spaces, and nothing else does', async () => {
   const redis = fakeRedis();
-  const order = await createOrder(store, 49000, redis.fetchImpl);
+  const order = await createOrder(store, SKY, redis.fetchImpl);
   assert.ok(order);
   assert.deepEqual(await recoverOrder(store, order.id, redis.fetchImpl), {
     orderId: order.id,
+    product: 'sky',
+    features: [],
     status: 'pending',
   });
   assert.equal(await markSubmitted(store, order.id, redis.fetchImpl), 'submitted');
   assert.deepEqual(await recoverOrder(store, `  ${order.id}\n`, redis.fetchImpl), {
     orderId: order.id,
+    product: 'sky',
+    features: [],
     status: 'submitted',
   });
   assert.equal(await recoverOrder(store, 'short', redis.fetchImpl), null);
@@ -386,4 +401,38 @@ test('a refunded try does not count towards the limit', async () => {
   // real tries still run out
   for (let i = 0; i < 5; i++) assert.equal(await allow(store, 'submit:z', 5, 3600, redis.fetchImpl), true);
   assert.equal(await allow(store, 'submit:z', 5, 3600, redis.fetchImpl), false);
+});
+
+test('orders remember what was bought, and a pending one can be dropped (its amount is freed)', async () => {
+  const redis = fakeRedis();
+  const map = await createOrder(
+    store,
+    { product: 'map', features: [], priceToman: 45_000 },
+    redis.fetchImpl,
+  );
+  assert.ok(map);
+  assert.ok(map.amountToman > 45_000);
+  const read = await readOrder(store, map.id, redis.fetchImpl);
+  assert.equal(read?.product, 'map');
+  await discardPending(store, map.id, redis.fetchImpl);
+  assert.equal(await readOrder(store, map.id, redis.fetchImpl), null);
+  // a submitted order is the owner's to decide and is never dropped
+  const sky = await createOrder(store, SKY, redis.fetchImpl);
+  assert.ok(sky);
+  assert.equal(await markSubmitted(store, sky.id, redis.fetchImpl), 'submitted');
+  await discardPending(store, sky.id, redis.fetchImpl);
+  assert.equal((await readOrder(store, sky.id, redis.fetchImpl))?.status, 'submitted');
+});
+
+test('the owner is told which product and options were bought', () => {
+  const text = approvalText({
+    orderId: ID,
+    amountToman: 45_011,
+    payerLast4: null,
+    product: 'sky',
+    features: ['fullTemplate'],
+  });
+  assert.match(text, /پوستر آسمان/);
+  assert.match(text, /قالب تمام‌صفحه/);
+  assert.match(approvalText({ ...BUY, product: 'map', orderId: ID, amountToman: 1, payerLast4: null }), /نقشهٔ گنج/);
 });

@@ -1,3 +1,4 @@
+import type { Feature } from '@/features/payments/lib/pricing.ts';
 import type { SkyLayers } from '@/features/sky/lib/layers';
 import { isPremiumTemplate, type PosterTemplate } from './templates.ts';
 
@@ -12,4 +13,15 @@ export function usesPremiumFeatures(poster: {
   layers?: Partial<Pick<SkyLayers, 'constellationArt'>> | null;
 }): boolean {
   return isPremiumTemplate(poster.template) || poster.layers?.constellationArt === true;
+}
+
+/** The premium options a sky poster uses, as the payment system names them (each adds to the price). */
+export function premiumFeaturesOf(poster: {
+  template: PosterTemplate;
+  layers?: Partial<Pick<SkyLayers, 'constellationArt'>> | null;
+}): Feature[] {
+  return [
+    ...(isPremiumTemplate(poster.template) ? (['fullTemplate'] as const) : []),
+    ...(poster.layers?.constellationArt === true ? (['paintedConstellations'] as const) : []),
+  ];
 }

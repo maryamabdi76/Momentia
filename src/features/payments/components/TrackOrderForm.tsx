@@ -22,7 +22,7 @@ export function TrackOrderForm() {
     setBusy(true);
     setOutcome(null);
     const result = await recoverByCode(code);
-    if (result.status === 'paid') storePremiumToken(result.token);
+    if (result.status === 'paid') storePremiumToken(result.product ?? 'sky', result.token);
     setOutcome(result.status);
     setBusy(false);
   }

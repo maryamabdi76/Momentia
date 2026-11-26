@@ -170,7 +170,7 @@ Copy `.env.example` to `.env.local` and fill it in. Without the payment settings
 
 | Variable                                         | Purpose                                                      |
 | ------------------------------------------------ | ------------------------------------------------------------ |
-| `NEXT_PUBLIC_PREMIUM_PRICE_IRT`                  | Premium price in tomans (each order adds 1 to 99 tomans)     |
+| `NEXT_PUBLIC_PREMIUM_PRICE_IRT`                  | Price unit in tomans (15000): sky 2x, moon 2x, map 3x, +1x per sky option; each order adds 1 to 99 |
 | `PAYMENT_CARD`                                   | 16-digit card buyers pay into                                |
 | `PAYMENT_CARD_HOLDER` / `PAYMENT_CARD_BANK`      | Optional, shown next to the number                           |
 | `TELEGRAM_BOT_TOKEN`                             | Bot token from @BotFather                                    |

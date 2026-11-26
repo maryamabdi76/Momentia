@@ -12,7 +12,6 @@ import {
   ShieldCheck,
 } from 'lucide-react';
 import { PaymentDialog } from '@/features/payments/components/PaymentDialog';
-import { PREMIUM_PRICE_TOMAN } from '@/features/payments/lib/client';
 import { DonateCard } from '@/features/support/components/DonateCard';
 import { formatToman } from '../lib/digits';
 import type { ExportFormatId } from '../lib/export-formats';
@@ -157,7 +156,7 @@ export function Step3Receive({
         </span>
       </div>
       {/* where the card-to-card payment stands, and the window to pay in */}
-      <PaymentDialog />
+      <PaymentDialog product={exporter.product} />
       <p className="text-[12px] leading-6 text-[#AAB6CD]">{t('premiumDesc')}</p>
       <ul className="space-y-1.5">
         {([0, 1, 2, 3] as const).map((i) => (
@@ -180,8 +179,8 @@ export function Step3Receive({
         className={`${ctaPrimary} w-full`}
       >
         {icon('premium')}
-        {!exporter.premiumUnlocked && PREMIUM_PRICE_TOMAN
-          ? t('premiumPayBtn', { price: formatToman(PREMIUM_PRICE_TOMAN) })
+        {!exporter.premiumUnlocked && exporter.premiumPrice
+          ? t('premiumPayBtn', { price: formatToman(exporter.premiumPrice) })
           : t('premiumDownloadBtn')}
       </Button>
       {/* The gateway error belongs next to the button that caused it */}

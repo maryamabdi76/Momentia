@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { Crown } from 'lucide-react';
-import { PREMIUM_PRICE_TOMAN } from '@/features/payments/lib/client';
+import { PREMIUM_PRICE_UNIT_TOMAN } from '@/features/payments/lib/client';
 import { formatToman } from '../lib/digits';
 import { POSTER_TEMPLATES, isPremiumTemplate, type PosterTemplate } from '../lib/templates';
 import { ChoiceGroup } from './ChoiceGroup';
@@ -55,9 +55,9 @@ export function TemplatePicker({ value, onChange }: Props) {
           <Crown aria-hidden className="mt-0.5 size-3.5 shrink-0 text-[#CEB47B]" />
           <span>
             {t('premium.note')}
-            {PREMIUM_PRICE_TOMAN ? (
+            {PREMIUM_PRICE_UNIT_TOMAN ? (
               <span className="mt-1 block font-semibold">
-                {t('premium.priceHint', { price: formatToman(PREMIUM_PRICE_TOMAN) })}
+                {t('premium.priceHint', { price: formatToman(PREMIUM_PRICE_UNIT_TOMAN) })}
               </span>
             ) : null}
           </span>
